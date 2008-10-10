@@ -314,6 +314,11 @@ static suspend_state_t decode_state(const char *buf, size_t n)
 {
 #ifdef CONFIG_SUSPEND
 	suspend_state_t state = PM_SUSPEND_MIN;
+#ifdef CONFIG_EARLYSUSPEND
+	suspend_state_t state = PM_SUSPEND_ON;
+#else
+	suspend_state_t state = PM_SUSPEND_STANDBY;
+#endif
 	const char * const *s;
 #endif
 	char *p;
@@ -330,6 +335,17 @@ static suspend_state_t decode_state(const char *buf, size_t n)
 	for (s = &pm_states[state]; state < PM_SUSPEND_MAX; s++, state++)
 		if (*s && len == strlen(*s) && !strncmp(buf, *s, len))
 			return state;
+#ifdef CONFIG_EARLYSUSPEND
+			if (state == PM_SUSPEND_ON || valid_state(state)) {
+				error = 0;
+				request_suspend_state(state);
+				break;
+			}
+#else
+			error = pm_suspend(state);
+#endif
+		}
+	}
 #endif
 
 	return PM_SUSPEND_ON;
