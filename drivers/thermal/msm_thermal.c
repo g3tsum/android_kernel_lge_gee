@@ -30,6 +30,9 @@ unsigned int polling = HZ*2;
 unsigned int temp_threshold = 60;
 module_param(temp_threshold, int, 0755);
 
+#define DEF_TEMP_SENSOR      0
+
+static int enabled;
 static struct msm_thermal_data msm_thermal_info;
 
 static struct workqueue_struct *wq;
@@ -152,7 +155,14 @@ static void check_temp(struct work_struct *work)
 	{
 		max_freq = 702000;
 		polling = HZ/8;
+	tsens_dev.sensor_num = DEF_TEMP_SENSOR;
+	ret = tsens_get_temp(&tsens_dev, &temp);
+	if (ret) {
+		pr_info("msm_thermal: Unable to read TSENS sensor %d\n",
+				tsens_dev.sensor_num);
+		goto reschedule;
 	}
+pr_info("msm_thermal: current temp: %lu", temp);
 
 	/* temperature is high, lets throttle even more and 
 	   poll faster (every .25s) */
@@ -365,6 +375,10 @@ static void check_temp(struct work_struct *work)
 			update_cpu_max_freq(cpu_policy, cpu, max_freq);
 
 		cpufreq_cpu_put(cpu_policy);
+		ret = update_cpu_max_freq(cpu, max_freq);
+		if (ret)
+			pr_info("Unable to limit cpu%d max freq to %d\n",
+					cpu, max_freq);
 	}
 
 reschedule:
