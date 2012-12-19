@@ -779,6 +779,9 @@ void disable_irq_callback(void *info)
  * junk values out of them.
  */
 static int __cpuinit pmu_cpu_notify(struct notifier_block *b,
+
+static int pmu_cpu_notify(struct notifier_block *b,
+
 					unsigned long action, void *hcpu)
 {
 	int irq;
