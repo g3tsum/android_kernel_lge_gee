@@ -267,6 +267,9 @@ static void check_temp(struct work_struct *work)
 				if (cpu == 3)
 					thermal_throttled = 0;
 				pr_warn("msm_thermal: Low Thermal Throttling Ended! temp:%lu by:%s\n",
+				update_policy = true;
+                                thermal_throttled = 0;
+				pr_warn("msm_thermal: CPU%i: Low thermal throttle ended! temp:%lu by:%s\n", cpu,
                                 (max(temp0, temp1)), (temp0>temp1) ? "0" : "1");
 			}
 		//mid trip point
@@ -288,6 +291,9 @@ static void check_temp(struct work_struct *work)
 				if (cpu == 3)
 					thermal_throttled = 1;
 				pr_warn("msm_thermal: Mid Thermal Throttling Ended! temp:%lu by:%s\n",
+				update_policy = true;
+                                thermal_throttled = 1;
+				pr_warn("msm_thermal: CPU%i: Mid thermal throttle ended! temp:%lu by:%s\n", cpu,
                                 (max(temp0, temp1)), (temp0>temp1) ? "0" : "1");
 			}
 		//max trip point
@@ -308,6 +314,9 @@ static void check_temp(struct work_struct *work)
 				if (cpu == 3)
 					thermal_throttled = 2;
 				pr_warn("msm_thermal: Max Thermal Throttling Ended! temp:%lu by:%s\n",
+				update_policy = true;
+                                thermal_throttled = 2;
+				pr_warn("msm_thermal: CPU%i: Max thermal throttle ended! temp:%lu by:%s\n", cpu,
                                 (max(temp0, temp1)), (temp0>temp1) ? "0" : "1");
 			}
 		}
