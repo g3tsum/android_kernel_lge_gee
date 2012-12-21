@@ -304,6 +304,7 @@ pr_info("msm_thermal: current temp: %lu", temp);
 			   ((max(temp0, temp1)) < msm_thermal_tuners_ins.allowed_mid_low) &&
 			   (cpu_policy->max > msm_thermal_tuners_ins.allowed_mid_freq)) {
 			update_policy = 1;
+		} else if (((max(temp0, temp1)) >= msm_thermal_tuners_ins.allowed_mid_high) &&
 			   ((max(temp0, temp1)) < msm_thermal_tuners_ins.allowed_max_high) &&
 			   (thermal_throttled < 2)) {
 			update_policy = true;
