@@ -20,6 +20,7 @@
 #include <linux/workqueue.h>
 #include <linux/cpu.h>
 #include <linux/reboot.h>
+#include <linux/earlysuspend.h>
 
 /*
  * Poll for temperature changes every 2 seconds.
@@ -77,6 +78,9 @@ static int thermal_throttled = 0;
 
 //Safe the cpu max freq before throttling
 static int pre_throttled_max = 0;
+
+//screen status
+static bool screen_blank = false;
 
 static struct delayed_work check_temp_work;
 static struct workqueue_struct *check_temp_workq;
@@ -210,6 +214,7 @@ pr_info("msm_thermal: current temp: %lu", temp);
 	bool update_policy = false;
 	int i = 0, cpu = 0;
 	int ret0 = 0, ret1 = 0;
+        bool sensor_fail = false;
 
 	tsens_dev0.sensor_num = DEF_TEMP_SENSOR0;
 	ret0 = tsens_get_temp(&tsens_dev0, &temp0);
@@ -222,10 +227,20 @@ pr_info("msm_thermal: current temp: %lu", temp);
 	}
 
         if ((max(temp0, temp1)) >= (msm_thermal_tuners_ins.shutdown_temp)) {
+        if ((screen_blank) || (temp1 < 0) || (temp1 > 150)) {
+                sensor_fail = true;
+                temp = temp0;
+        } else {
+                sensor_fail = false;
+                temp = (max(temp0, temp1));
+        }
+
+        if (temp >= msm_thermal_tuners_ins.shutdown_temp) {
                 mutex_lock(&emergency_shutdown_mutex);
                 pr_warn("################################\n");
                 pr_warn("################################\n");
                 pr_warn("- %u OVERTEMP! SHUTTING DOWN! -\n", msm_thermal_tuners_ins.shutdown_temp);
+                pr_warn("- cur temp:%lu measured by:%s -\n", temp, ((sensor_fail) || (temp0>temp1)) ? "0" : "1");
                 pr_warn("################################\n");
                 pr_warn("################################\n");
                 /* orderly poweroff tries to power down gracefully
@@ -267,6 +282,7 @@ pr_info("msm_thermal: current temp: %lu", temp);
                                 thermal_throttled = 1;
                                 pr_warn("msm_thermal: Thermal Throttled (low)! temp:%lu by:%s\n",
                                         (max(temp0, temp1)), (temp0>temp1) ? "0" : "1");
+                                        temp, ((sensor_fail) || (temp0>temp1)) ? "0" : "1");
                         }
 		//low clr point
 		} else if (((max(temp0, temp1)) < msm_thermal_tuners_ins.allowed_low_low) &&
@@ -298,6 +314,7 @@ pr_info("msm_thermal: current temp: %lu", temp);
                                 thermal_throttled = 0;
                                 pr_warn("msm_thermal: Low thermal throttle ended! temp:%lu by:%s\n",
                                         (max(temp0, temp1)), (temp0>temp1) ? "0" : "1");
+                                        temp, ((sensor_fail) || (temp0>temp1)) ? "0" : "1");
                         }
 		//mid trip point
 		} else if (((max(temp0, temp1)) >= msm_thermal_tuners_ins.allowed_low_high) &&
@@ -313,6 +330,7 @@ pr_info("msm_thermal: current temp: %lu", temp);
                                 thermal_throttled = 2;
                                 pr_warn("msm_thermal: Thermal Throttled (mid)! temp:%lu by:%s\n",
                                         (max(temp0, temp1)), (temp0>temp1) ? "0" : "1");
+                                        temp, ((sensor_fail) || (temp0>temp1)) ? "0" : "1");
                         }
 		//mid clr point
 		} else if (((max(temp0, temp1)) < msm_thermal_tuners_ins.allowed_mid_low) &&
@@ -335,6 +353,7 @@ pr_info("msm_thermal: current temp: %lu", temp);
                                 thermal_throttled = 1;
                                 pr_warn("msm_thermal: Mid thermal throttle ended! temp:%lu by:%s\n",
                                         (max(temp0, temp1)), (temp0>temp1) ? "0" : "1");
+                                        temp, ((sensor_fail) || (temp0>temp1)) ? "0" : "1");
                         }
 		//max trip point
 		} else if (((max(temp0, temp1)) >= msm_thermal_tuners_ins.allowed_max_high) &&
@@ -347,6 +366,7 @@ pr_info("msm_thermal: current temp: %lu", temp);
 			        thermal_throttled = 3;
                                 pr_warn("msm_thermal: Thermal Throttled (max)! temp:%lu by:%s\n",
                                         (max(temp0, temp1)), (temp0>temp1) ? "0" : "1");
+                                        temp, ((sensor_fail) || (temp0>temp1)) ? "0" : "1");
                         }
 		//max clr point
 		} else if (((max(temp0, temp1)) < msm_thermal_tuners_ins.allowed_max_low) &&
@@ -369,6 +389,7 @@ pr_info("msm_thermal: current temp: %lu", temp);
                                 thermal_throttled = 2;
                                 pr_warn("msm_thermal: Max thermal throttle ended! temp:%lu by:%s\n",
                                         (max(temp0, temp1)), (temp0>temp1) ? "0" : "1");
+                                        temp, ((sensor_fail) || (temp0>temp1)) ? "0" : "1");
                         }
 		}
 
@@ -645,6 +666,22 @@ static struct attribute_group msm_thermal_attr_group = {
 };
 /**************************** SYSFS END ****************************/
 
+static void msm_thermal_early_suspend(struct early_suspend *h)
+{
+        screen_blank = true;
+}
+
+static void msm_thermal_late_resume(struct early_suspend *h)
+{
+        screen_blank = false;
+}
+
+static struct early_suspend msm_thermal_early_suspend_handler = {
+	.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN,
+	.suspend = msm_thermal_early_suspend,
+	.resume = msm_thermal_late_resume,
+};
+
 static int __init msm_thermal_init(void)
 {
 	int rc, ret = 0;
@@ -669,6 +706,8 @@ static int __init msm_thermal_init(void)
 		}
 	} else
 		pr_warn("msm_thermal: sysfs: ERROR, could not create sysfs kobj");
+
+        register_early_suspend(&msm_thermal_early_suspend_handler);
 
 	return ret;
 }
