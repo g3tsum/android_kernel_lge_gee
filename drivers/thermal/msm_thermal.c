@@ -214,7 +214,7 @@ pr_info("msm_thermal: current temp: %lu", temp);
 	bool update_policy = false;
 	int i = 0, cpu = 0;
 	int ret0 = 0, ret1 = 0;
-        bool sensor_fail = false;
+        bool sensor_fail = true;
 
 	tsens_dev0.sensor_num = DEF_TEMP_SENSOR0;
 	ret0 = tsens_get_temp(&tsens_dev0, &temp0);
