@@ -1046,6 +1046,7 @@ static int __devinit tsens_tm_probe(struct platform_device *pdev)
 		}
 		tmdev->sensor[i].mode = THERMAL_DEVICE_DISABLED;
 	}
+	tsens8960_sensor_mode_init();
 
 	tsens8960_sensor_mode_init();
 
