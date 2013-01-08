@@ -14,7 +14,6 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/cpufreq.h>
 #include <linux/mutex.h>
 #include <linux/msm_tsens.h>
 #include <linux/workqueue.h>
@@ -82,59 +81,62 @@ static int pre_throttled_max = 0;
 //screen status
 static bool screen_blank = false;
 
+#include <linux/cpufreq.h>
+#include <linux/msm_tsens.h>
+#include <linux/msm_thermal.h>
+#include <linux/platform_device.h>
+#include <linux/of.h>
+#include <mach/cpufreq.h>
+
+static int enabled;
+static struct msm_thermal_data msm_thermal_info;
+static uint32_t limited_max_freq = MSM_CPUFREQ_NO_LIMIT;
 static struct delayed_work check_temp_work;
-static struct workqueue_struct *check_temp_workq;
 
-static struct msm_thermal_tuners {
-	unsigned int shutdown_temp;
+static int limit_idx;
+static int limit_idx_low;
+static int limit_idx_high;
+static struct cpufreq_frequency_table *table;
 
-	unsigned int allowed_max_high;
-	unsigned int allowed_max_low;
-	unsigned int allowed_max_freq;
+static int msm_thermal_get_freq_table(void)
+{
+	int ret = 0;
+	int i = 0;
 
-	unsigned int allowed_mid_high;
-	unsigned int allowed_mid_low;
-	unsigned int allowed_mid_freq;
+	table = cpufreq_frequency_get_table(0);
+	if (table == NULL) {
+		pr_debug("%s: error reading cpufreq table\n", __func__);
+		ret = -EINVAL;
+		goto fail;
+	}
 
-	unsigned int allowed_low_high;
-	unsigned int allowed_low_low;
-	unsigned int allowed_low_freq;
+	while (table[i].frequency != CPUFREQ_TABLE_END)
+		i++;
 
-	unsigned int check_interval_ms;
-} msm_thermal_tuners_ins = {
-	.shutdown_temp = DEF_SHUTDOWNTEMP,
+	limit_idx_low = 0;
+	limit_idx_high = limit_idx = i - 1;
+	BUG_ON(limit_idx_high <= 0 || limit_idx_high <= limit_idx_low);
+fail:
+	return ret;
+}
 
-	.allowed_max_high = DEF_ALLOWED_MAX_HIGH,
-	.allowed_max_low = (DEF_ALLOWED_MAX_HIGH - 4),
-	.allowed_max_freq = DEF_ALLOWED_MAX_FREQ,
-
-	.allowed_mid_high = DEF_ALLOWED_MID_HIGH,
-	.allowed_mid_low = (DEF_ALLOWED_MID_HIGH - 5),
-	.allowed_mid_freq = DEF_ALLOWED_MID_FREQ,
-
-	.allowed_low_high = DEF_ALLOWED_LOW_HIGH,
-	.allowed_low_low = (DEF_ALLOWED_LOW_HIGH - 6),
-	.allowed_low_freq = DEF_ALLOWED_LOW_FREQ,
-
-	.check_interval_ms = DEF_THERMAL_CHECK_MS,
-};
-
-static int update_cpu_max_freq(struct cpufreq_policy *cpu_policy,
-			       int cpu, int max_freq)
+static int update_cpu_max_freq(int cpu, uint32_t max_freq)
 {
 	int ret = 0;
 
-	if (!cpu_policy)
-		return -EINVAL;
+	ret = msm_cpufreq_set_freq_limits(cpu, MSM_CPUFREQ_NO_LIMIT, max_freq);
+	if (ret)
+		return ret;
 
-	cpufreq_verify_within_limits(cpu_policy,
-				cpu_policy->min, max_freq);
-	cpu_policy->user_policy.max = max_freq;
+	limited_max_freq = max_freq;
+	if (max_freq != MSM_CPUFREQ_NO_LIMIT)
+		pr_info("msm_thermal: Limiting cpu%d max frequency to %d\n",
+				cpu, max_freq);
+	else
+		pr_info("msm_thermal: Max frequency reset for cpu%d\n", cpu);
 
 	ret = cpufreq_update_policy(cpu);
-	if (!ret)
-		pr_debug("msm_thermal: Setting CPU%d max frequency to %d\n",
-			cpu, max_freq);
+
 	return ret;
 }
 
@@ -256,7 +258,53 @@ pr_info("msm_thermal: current temp: %lu", temp);
                 }
                 mutex_unlock(&emergency_shutdown_mutex);
         }
+	static int limit_init;
+	struct tsens_device tsens_dev;
+	unsigned long temp = 0;
+	uint32_t max_freq = limited_max_freq;
+	int cpu = 0;
+	int ret = 0;
 
+	tsens_dev.sensor_num = msm_thermal_info.sensor_id;
+	ret = tsens_get_temp(&tsens_dev, &temp);
+	if (ret) {
+		pr_debug("msm_thermal: Unable to read TSENS sensor %d\n",
+				tsens_dev.sensor_num);
+		goto reschedule;
+	}
+
+	if (!limit_init) {
+		ret = msm_thermal_get_freq_table();
+		if (ret)
+			goto reschedule;
+		else
+			limit_init = 1;
+	}
+
+	if (temp >= msm_thermal_info.limit_temp_degC) {
+		if (limit_idx == limit_idx_low)
+			goto reschedule;
+
+		limit_idx -= msm_thermal_info.freq_step;
+		if (limit_idx < limit_idx_low)
+			limit_idx = limit_idx_low;
+		max_freq = table[limit_idx].frequency;
+	} else if (temp < msm_thermal_info.limit_temp_degC -
+		 msm_thermal_info.temp_hysteresis_degC) {
+		if (limit_idx == limit_idx_high)
+			goto reschedule;
+
+		limit_idx += msm_thermal_info.freq_step;
+		if (limit_idx >= limit_idx_high) {
+			limit_idx = limit_idx_high;
+			max_freq = MSM_CPUFREQ_NO_LIMIT;
+		} else
+			max_freq = table[limit_idx].frequency;
+	}
+	if (max_freq == limited_max_freq)
+		goto reschedule;
+
+	/* Update new limits */
 	for_each_possible_cpu(cpu) {
 		update_policy = 0;
 		cpu_policy = cpufreq_cpu_get(cpu);
@@ -400,6 +448,9 @@ pr_info("msm_thermal: current temp: %lu", temp);
 		ret = update_cpu_max_freq(cpu, max_freq);
 		if (ret)
 			pr_info("Unable to limit cpu%d max freq to %d\n",
+		ret = update_cpu_max_freq(cpu, max_freq);
+		if (ret)
+			pr_debug("Unable to limit cpu%d max freq to %d\n",
 					cpu, max_freq);
 	}
 
@@ -407,29 +458,23 @@ reschedule:
 	if (enabled)
 		queue_delayed_work(check_temp_workq, &check_temp_work,
 				msecs_to_jiffies(msm_thermal_tuners_ins.check_interval_ms));
+		schedule_delayed_work(&check_temp_work,
+				msecs_to_jiffies(msm_thermal_info.poll_ms));
 }
 
 static void disable_msm_thermal(void)
 {
 	int cpu = 0;
-	struct cpufreq_policy *cpu_policy = NULL;
 
 	/* make sure check_temp is no longer running */
-	cancel_delayed_work_sync(&check_temp_work);
+	cancel_delayed_work(&check_temp_work);
 	flush_scheduled_work();
 
 	if (limited_max_freq == MSM_CPUFREQ_NO_LIMIT)
 		return;
 
 	for_each_possible_cpu(cpu) {
-		cpu_policy = cpufreq_cpu_get(cpu);
-		if (cpu_policy) {
-			if (cpu_policy->max < cpu_policy->cpuinfo.max_freq)
-				update_cpu_max_freq(cpu_policy, cpu,
-						    cpu_policy->
-						    cpuinfo.max_freq);
-			cpufreq_cpu_put(cpu_policy);
-		}
+		update_cpu_max_freq(cpu, MSM_CPUFREQ_NO_LIMIT);
 	}
 
 	queue_delayed_work(wq, &check_temp_work, polling);
@@ -456,217 +501,78 @@ static struct kernel_param_ops module_ops = {
 module_param_cb(enabled, &module_ops, &enabled, 0644);
 MODULE_PARM_DESC(enabled, "enforce thermal limit on cpu");
 
-/**************************** SYSFS START ****************************/
-struct kobject *msm_thermal_kobject;
-
-#define show_one(file_name, object)					\
-static ssize_t show_##file_name						\
-(struct kobject *kobj, struct attribute *attr, char *buf)               \
-{									\
-	return sprintf(buf, "%u\n", msm_thermal_tuners_ins.object);				\
-}
-
-show_one(shutdown_temp, shutdown_temp);
-show_one(allowed_max_high, allowed_max_high);
-show_one(allowed_max_low, allowed_max_low);
-show_one(allowed_max_freq, allowed_max_freq);
-show_one(allowed_mid_high, allowed_mid_high);
-show_one(allowed_mid_low, allowed_mid_low);
-show_one(allowed_mid_freq, allowed_mid_freq);
-show_one(allowed_low_high, allowed_low_high);
-show_one(allowed_low_low, allowed_low_low);
-show_one(allowed_low_freq, allowed_low_freq);
-show_one(check_interval_ms, check_interval_ms);
-
-static ssize_t store_shutdown_temp(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
+int __devinit msm_thermal_init(struct msm_thermal_data *pdata)
 {
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
+	int ret = 0;
 
-	msm_thermal_tuners_ins.shutdown_temp = input;
+	BUG_ON(!pdata);
+	BUG_ON(pdata->sensor_id >= TSENS_MAX_SENSORS);
+	memcpy(&msm_thermal_info, pdata, sizeof(struct msm_thermal_data));
 
-	return count;
+	enabled = 1;
+	INIT_DELAYED_WORK(&check_temp_work, check_temp);
+	schedule_delayed_work(&check_temp_work, 0);
+
+	return ret;
 }
 
-static ssize_t store_allowed_max_high(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
+static int __devinit msm_thermal_dev_probe(struct platform_device *pdev)
 {
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
+	int ret = 0;
+	char *key = NULL;
+	struct device_node *node = pdev->dev.of_node;
+	struct msm_thermal_data data;
 
-	msm_thermal_tuners_ins.allowed_max_high = input;
+	memset(&data, 0, sizeof(struct msm_thermal_data));
+	key = "qcom,sensor-id";
+	ret = of_property_read_u32(node, key, &data.sensor_id);
+	if (ret)
+		goto fail;
+	WARN_ON(data.sensor_id >= TSENS_MAX_SENSORS);
 
-	return count;
+	key = "qcom,poll-ms";
+	ret = of_property_read_u32(node, key, &data.poll_ms);
+	if (ret)
+		goto fail;
+
+	key = "qcom,limit-temp";
+	ret = of_property_read_u32(node, key, &data.limit_temp_degC);
+	if (ret)
+		goto fail;
+
+	key = "qcom,temp-hysteresis";
+	ret = of_property_read_u32(node, key, &data.temp_hysteresis_degC);
+	if (ret)
+		goto fail;
+
+	key = "qcom,freq-step";
+	ret = of_property_read_u32(node, key, &data.freq_step);
+
+fail:
+	if (ret)
+		pr_err("%s: Failed reading node=%s, key=%s\n",
+		       __func__, node->full_name, key);
+	else
+		ret = msm_thermal_init(&data);
+
+	return ret;
 }
 
-static ssize_t store_allowed_max_low(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_max_low = input;
-
-	return count;
-}
-
-static ssize_t store_allowed_max_freq(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_max_freq = input;
-
-	return count;
-}
-
-static ssize_t store_allowed_mid_high(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_mid_high = input;
-
-	return count;
-}
-
-static ssize_t store_allowed_mid_low(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_mid_low = input;
-
-	return count;
-}
-
-static ssize_t store_allowed_mid_freq(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_mid_freq = input;
-
-	return count;
-}
-
-static ssize_t store_allowed_low_high(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_low_high = input;
-
-	return count;
-}
-
-static ssize_t store_allowed_low_low(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_low_low = input;
-
-	return count;
-}
-
-static ssize_t store_allowed_low_freq(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_low_freq = input;
-
-	return count;
-}
-
-static ssize_t store_check_interval_ms(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.check_interval_ms = input;
-
-	return count;
-}
-
-define_one_global_rw(shutdown_temp);
-define_one_global_rw(allowed_max_high);
-define_one_global_rw(allowed_max_low);
-define_one_global_rw(allowed_max_freq);
-define_one_global_rw(allowed_mid_high);
-define_one_global_rw(allowed_mid_low);
-define_one_global_rw(allowed_mid_freq);
-define_one_global_rw(allowed_low_high);
-define_one_global_rw(allowed_low_low);
-define_one_global_rw(allowed_low_freq);
-define_one_global_rw(check_interval_ms);
-
-static struct attribute *msm_thermal_attributes[] = {
-        &shutdown_temp.attr,
-	&allowed_max_high.attr,
-	&allowed_max_low.attr,
-	&allowed_max_freq.attr,
-	&allowed_mid_high.attr,
-	&allowed_mid_low.attr,
-	&allowed_mid_freq.attr,
-	&allowed_low_high.attr,
-	&allowed_low_low.attr,
-	&allowed_low_freq.attr,
-	&check_interval_ms.attr,
-	NULL
+static struct of_device_id msm_thermal_match_table[] = {
+	{.compatible = "qcom,msm-thermal"},
+	{},
 };
 
-
-static struct attribute_group msm_thermal_attr_group = {
-	.attrs = msm_thermal_attributes,
-	.name = "conf",
+static struct platform_driver msm_thermal_device_driver = {
+	.probe = msm_thermal_dev_probe,
+	.driver = {
+		.name = "msm-thermal",
+		.owner = THIS_MODULE,
+		.of_match_table = msm_thermal_match_table,
+	},
 };
-/**************************** SYSFS END ****************************/
 
-static void msm_thermal_early_suspend(struct early_suspend *h)
+int __init msm_thermal_device_init(void)
 {
         screen_blank = true;
 }
@@ -753,5 +659,7 @@ static struct platform_driver msm_thermal_device_driver = {
 
 int __init msm_thermal_device_init(void)
 {
+	return platform_driver_register(&msm_thermal_device_driver);
+}
 	return platform_driver_register(&msm_thermal_device_driver);
 }

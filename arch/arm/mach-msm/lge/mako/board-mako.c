@@ -32,6 +32,7 @@
 #include <linux/msm_ion.h>
 #include <linux/memory.h>
 #include <linux/memblock.h>
+#include <linux/msm_thermal.h>
 #include <linux/i2c/isa1200.h>
 #include <linux/gpio_keys.h>
 #include <asm/mach-types.h>
@@ -2039,6 +2040,7 @@ static void __init apq8064_common_init(void)
 {
 	platform_device_register(&msm_gpio_device);
 	msm_tsens_early_init(&apq_tsens_pdata);
+        msm_thermal_init(&msm_thermal_pdata);
 	if (socinfo_init() < 0)
 		pr_err("socinfo_init() failed!\n");
 	BUG_ON(msm_rpm_init(&apq8064_rpm_data));
