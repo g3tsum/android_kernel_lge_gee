@@ -326,6 +326,7 @@ struct tabla_priv {
 	struct wcd9xxx_pdata *pdata;
 	u32 anc_slot;
 	bool anc_func;
+
 	bool no_mic_headset_override;
 	/* Delayed work to report long button press */
 	struct delayed_work mbhc_btn_dwork;
