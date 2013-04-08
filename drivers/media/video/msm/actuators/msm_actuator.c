@@ -378,6 +378,21 @@ static int32_t msm_actuator_set_default_focus(
 static int32_t msm_actuator_power_down(struct msm_actuator_ctrl_t *a_ctrl)
 {
 	int32_t rc = 0;
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_SEKONIX_LENS_ACT
+	int cur_pos = a_ctrl->curr_step_pos;
+	struct msm_actuator_move_params_t move_params;
+
+	if(cur_pos > ACT_STOP_POS) {
+		move_params.sign_dir = MOVE_FAR;
+		move_params.dest_step_pos = ACT_STOP_POS;
+		rc = a_ctrl->func_tbl->actuator_move_focus(
+				a_ctrl, &move_params);
+		msleep(300);
+	}
+#endif
+>>>>>>> 39588ed... Add ifdef around SEKONIX_LENS_ACT specific actuator position in power
 	if (a_ctrl->vcm_enable) {
 		rc = gpio_direction_output(a_ctrl->vcm_pwd, 0);
 		if (!rc)
