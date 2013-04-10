@@ -93,9 +93,9 @@ static int __init display_kcal_setup(char *kcal)
 		pr_info("kcal not calibrated yet : %d\n", vaild_k);
 		kcal_r = kcal_g = kcal_b = 255;
 		//calibration by molesarecoming
-		//kcal_r = 245;
-		//kcal_g = 244;
-		//kcal_b = 240;
+		//kcal_r = 255;
+		//kcal_g = 255;
+		//kcal_b = 255;
 		pr_info("set to default : %d\n", kcal_r);
 	}
 
