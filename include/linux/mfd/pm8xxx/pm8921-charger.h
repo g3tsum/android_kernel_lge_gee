@@ -163,6 +163,7 @@ struct pm8921_charger_platform_data {
 	unsigned int			usb_max_current;
 	unsigned int			cool_bat_chg_current;
 	unsigned int			warm_bat_chg_current;
+	int				ext_batt_temp_monitor;
 	unsigned int			cool_bat_voltage;
 	unsigned int			warm_bat_voltage;
 	unsigned int			(*get_batt_capacity_percent) (void);
@@ -189,6 +190,7 @@ struct pm8921_charger_platform_data {
 	int				btc_panic_if_cant_stop_chg;
 	int				stop_chg_upon_expiry;
 	bool				disable_chg_rmvl_wrkarnd;
+	int				eoc_check_soc;
 };
 
 enum pm8921_charger_source {
@@ -308,6 +310,15 @@ int pm8921_usb_ovp_set_hystersis(enum pm8921_usb_debounce_time ms);
  *
  */
 int pm8921_usb_ovp_disable(int disable);
+#ifdef CONFIG_WIRELESS_CHARGER
+int set_wireless_power_supply_control(int value);
+#endif
+
+int pm8921_set_ext_battery_health(int health, int i_limit);
+int pm8921_get_batt_state(void);
+int pm8921_force_start_charging(void);
+int pm8921_get_batt_health(void);
+
 /**
  * pm8921_is_batfet_closed - battery fet status
  *
