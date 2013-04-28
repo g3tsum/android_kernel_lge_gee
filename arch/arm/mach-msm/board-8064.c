@@ -75,6 +75,7 @@
 #include <linux/fmem.h>
 #include <mach/msm_pcie.h>
 #include <mach/restart.h>
+#include <mach/board_lge.h>
 #include <mach/msm_iomap.h>
 #include <mach/msm_serial_hs.h>
 
