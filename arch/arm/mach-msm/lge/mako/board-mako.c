@@ -98,7 +98,7 @@
 #include "smd_private.h"
 #include <sysmon.h>
 
-#define MSM_PMEM_ADSP_SIZE         0x7800000
+#define MSM_PMEM_ADSP_SIZE         0x9600000
 #define MSM_PMEM_AUDIO_SIZE        0x4CF000
 #define MSM_PMEM_SIZE              0x4000000 /* 64 Mbytes */
 
@@ -109,14 +109,21 @@
 #ifdef CONFIG_MSM_IOMMU
 
 #define MSM_ION_MM_SIZE		0x3800000
-#define MSM_ION_SF_SIZE		0
+#define MSM_ION_SF_SIZE		0x0
 #define MSM_ION_QSECOM_SIZE	0x780000 /* (7.5MB) */
-#define MSM_ION_HEAP_NUM	7
+#ifdef CONFIG_CMA
+#define MSM_ION_HEAP_NUM  8
+#else
+#define MSM_ION_HEAP_NUM  7
+#endif
 #else
 #define MSM_ION_MM_SIZE		MSM_PMEM_ADSP_SIZE
 #define MSM_ION_SF_SIZE		MSM_PMEM_SIZE
 #define MSM_ION_QSECOM_SIZE	0x600000 /* (6MB) */
-#define MSM_ION_HEAP_NUM	8
+#ifdef CONFIG_CMA
+#define MSM_ION_HEAP_NUM  9
+#else
+#define MSM_ION_HEAP_NUM  8
 #endif
 #define MSM_ION_MM_FW_SIZE	(0x200000 - HOLE_SIZE) /* (2MB - 128KB) */
 #define MSM_ION_MFC_SIZE	(SZ_8K + MSM_ION_MFC_META_SIZE)
@@ -275,39 +282,6 @@ static void __init reserve_rtb_memory(void)
 {
 #if defined(CONFIG_MSM_RTB)
 	apq8064_reserve_table[MEMTYPE_EBI1].size += apq8064_rtb_pdata.size;
-#endif
-}
-
-
-static void __init size_pmem_devices(void)
-{
-#ifdef CONFIG_ANDROID_PMEM
-#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
-	android_pmem_adsp_pdata.size = pmem_adsp_size;
-	android_pmem_pdata.size = pmem_size;
-	android_pmem_audio_pdata.size = MSM_PMEM_AUDIO_SIZE;
-#endif
-#endif /*CONFIG_ANDROID_PMEM*/
-}
-
-#ifdef CONFIG_ANDROID_PMEM
-#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
-static void __init reserve_memory_for(struct android_pmem_platform_data *p)
-{
-	apq8064_reserve_table[p->memory_type].size += p->size;
-}
-#endif /*CONFIG_MSM_MULTIMEDIA_USE_ION*/
-#endif /*CONFIG_ANDROID_PMEM*/
-
-static void __init reserve_pmem_memory(void)
-{
-#ifdef CONFIG_ANDROID_PMEM
-#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
-	reserve_memory_for(&android_pmem_adsp_pdata);
-	reserve_memory_for(&android_pmem_pdata);
-	reserve_memory_for(&android_pmem_audio_pdata);
-#endif /*CONFIG_MSM_MULTIMEDIA_USE_ION*/
-	apq8064_reserve_table[MEMTYPE_EBI1].size += msm_contig_mem_size;
 #endif
 }
 
