@@ -28,6 +28,12 @@
 #include "devices.h"
 #include "board-8064.h"
 
+#include <msm/msm_fb.h>
+#include <msm/msm_fb_def.h>
+#include <msm/mipi_dsi.h>
+#include <msm/mdp.h>
+#include <msm/mdp4.h>
+
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 /* prim = 1366 x 768 x 3(bpp) x 3(pages) */
 #define MSM_FB_PRIM_BUF_SIZE roundup(1920 * 1088 * 4 * 3, 0x10000)
