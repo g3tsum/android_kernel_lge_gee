@@ -84,7 +84,6 @@ static int mipi_lgit_lcd_on(struct platform_device *pdev)
 		return ret;
 	}
 
-<<<<<<< HEAD
 	if(!skip_init){
 		MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
 		ret = mipi_dsi_cmds_tx(&lgit_tx_buf,
@@ -97,7 +96,6 @@ static int mipi_lgit_lcd_on(struct platform_device *pdev)
 		}
 	}
 	skip_init = false;
-=======
 	mipi_dsi_op_mode_config(DSI_VIDEO_MODE);
 	mdp4_overlay_dsi_video_start();
 
@@ -112,7 +110,6 @@ static int mipi_lgit_lcd_on(struct platform_device *pdev)
 		pr_err("%s: failed to transmit power_on_set_2 cmds\n", __func__);
 		return ret;
 	}
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 
 	ret = lgit_external_dsv_onoff(1);
 	if (ret < 0) {
@@ -121,11 +118,8 @@ static int mipi_lgit_lcd_on(struct platform_device *pdev)
 	}
 
 	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
-<<<<<<< HEAD
 	ret = mipi_dsi_cmds_tx(&lgit_tx_buf,
-=======
 	ret = mipi_dsi_cmds_tx(mfd, &lgit_tx_buf,
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 			mipi_lgit_pdata->power_on_set_3,
 			mipi_lgit_pdata->power_on_set_size_3);
 	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x14000000);
