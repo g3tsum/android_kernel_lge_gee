@@ -34,6 +34,14 @@
    Add mach_mask for I2C */
 #define I2C_J1V (1 << 5)
 /* LGE_UPDATE_E */
+#define I2C_J1V (1 << 5)
+
+struct i2c_registry {
+	u8                     machs;
+	int                    bus;
+	struct i2c_board_info *info;
+	int                    len;
+};
 
 typedef void (gpio_i2c_init_func_t)(int bus_num);
 /* ehee.lee@lge.com */
@@ -60,6 +68,10 @@ static struct  i2c_registry apq8064_i2c_devices __initdata = {
         APQ_8064_GSBI1_QUP_I2C_BUS_ID,
         msm_i2c_nxp_nfc_info,
         ARRAY_SIZE(msm_i2c_nxp_nfc_info),
+	I2C_SURF | I2C_FFA | I2C_RUMI | I2C_SIM | I2C_LIQUID | I2C_J1V,
+	APQ_8064_GSBI1_QUP_I2C_BUS_ID,
+	msm_i2c_nxp_nfc_info,
+	ARRAY_SIZE(msm_i2c_nxp_nfc_info),
 };
 
 static void __init lge_add_i2c_nfc_devices(void)

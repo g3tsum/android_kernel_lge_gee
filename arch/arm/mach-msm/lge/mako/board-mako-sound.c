@@ -43,6 +43,20 @@
 #define GPIO_EARPOL_DETECT          PM8921_GPIO_PM_TO_SYS(32)
 #define GPIO_EAR_KEY_INT            83
 
+#define I2C_SURF 1
+#define I2C_FFA  (1 << 1)
+#define I2C_RUMI (1 << 2)
+#define I2C_SIM  (1 << 3)
+#define I2C_LIQUID (1 << 4)
+#define I2C_J1V (1 << 5)
+
+struct i2c_registry {
+	u8                     machs;
+	int                    bus;
+	struct i2c_board_info *info;
+	int                    len;
+};
+
 #ifdef CONFIG_SND_SOC_TPA2028D
 int amp_enable(int on_state)
 {
@@ -113,7 +127,7 @@ static struct i2c_board_info msm_i2c_audiosubsystem_info[] = {
 
 static struct i2c_registry msm_i2c_audiosubsystem __initdata = {
 	/* Add the I2C driver for Audio Amp */
-	I2C_FFA,
+	I2C_SURF | I2C_FFA | I2C_RUMI | I2C_SIM | I2C_LIQUID | I2C_J1V,
 	APQ_8064_GSBI1_QUP_I2C_BUS_ID,
 	msm_i2c_audiosubsystem_info,
 	ARRAY_SIZE(msm_i2c_audiosubsystem_info),

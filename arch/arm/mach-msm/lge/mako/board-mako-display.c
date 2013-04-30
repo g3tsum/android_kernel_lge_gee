@@ -759,7 +759,6 @@ static char panel_setting_2 [3] = {0xB3, 0x0A, 0x9F};
 static char display_mode1 [6] = {0xB5, 0x50, 0x20, 0x40, 0x00, 0x20};
 static char display_mode2 [8] = {0xB6, 0x00, 0x14, 0x0F, 0x16, 0x13, 0x05, 0x05};
 
-<<<<<<< HEAD
 #define g_white       0x40
 #define g_mids        0x44
 #define g_black       0x76
@@ -786,7 +785,6 @@ static char ief_set3[6] = {0xE3, 0x00, 0x00, 0x42, 0x35, 0x00};
 static char ief_set7[9] = {0xE7, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40};
 static char ief_set8[9] = {0xE8, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D};
 static char ief_set9[9] = {0xE9, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B};
-=======
 static char p_gamma_r_setting[10] = {0xD0, 0x72, 0x15, 0x76, 0x00, 0x00, 0x00, 0x50, 0x30, 0x02};
 static char n_gamma_r_setting[10] = {0xD1, 0x72, 0x15, 0x76, 0x00, 0x00, 0x00, 0x50, 0x30, 0x02};
 static char p_gamma_g_setting[10] = {0xD2, 0x72, 0x15, 0x76, 0x00, 0x00, 0x00, 0x50, 0x30, 0x02};
@@ -805,25 +803,21 @@ static char ief_set3[6] = {0xE3, 0x00, 0x00, 0x42, 0x35, 0x00};
 static char ief_set7[9] = {0xE7, 0x3E, 0x3E, 0x3E, 0x3E, 0x3E, 0x3E, 0x3E, 0x3E};
 static char ief_set8[9] = {0xE8, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40};
 static char ief_set9[9] = {0xE9, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40};
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 static char ief_setA[9] = {0xEA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static char ief_setB[9] = {0xEB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static char ief_setC[9] = {0xEC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static char osc_setting[4] =     {0xC0, 0x00, 0x0A, 0x10};
-<<<<<<< HEAD
 static char power_setting3[13] = {0xC3, 0x00, 0x88, 0x03, 0x20, 0x01, 0x57, 0x4F, 0x33,0x02,0x38,0x38,0x00};
 static char power_setting4[6] =  {0xC4, 0x31, 0x24, 0x11, 0x11, 0x3D};
 static char power_setting5[4] =  {0xC5, 0x3B, 0x3B, 0x03};
 
 #ifdef CONFIG_LGIT_VIDEO_WXGA_CABC
-=======
 static char power_setting3[13] = {0xC3, 0x00, 0x88, 0x03, 0x20, 0x00, 0x55, 0x4F, 0x33,0x02,0x38,0x38,0x00};
 static char power_setting4[6] =  {0xC4, 0x22, 0x24, 0x11, 0x11, 0x3D};
 static char power_setting5[4] =  {0xC5, 0x3B, 0x3B, 0x03};
 
 #if defined(CONFIG_BACKLIGHT_LM3530_CABC)
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 static char cabc_set0[2] = {0x51, 0xFF};
 static char cabc_set1[2] = {0x5E, 0x00}; // CABC MIN
 static char cabc_set2[2] = {0x53, 0x2C};
@@ -831,16 +825,13 @@ static char cabc_set3[2] = {0x55, 0x02};
 static char cabc_set4[6] = {0xC8, 0x22, 0x22, 0x22, 0x33, 0x80};//A-CABC applied
 #endif
 
-<<<<<<< HEAD
 static char exit_sleep_power_control_2[2] =  {0xC2,0x06};
 static char exit_sleep_power_control_3[2] =  {0xC2,0x0E};
 static char otp_protection[3] =  {0xF1,0x10,0x00};
-=======
 static char exit_sleep_power_control_1[2] =  {0xC2,0x02};
 static char exit_sleep_power_control_2[2] =  {0xC2,0x06};
 static char exit_sleep_power_control_3[2] =  {0xC2,0x0E};
 static char otp_protection[3] =  {0xF1,0x15,0x01};
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 static char sleep_out_for_cabc[2] = {0x11,0x00};
 static char gate_output_enabled_by_manual[2] = {0xC1,0x08};
 
@@ -850,19 +841,13 @@ static char display_off[2] = {0x28,0x00};
 
 static char enter_sleep[2] = {0x10,0x00};
 
-<<<<<<< HEAD
-=======
 static char enter_sleep_power_control_1[2] = {0xC1,0x00};
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 static char analog_boosting_power_control[2] = {0xC2,0x00};
 static char enter_sleep_power_control_3[2] = {0xC2,0x01};
 static char enter_sleep_power_control_2[2] = {0xC2,0x00};
 
-<<<<<<< HEAD
 static char deep_standby[2] = {0xC1,0x02};
-=======
 static char deep_standby[2] = {0xC1,0x03};
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 
 static struct dsi_cmd_desc lgit_power_on_set_1[] = {
 	// Display Initial Set
@@ -901,13 +886,10 @@ static struct dsi_cmd_desc lgit_power_on_set_1[] = {
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(power_setting3), power_setting3},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(power_setting4), power_setting4},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(power_setting5), power_setting5},
-<<<<<<< HEAD
 
 #ifdef CONFIG_LGIT_VIDEO_WXGA_CABC
-=======
 		
 #if defined(CONFIG_BACKLIGHT_LM3530_CABC)
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(cabc_set0), cabc_set0},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(cabc_set1), cabc_set1},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(cabc_set2), cabc_set2},
@@ -917,31 +899,24 @@ static struct dsi_cmd_desc lgit_power_on_set_1[] = {
 };
 
 static struct dsi_cmd_desc lgit_power_on_set_2[] = {
-<<<<<<< HEAD
 	{DTYPE_GEN_LWRITE,  1, 0, 0, 10, sizeof(exit_sleep_power_control_2), exit_sleep_power_control_2},
 	{DTYPE_GEN_LWRITE,  1, 0, 0, 1, sizeof(exit_sleep_power_control_3), exit_sleep_power_control_3},
-=======
 	{DTYPE_GEN_LWRITE,  1, 0, 0, 20, sizeof(exit_sleep_power_control_1), exit_sleep_power_control_1},
 	{DTYPE_GEN_LWRITE,  1, 0, 0, 20, sizeof(exit_sleep_power_control_2), exit_sleep_power_control_2},
 	{DTYPE_GEN_LWRITE,  1, 0, 0, 5, sizeof(exit_sleep_power_control_3),exit_sleep_power_control_3	},
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 };
 
 static struct dsi_cmd_desc lgit_power_on_set_3[] = {
 	// Power Supply Set
 	{DTYPE_GEN_LWRITE,  1, 0, 0, 0, sizeof(otp_protection), otp_protection},
-<<<<<<< HEAD
 	{DTYPE_GEN_LWRITE,  1, 0, 0, 0, sizeof(sleep_out_for_cabc), sleep_out_for_cabc},
-=======
 	{DTYPE_GEN_LWRITE,  1, 0, 0, 100, sizeof(sleep_out_for_cabc), sleep_out_for_cabc},
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 	{DTYPE_GEN_LWRITE,  1, 0, 0, 0, sizeof(gate_output_enabled_by_manual), gate_output_enabled_by_manual},
 	{DTYPE_DCS_WRITE,  1, 0, 0, 0, sizeof(display_on), display_on},
 };
 
 static struct dsi_cmd_desc lgit_power_off_set_1[] = {
 	{DTYPE_DCS_WRITE, 1, 0, 0, 20, sizeof(display_off), display_off},
-<<<<<<< HEAD
 	{DTYPE_DCS_WRITE, 1, 0, 0, 5, sizeof(enter_sleep), enter_sleep},
 };
 
@@ -949,7 +924,6 @@ static struct dsi_cmd_desc lgit_power_off_set_2[] = {
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 10, sizeof(analog_boosting_power_control), analog_boosting_power_control},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 10, sizeof(enter_sleep_power_control_3), enter_sleep_power_control_3},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(enter_sleep_power_control_2), enter_sleep_power_control_2},
-=======
 	{DTYPE_DCS_WRITE, 1, 0, 0, 20, sizeof(enter_sleep), enter_sleep},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 20, sizeof(enter_sleep_power_control_1), enter_sleep_power_control_1},
 };
@@ -958,7 +932,6 @@ static struct dsi_cmd_desc lgit_power_off_set_2[] = {
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 20, sizeof(analog_boosting_power_control), analog_boosting_power_control},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 10, sizeof(enter_sleep_power_control_3), enter_sleep_power_control_3},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 10, sizeof(enter_sleep_power_control_2), enter_sleep_power_control_2},
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 10, sizeof(deep_standby), deep_standby}
 };
 
@@ -976,14 +949,11 @@ static struct msm_panel_common_pdata mipi_lgit_pdata = {
 	.power_off_set_2 = lgit_power_off_set_2,
 	.power_off_set_size_1 = ARRAY_SIZE(lgit_power_off_set_1),
 	.power_off_set_size_2 =ARRAY_SIZE(lgit_power_off_set_2),
-<<<<<<< HEAD
 
 #ifdef CONFIG_LGIT_VIDEO_WXGA_CABC
 	.bl_pwm_disable = lm3530_lcd_backlight_pwm_disable,
 #endif
 	.bl_on_status = lm3530_lcd_backlight_on_status,
-=======
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 };
 
 static struct platform_device mipi_dsi_lgit_panel_device = {
@@ -1025,6 +995,21 @@ void __init apq8064_init_fb(void)
 }
 
 #ifdef CONFIG_LGIT_VIDEO_WXGA_CABC
+#define I2C_SURF 1
+#define I2C_FFA  (1 << 1)
+#define I2C_RUMI (1 << 2)
+#define I2C_SIM  (1 << 3)
+#define I2C_LIQUID (1 << 4)
+#define I2C_J1V (1 << 5)
+
+struct i2c_registry {
+	u8                     machs;
+	int                    bus;
+	struct i2c_board_info *info;
+	int                    len;
+};
+
+#if defined(CONFIG_LGE_BACKLIGHT_CABC)
 #define PWM_SIMPLE_EN 0xA0
 #define PWM_BRIGHTNESS 0x20
 #endif
@@ -1057,7 +1042,7 @@ static struct i2c_board_info msm_i2c_backlight_info[] = {
 
 static struct i2c_registry apq8064_i2c_backlight_device[] __initdata = {
 	{
-		I2C_FFA,
+	    I2C_SURF | I2C_FFA | I2C_RUMI | I2C_SIM | I2C_LIQUID | I2C_J1V,
 		APQ_8064_GSBI1_QUP_I2C_BUS_ID,
 		msm_i2c_backlight_info,
 		ARRAY_SIZE(msm_i2c_backlight_info),
@@ -1067,6 +1052,20 @@ static struct i2c_registry apq8064_i2c_backlight_device[] __initdata = {
 void __init lge_add_backlight_devices(void)
 {
 	int i;
+
+	/* Build the matching 'supported_machs' bitmask */
+	if (machine_is_apq8064_cdp())
+		mach_mask = I2C_SURF;
+	else if (machine_is_apq8064_mtp())
+		mach_mask = I2C_FFA;
+	else if (machine_is_apq8064_liquid())
+		mach_mask = I2C_LIQUID;
+	else if (machine_is_apq8064_rumi3())
+		mach_mask = I2C_RUMI;
+	else if (machine_is_apq8064_sim())
+		mach_mask = I2C_SIM;
+	else
+		pr_err("unmatched machine ID in register_i2c_devices\n");	
 
 	/* Run the array and install devices as appropriate */
 	for (i = 0; i < ARRAY_SIZE(apq8064_i2c_backlight_device); ++i) {
