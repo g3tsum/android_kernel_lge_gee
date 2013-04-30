@@ -89,8 +89,6 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	else
 		down(&mfd->dma->mutex);
 
-<<<<<<< HEAD
-=======
 #if defined(CONFIG_FB_MSM_MIPI_DSI_LGIT)
 	ret = panel_next_off(pdev);
 	if (ret < 0) {
@@ -110,7 +108,6 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	 * mdp4_dsi_cmd_dma_busy_wait() will enable dsi clock if disabled.
 	 * also, wait until dma (overlay and dmap) finish.
 	 */
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 	if (mfd->panel_info.type == MIPI_CMD_PANEL) {
 		mipi_dsi_prepare_clocks();
 		mipi_dsi_ahb_ctrl(1);
@@ -121,7 +118,7 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	}
 
 	/*
-	 * Desctiption: change to DSI_CMD_MODE since it needed to
+	 * Description: change to DSI_CMD_MODE since it needed to
 	 * tx DCS dsiplay off comamnd to panel
 	 */
 	mipi_dsi_op_mode_config(DSI_CMD_MODE);
@@ -289,12 +286,9 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	else
 		down(&mfd->dma->mutex);
 
-<<<<<<< HEAD
 	if (mfd->op_enable)
 		ret = panel_next_on(pdev);
-=======
 	ret = panel_next_on(pdev);
->>>>>>> 20ca6b7... mako: display: update lcd initial code
 
 #if !defined(CONFIG_FB_MSM_MIPI_DSI_LGIT)
 	mipi_dsi_op_mode_config(mipi->mode);
