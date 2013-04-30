@@ -3046,7 +3046,7 @@ static struct i2c_registry apq8064_i2c_devices[] __initdata = {
 		ARRAY_SIZE(isa1200_board_info),
 	},
 	{
-		I2C_MPQ_CDP,
+		I2C_J1V,
 		APQ_8064_GSBI5_QUP_I2C_BUS_ID,
 		cs8427_device_info,
 		ARRAY_SIZE(cs8427_device_info),
@@ -3120,8 +3120,7 @@ static struct i2c_board_info sx150x_gpio_exp_info[] = {
 
 static struct i2c_registry mpq8064_i2c_devices[] __initdata = {
 	{
-		I2C_MPQ_CDP,
-		I2C_J1V, //I2C_MPQ_CDP, Fix to compile
+		I2C_J1V,
 		MPQ8064_I2C_GSBI5_BUS_ID,
 		sx150x_gpio_exp_info,
 		ARRAY_SIZE(sx150x_gpio_exp_info),
@@ -3157,8 +3156,7 @@ static void __init register_i2c_devices(void)
 	else if (machine_is_apq8064_liquid())
 		mach_mask = I2C_LIQUID;
 	else if (PLATFORM_IS_MPQ8064())
-		mach_mask = I2C_MPQ_CDP;
-		mach_mask = I2C_J1V; //I2C_MPQ_CDP; Fix to compile
+		mach_mask = I2C_J1V;
 	else
 		pr_err("unmatched machine ID in register_i2c_devices\n");
 
