@@ -3142,13 +3142,6 @@ static void __init register_i2c_devices(void)
 		apq8064_camera_board_info.board_info,
 		apq8064_camera_board_info.num_i2c_board_info,
 	};
-	/* Enabling flash LED for camera */
-	struct i2c_registry apq8064_lge_camera_i2c_devices = {
-		I2C_SURF | I2C_FFA | I2C_RUMI | I2C_SIM | I2C_LIQUID | I2C_J1V,
-		APQ_8064_GSBI1_QUP_I2C_BUS_ID,
-		apq8064_lge_camera_board_info.board_info,
-		apq8064_lge_camera_board_info.num_i2c_board_info,
-	};
 #endif
 	/* Build the matching 'supported_machs' bitmask */
 	if (machine_is_apq8064_cdp())
