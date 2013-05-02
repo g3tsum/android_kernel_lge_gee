@@ -1,5 +1,7 @@
 /* Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
  *
+/* Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
  * only version 2 as published by the Free Software Foundation.
@@ -919,6 +921,19 @@ struct msm_snapshot_pp_status {
 #define CFG_STOP_STREAM               45
 #define CFG_GET_CSI_PARAMS            46
 #define CFG_MAX			47
+#define CFG_POWER_UP                  47
+#define CFG_POWER_DOWN                48
+#define CFG_WRITE_I2C_ARRAY           49
+#define CFG_READ_I2C_ARRAY            50
+#define CFG_PCLK_CHANGE               51
+#define CFG_CONFIG_VREG_ARRAY         52
+#define CFG_CONFIG_CLK_ARRAY          53
+#define CFG_GPIO_OP                   54
+#define CFG_SET_VISION_MODE           55
+#define CFG_SET_VISION_AE             56
+#define CFG_HDR_UPDATE                57
+#define CFG_ACTUAOTOR_REG_INIT        58
+#define CFG_MAX                       59
 
 
 #define MOVE_NEAR	0
@@ -1423,6 +1438,7 @@ struct damping_params_t {
 enum actuator_type {
 	ACTUATOR_VCM,
 	ACTUATOR_PIEZO,
+	ACTUATOR_HALL_EFFECT,
 };
 
 enum msm_actuator_data_type {
