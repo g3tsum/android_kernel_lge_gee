@@ -931,8 +931,6 @@ struct msm_snapshot_pp_status {
 #define CFG_SET_VISION_AE             56
 #define CFG_HDR_UPDATE                57
 #define CFG_ACTUAOTOR_REG_INIT        58
-#define CFG_MAX                       59
-
 
 #define MOVE_NEAR	0
 #define MOVE_FAR	1
