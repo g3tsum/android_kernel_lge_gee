@@ -215,47 +215,10 @@ static struct led_platform_data pm8921_led_core_pdata = {
 
 #ifdef CONFIG_MACH_APQ8064_J1A
 
-#ifdef CONFIG_LGE_PM_PWM_LED
-static int pm8921_led0_pwm_duty_pcts0[60] = {
-	1, 2, 8, 10, 14, 18, 20, 24, 30, 34,
-	36, 40, 42, 48, 50, 55, 58, 60, 62, 64,
-	66, 68, 71, 73, 76, 80, 80, 80, 76, 73,
-	71, 68, 66, 64, 62, 60, 58, 56, 54, 52,
-	50, 48, 46, 44, 40, 36, 34, 30, 24, 20,
-	18, 16, 14, 12, 10, 8, 6, 4, 1
-};
-
-static int pm8921_led0_pwm_duty_pcts1[60] = {
-	60, 80, 60, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-};
-
-static struct pm8xxx_pwm_duty_cycles pm8921_led0_pwm_duty_cycles = {
-	.duty_pcts0 = (int *)&pm8921_led0_pwm_duty_pcts0,
-	.duty_pcts1 = (int *)&pm8921_led0_pwm_duty_pcts1,
-	.num_duty_pcts0 = ARRAY_SIZE(pm8921_led0_pwm_duty_pcts0),
-	.num_duty_pcts1 = ARRAY_SIZE(pm8921_led0_pwm_duty_pcts1),
-	.duty_ms0 = PM8XXX_LED_PWM_DUTY_MS0,
-	.duty_ms1 = PM8XXX_LED_PWM_DUTY_MS1,
-	.start_idx = 0,
-};
-#endif
-
 static struct pm8xxx_led_config pm8921_led_configs[] = {
 	[0] = {
 		.id = PM8XXX_ID_LED_0,
-#ifdef CONFIG_LGE_PM_PWM_LED
-		.mode = PM8XXX_LED_MODE_PWM2,
-		.pwm_channel = 5,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
-		.pwm_duty_cycles = &pm8921_led0_pwm_duty_cycles,
-#else
 		.mode = PM8XXX_LED_MODE_MANUAL,
-#endif
 		.max_current = PM8921_LC_LED_MAX_CURRENT,
 	},
 	[1] = {
@@ -266,14 +229,7 @@ static struct pm8xxx_led_config pm8921_led_configs[] = {
 	},
 	[2] = {
 		.id = PM8XXX_ID_LED_2,
-#ifdef CONFIG_LGE_PM_PWM_LED
-		.mode = PM8XXX_LED_MODE_PWM1,
-		.pwm_channel = 4,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
-		.pwm_duty_cycles = &pm8921_led0_pwm_duty_cycles,
-#else
 		.mode = PM8XXX_LED_MODE_MANUAL,
-#endif
 		.max_current = PM8921_LC_LED_MAX_CURRENT,
 	},
 };
@@ -459,11 +415,9 @@ static int batt_temp_ctrl_level[] = {
 #define EOC_CHECK_SOC	1
 
 static struct pm8921_charger_platform_data apq8064_pm8921_chg_pdata __devinitdata = {
-	.safety_time  = 512,
 	.update_time  = 60000,
 	.max_voltage  = MAX_VOLTAGE_MV,
 	.min_voltage  = 3200,
-	.alarm_voltage  = 3500,
 	.resume_voltage_delta  = VBATDET_DELTA_MV,
 	.term_current  = CHG_TERM_MA,
 
@@ -473,7 +427,6 @@ static struct pm8921_charger_platform_data apq8064_pm8921_chg_pdata __devinitdat
 	.warm_bat_chg_current  = WARM_BATT_CHG_I_MA,
 	.cold_thr  = 1,
 	.hot_thr  = 0,
-	.ext_batt_temp_monitor  = 1,
 	.temp_check_period  = 1,
 	.max_bat_chg_current  = MAX_BATT_CHG_I_MA,
 	.cool_bat_voltage  = 4100,
@@ -482,27 +435,24 @@ static struct pm8921_charger_platform_data apq8064_pm8921_chg_pdata __devinitdat
 	.thermal_levels  = ARRAY_SIZE(apq8064_pm8921_therm_mitigation),
 	.led_src_config  = LED_SRC_5V,
 	.rconn_mohm	 = 37,
-	.eoc_check_soc  = EOC_CHECK_SOC,
 };
 
 static struct pm8xxx_ccadc_platform_data
 apq8064_pm8xxx_ccadc_pdata = {
-	.r_sense		= 10,
+	.r_sense_uohm		= 10000,
 	.calib_delay_ms		= 600000,
 };
 
 static struct pm8921_bms_platform_data
 apq8064_pm8921_bms_pdata __devinitdata = {
 	.battery_type  = BATT_UNKNOWN, //FIXME Define correct type
-	.r_sense  = 10,
+	.r_sense_uohm  = 10000,
 	.v_cutoff  = 3500,
 	.max_voltage_uv  = MAX_VOLTAGE_MV * 1000,
 	.rconn_mohm  = 37,
 	.shutdown_soc_valid_limit  = 20,
 	.adjust_soc_low_threshold  = 25,
 	.chg_term_ua  = CHG_TERM_MA * 1000,
-	.eoc_check_soc  = EOC_CHECK_SOC,
-	.first_fixed_iavg_ma  = 500,
 };
 
 /* battery data */
