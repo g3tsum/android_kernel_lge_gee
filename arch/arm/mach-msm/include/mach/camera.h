@@ -128,6 +128,27 @@ struct msm_vpe_phy_info {
 	uint32_t frame_id;
 };
 
+struct msm_camera_csid_lut_params {
+	uint8_t num_cid;
+	struct msm_camera_csid_vc_cfg *vc_cfg;
+};
+
+struct msm_camera_csid_params {
+	uint8_t lane_cnt;
+	uint8_t lane_assign;
+	struct msm_camera_csid_lut_params lut_params;
+};
+
+struct msm_camera_csiphy_params {
+	uint8_t lane_cnt;
+	uint8_t settle_cnt;
+};
+
+struct msm_camera_csi2_params {
+	struct msm_camera_csid_params csid_params;
+	struct msm_camera_csiphy_params csiphy_params;
+};
+
 #ifndef CONFIG_MSM_CAMERA_V4L2
 #define VFE31_OUTPUT_MODE_PT (0x1 << 0)
 #define VFE31_OUTPUT_MODE_S (0x1 << 1)
@@ -312,47 +333,6 @@ struct msm_camera_cci_gpio_cfg {
 enum msm_camera_i2c_cmd_type {
 	MSM_CAMERA_I2C_CMD_WRITE,
 	MSM_CAMERA_I2C_CMD_POLL,
-};
-
-struct msm_camera_i2c_reg_conf {
-	uint16_t reg_addr;
-	uint16_t reg_data;
-	enum msm_camera_i2c_data_type dt;
-	enum msm_camera_i2c_cmd_type cmd_type;
-	int16_t mask;
-};
-
-struct msm_camera_cci_i2c_write_cfg {
-	struct msm_camera_i2c_reg_conf *reg_conf_tbl;
-	enum msm_camera_i2c_reg_addr_type addr_type;
-	enum msm_camera_i2c_data_type data_type;
-	uint16_t size;
-};
-
-struct msm_camera_cci_i2c_read_cfg {
-	uint16_t addr;
-	enum msm_camera_i2c_reg_addr_type addr_type;
-	uint8_t *data;
-	uint16_t num_byte;
-};
-
-struct msm_camera_cci_i2c_queue_info {
-	uint32_t max_queue_size;
-	uint32_t report_id;
-	uint32_t irq_en;
-	uint32_t capture_rep_data;
-};
-
-struct msm_camera_cci_ctrl {
-	int32_t status;
-	struct msm_camera_cci_client *cci_info;
-	enum msm_cci_cmd_type cmd;
-	union {
-		struct msm_camera_cci_i2c_write_cfg cci_i2c_write_cfg;
-		struct msm_camera_cci_i2c_read_cfg cci_i2c_read_cfg;
-		struct msm_camera_cci_wait_sync_cfg cci_wait_sync_cfg;
-		struct msm_camera_cci_gpio_cfg gpio_cfg;
-	} cfg;
 };
 
 /* this structure is used in kernel */
@@ -638,6 +618,11 @@ enum msm_bus_perf_setting {
 	S_EXIT
 };
 
+struct msm_cam_clk_info {
+	const char *clk_name;
+	long clk_rate;
+};
+
 int msm_camio_enable(struct platform_device *dev);
 int msm_camio_vpe_clk_enable(uint32_t);
 int msm_camio_vpe_clk_disable(void);
@@ -693,11 +678,9 @@ int msm_cam_clk_enable(struct device *dev, struct msm_cam_clk_info *clk_info,
 int msm_cam_core_reset(void);
 
 int msm_camera_config_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
-		int num_vreg, enum msm_camera_vreg_name_t *vreg_seq,
-		int num_vreg_seq, struct regulator **reg_ptr, int config);
+		int num_vreg, struct regulator **reg_ptr, int config);
 int msm_camera_enable_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
-		int num_vreg, enum msm_camera_vreg_name_t *vreg_seq,
-		int num_vreg_seq, struct regulator **reg_ptr, int enable);
+		int num_vreg, struct regulator **reg_ptr, int enable);
 
 int msm_camera_config_gpio_table
 	(struct msm_camera_sensor_info *sinfo, int gpio_en);

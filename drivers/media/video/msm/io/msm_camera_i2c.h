@@ -32,11 +32,24 @@ struct msm_camera_i2c_client {
 	struct msm_camera_cci_client *cci_client;
 	enum msm_camera_i2c_reg_addr_type addr_type;
 };
+enum msm_camera_i2c_data_type {
+	MSM_CAMERA_I2C_BYTE_DATA = 1,
+	MSM_CAMERA_I2C_WORD_DATA,
+	MSM_CAMERA_I2C_SET_BYTE_MASK,
+	MSM_CAMERA_I2C_UNSET_BYTE_MASK,
+	MSM_CAMERA_I2C_SET_WORD_MASK,
+	MSM_CAMERA_I2C_UNSET_WORD_MASK,
+};
+enum msm_camera_i2c_cmd_type {
+	MSM_CAMERA_I2C_CMD_WRITE,
+	MSM_CAMERA_I2C_CMD_POLL,
+};
 
-struct msm_camera_i2c_reg_tbl {
+struct msm_camera_i2c_reg_conf {
 	uint16_t reg_addr;
 	uint16_t reg_data;
-	uint16_t delay;
+	enum msm_camera_i2c_data_type dt;
+	enum msm_camera_i2c_cmd_type cmd_type;
 };
 
 struct msm_camera_i2c_conf_array {
