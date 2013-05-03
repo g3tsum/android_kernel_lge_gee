@@ -136,13 +136,6 @@ int update_preset_lcdc_lut(void)
 }
 #endif
 
-
-
-unsigned char apq8064_mhl_display_enabled(void)
-{
-	return mhl_display_enabled;
-}
-
 static void set_mdp_clocks_for_wuxga(void);
 
 static struct msm_fb_platform_data msm_fb_pdata = {

@@ -21,7 +21,6 @@
 #include <linux/leds-pm8xxx.h>
 #include <linux/mfd/pm8xxx/pm8xxx-adc.h>
 #include <linux/mfd/pm8xxx/pm8921-bms.h>
-#include <linux/power/bq51051b_charger.h>
 #include <linux/platform_data/battery_temp_ctrl.h>
 #include <linux/gpio.h>
 #include <asm/mach-types.h>
@@ -137,19 +136,6 @@ static struct pm8xxx_gpio_init pm8921_gpios[] __initdata = {
 	PM8921_GPIO_OUTPUT(34, 0, HIGH), /* WCD_RESET_N */
 };
 
-#ifdef CONFIG_WIRELESS_CHARGER
-#define PM8921_GPIO_WLC_ACTIVE      25
-#define PM8921_GPIO_WLC_ACTIVE_11   17
-static struct pm8xxx_gpio_init pm8921_gpios_wlc[] __initdata = {
-	PM8921_GPIO_INPUT(PM8921_GPIO_WLC_ACTIVE,PM_GPIO_PULL_UP_1P5_30),
-	PM8921_GPIO_OUTPUT(26, 0, HIGH), /* WLC CHG_STAT */
-};
-static struct pm8xxx_gpio_init pm8921_gpios_wlc_rev11[] __initdata = {
-	PM8921_GPIO_INPUT(PM8921_GPIO_WLC_ACTIVE_11,PM_GPIO_PULL_UP_1P5_30),
-	PM8921_GPIO_OUTPUT(26, 0, HIGH), /* WLC CHG_STAT */
-};
-#endif
-
 void __init apq8064_pm8xxx_gpio_mpp_init(void)
 {
 	int i, rc;
@@ -162,29 +148,7 @@ void __init apq8064_pm8xxx_gpio_mpp_init(void)
 			break;
 		}
 	}
-#ifdef CONFIG_WIRELESS_CHARGER
-	if (lge_get_board_revno() >= HW_REV_1_1) {
-		for (i = 0; i < ARRAY_SIZE(pm8921_gpios_wlc_rev11); i++) {
-			rc = pm8xxx_gpio_config(pm8921_gpios_wlc_rev11[i].gpio,
-					&pm8921_gpios_wlc_rev11[i].config);
-			if (rc < 0) {
-				pr_err("%s: pm8xxx_gpio_config: rc=%d\n",
-						__func__, rc);
-				break;
-			}
-		}
-	} else {
-		for (i = 0; i < ARRAY_SIZE(pm8921_gpios_wlc); i++) {
-			rc = pm8xxx_gpio_config(pm8921_gpios_wlc[i].gpio,
-						&pm8921_gpios_wlc[i].config);
-			if (rc < 0) {
-				pr_err("%s: pm8xxx_gpio_config: rc=%d\n",
-						__func__, rc);
-				break;
-			}
-		}
-	}
-#endif
+
 }
 
 static struct pm8xxx_pwrkey_platform_data apq8064_pm8921_pwrkey_pdata = {
@@ -482,62 +446,6 @@ static int batt_temp_ctrl_level[] = {
 	-100,
 };
 
-#ifdef CONFIG_WIRELESS_CHARGER
-#define GPIO_WLC_ACTIVE        PM8921_GPIO_PM_TO_SYS(PM8921_GPIO_WLC_ACTIVE)
-#define GPIO_WLC_ACTIVE_11     PM8921_GPIO_PM_TO_SYS(PM8921_GPIO_WLC_ACTIVE_11)
-#define GPIO_WLC_STATE         PM8921_GPIO_PM_TO_SYS(26)
-
-static int wireless_charger_is_plugged(void);
-
-static struct bq51051b_wlc_platform_data bq51051b_wlc_pmic_pdata = {
-	.chg_state_gpio  = GPIO_WLC_STATE,
-	.active_n_gpio   = GPIO_WLC_ACTIVE,
-	.wlc_is_plugged  = wireless_charger_is_plugged,
-};
-
-struct platform_device wireless_charger = {
-	.name		= "bq51051b_wlc",
-	.id		= -1,
-	.dev = {
-		.platform_data = &bq51051b_wlc_pmic_pdata,
-	},
-};
-
-static int wireless_charger_is_plugged(void)
-{
-	static bool initialized = false;
-	unsigned int wlc_active_n = 0;
-	int ret = 0;
-
-	wlc_active_n = bq51051b_wlc_pmic_pdata.active_n_gpio;
-	if (!wlc_active_n) {
-		pr_warn("wlc : active_n gpio is not defined yet");
-		return 0;
-	}
-
-	if (!initialized) {
-		ret =  gpio_request_one(wlc_active_n, GPIOF_DIR_IN,
-				"active_n_gpio");
-		if (ret < 0) {
-			pr_err("wlc: active_n gpio request failed\n");
-			return 0;
-		}
-		initialized = true;
-	}
-
-	return !(gpio_get_value(wlc_active_n));
-}:
-
-static __init void mako_fixup_wlc_gpio(void) {
-	if (lge_get_board_revno() >= HW_REV_1_1)
-		bq51051b_wlc_pmic_pdata.active_n_gpio = GPIO_WLC_ACTIVE_11;
-}
-
-#else
-static int wireless_charger_is_plugged(void) { return 0; }
-//never used: static __init void mako_set_wlc_gpio(void) { }
-#endif
-
 /*
  * Battery characteristic
  * Typ.2100mAh capacity, Li-Ion Polymer 3.8V
@@ -594,10 +502,6 @@ apq8064_pm8921_bms_pdata __devinitdata = {
 	.adjust_soc_low_threshold  = 25,
 	.chg_term_ua  = CHG_TERM_MA * 1000,
 	.eoc_check_soc  = EOC_CHECK_SOC,
-	.bms_support_wlc  = 1,
-	.wlc_term_ua = 110000,
-	.wlc_max_voltage_uv = 4290000,
-	.wlc_is_plugged  = wireless_charger_is_plugged,
 	.first_fixed_iavg_ma  = 500,
 };
 
@@ -913,7 +817,6 @@ void __init apq8064_init_pmic(void)
 
 #if !defined(CONFIG_MACH_APQ8064_J1A)
 	mako_fixed_leds();
-	mako_fixup_wlc_gpio();
 #endif
 
 	apq8064_device_ssbi_pmic1.dev.platform_data =
