@@ -330,6 +330,26 @@ struct msm_camera_cci_gpio_cfg {
 	uint16_t i2c_queue;
 };
 
+enum msm_camera_i2c_reg_addr_type {
+	MSM_CAMERA_I2C_BYTE_ADDR = 1,
+	MSM_CAMERA_I2C_WORD_ADDR,
+};
+
+enum msm_camera_i2c_data_type {
+	MSM_CAMERA_I2C_BYTE_DATA = 1,
+	MSM_CAMERA_I2C_WORD_DATA,
+	MSM_CAMERA_I2C_SET_BYTE_MASK,
+	MSM_CAMERA_I2C_UNSET_BYTE_MASK,
+	MSM_CAMERA_I2C_SET_WORD_MASK,
+	MSM_CAMERA_I2C_UNSET_WORD_MASK,
+	MSM_CAMERA_I2C_SET_BYTE_WRITE_MASK_DATA,
+};
+
+enum msm_camera_i2c_cmd_type {
+	MSM_CAMERA_I2C_CMD_WRITE,
+	MSM_CAMERA_I2C_CMD_POLL,
+};
+
 /* this structure is used in kernel */
 struct msm_queue_cmd {
 	struct list_head list_config;
@@ -673,9 +693,11 @@ int msm_cam_clk_enable(struct device *dev, struct msm_cam_clk_info *clk_info,
 int msm_cam_core_reset(void);
 
 int msm_camera_config_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
-		int num_vreg, struct regulator **reg_ptr, int config);
+                int num_vreg, enum msm_camera_vreg_name_t *vreg_seq,
+                int num_vreg_seq, struct regulator **reg_ptr, int config);
 int msm_camera_enable_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
-		int num_vreg, struct regulator **reg_ptr, int enable);
+                int num_vreg, enum msm_camera_vreg_name_t *vreg_seq,
+                int num_vreg_seq, struct regulator **reg_ptr, int config);
 
 int msm_camera_config_gpio_table
 	(struct msm_camera_sensor_info *sinfo, int gpio_en);
