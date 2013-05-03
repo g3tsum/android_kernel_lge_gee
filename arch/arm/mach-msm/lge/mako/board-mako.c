@@ -723,13 +723,6 @@ static int __init hdmi_resulution_setup(char *param)
 }
 early_param("ext_resolution", hdmi_resulution_setup);
 
-static void __init apq8064_reserve(void)
-{
-	apq8064_set_display_params(prim_panel_name, ext_panel_name,
-		ext_resolution);
-	msm_reserve();
-}
-
 static void __init apq8064_early_reserve(void)
 {
 	reserve_info = &apq8064_reserve_info;
