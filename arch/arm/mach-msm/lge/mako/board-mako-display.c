@@ -780,32 +780,12 @@ static char display_mode2 [8] = {0xB6, 0x00, 0x14, 0x0F, 0x16, 0x13, 0x05, 0x05}
 #define g_saturation  0x42
 #define g_greys       0x20
 
-static char p_gamma_r_setting[10] = {0xD0, g_white, g_mids, g_black, 0x00, g_contrast, g_brightness, g_saturation, g_greys, 0x01};
-static char n_gamma_r_setting[10] = {0xD1, g_white, g_mids, g_black, 0x00, g_contrast, g_brightness, g_saturation, g_greys, 0x01};
-static char p_gamma_g_setting[10] = {0xD2, g_white, g_mids, g_black, 0x00, g_contrast, g_brightness, g_saturation, g_greys, 0x01};
-static char n_gamma_g_setting[10] = {0xD3, g_white, g_mids, g_black, 0x00, g_contrast, g_brightness, g_saturation, g_greys, 0x01};
-static char p_gamma_b_setting[10] = {0xD4, g_white, g_mids, g_black, 0x00, g_contrast, g_brightness, g_saturation, g_greys, 0x01};
-static char n_gamma_b_setting[10] = {0xD5, g_white, g_mids, g_black, 0x00, g_contrast, g_brightness, g_saturation, g_greys, 0x01};
-   
-static char ief_on_set0[2] = {0xE0, 0x00};
-static char ief_on_set4[4] = {0xE4, 0x00, 0x00, 0x00};
-static char ief_on_set5[4] = {0xE5, 0x00, 0x00, 0x00};
-static char ief_on_set6[4] = {0xE6, 0x00, 0x00, 0x00};
-
-static char ief_set1[5] = {0xE1, 0x00, 0x00, 0x01, 0x01};
-static char ief_set2[3] = {0xE2, 0x01, 0x00};
-static char ief_set3[6] = {0xE3, 0x00, 0x00, 0x42, 0x35, 0x00};
-static char ief_set7[9] = {0xE7, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40};
-static char ief_set8[9] = {0xE8, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D};
 static char ief_set9[9] = {0xE9, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B};
 static char ief_setA[9] = {0xEA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static char ief_setB[9] = {0xEB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static char ief_setC[9] = {0xEC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static char osc_setting[4] =     {0xC0, 0x00, 0x0A, 0x10};
-static char power_setting3[13] = {0xC3, 0x00, 0x88, 0x03, 0x20, 0x01, 0x57, 0x4F, 0x33,0x02,0x38,0x38,0x00};
-static char power_setting4[6] =  {0xC4, 0x31, 0x24, 0x11, 0x11, 0x3D};
-static char power_setting5[4] =  {0xC5, 0x3B, 0x3B, 0x03};
 
 #ifdef CONFIG_LGIT_VIDEO_WXGA_CABC
 static char cabc_set0[2] = {0x51, 0xFF};
@@ -815,9 +795,6 @@ static char cabc_set3[2] = {0x55, 0x02};
 static char cabc_set4[6] = {0xC8, 0x22, 0x22, 0x22, 0x33, 0x80};//A-CABC applied
 #endif
 
-static char exit_sleep_power_control_2[2] =  {0xC2,0x06};
-static char exit_sleep_power_control_3[2] =  {0xC2,0x0E};
-static char otp_protection[3] =  {0xF1,0x10,0x00};
 static char sleep_out_for_cabc[2] = {0x11,0x00};
 static char gate_output_enabled_by_manual[2] = {0xC1,0x08};
 
@@ -895,13 +872,6 @@ static struct dsi_cmd_desc lgit_power_on_set_3[] = {
 
 static struct dsi_cmd_desc lgit_power_off_set_1[] = {
 	{DTYPE_DCS_WRITE, 1, 0, 0, 20, sizeof(display_off), display_off},
-	{DTYPE_DCS_WRITE, 1, 0, 0, 5, sizeof(enter_sleep), enter_sleep},
-};
-
-static struct dsi_cmd_desc lgit_power_off_set_2[] = {
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 10, sizeof(analog_boosting_power_control), analog_boosting_power_control},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 10, sizeof(enter_sleep_power_control_3), enter_sleep_power_control_3},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(enter_sleep_power_control_2), enter_sleep_power_control_2},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 10, sizeof(deep_standby), deep_standby}
 };
 
@@ -980,11 +950,8 @@ struct i2c_registry {
   int                    len;
 };
 
-#if defined(CONFIG_LGE_BACKLIGHT_CABC)
-
 #define PWM_SIMPLE_EN 0xA0
 #define PWM_BRIGHTNESS 0x20
-#endif
 
 #if defined (CONFIG_BACKLIGHT_LM3530)
 static struct backlight_platform_data lm3530_data = {
