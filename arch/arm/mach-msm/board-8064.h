@@ -84,9 +84,6 @@ void apq8064_init_gpiomux(void);
 void apq8064_init_pmic(void);
 
 extern struct msm_camera_board_info apq8064_camera_board_info;
-/* Enabling flash LED for camera */
-extern struct msm_camera_board_info apq8064_lge_camera_board_info;
-
 void apq8064_init_cam(void);
 
 #define APQ_8064_GSBI1_QUP_I2C_BUS_ID 0
