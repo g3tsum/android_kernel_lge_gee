@@ -825,10 +825,6 @@ static struct attribute *external_common_fs_attrs[] = {
 	&dev_attr_cec_wr_frame.attr,
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL_CEC_SUPPORT */
 	&dev_attr_hdmi_primary.attr,
-#ifdef CONFIG_MACH_LGE
-        &dev_attr_hdmi_boot_completed.attr,
-        &dev_attr_hdmi_external_block.attr,
-#endif
 	&dev_attr_audio_data_block.attr,
 	&dev_attr_spkr_alloc_data_block.attr,
 	NULL,
