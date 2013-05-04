@@ -713,7 +713,6 @@ void __init apq8064_init_pmic(void)
 	mako_set_adcmap();
 	mako_fixed_leds();
 #endif
-	mako_fixup_wlc_gpio();
 
 	apq8064_device_ssbi_pmic1.dev.platform_data =
 		&apq8064_ssbi_pm8921_pdata;
