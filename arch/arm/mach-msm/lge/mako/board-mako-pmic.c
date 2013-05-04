@@ -349,65 +349,6 @@ static int batt_temp_ctrl_level[] = {
 	-100,
 };
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_WIRELESS_CHARGER
-#define GPIO_WLC_ACTIVE        PM8921_GPIO_PM_TO_SYS(PM8921_GPIO_WLC_ACTIVE)
-#define GPIO_WLC_ACTIVE_11     PM8921_GPIO_PM_TO_SYS(PM8921_GPIO_WLC_ACTIVE_11)
-#define GPIO_WLC_STATE         PM8921_GPIO_PM_TO_SYS(26)
-
-static int wireless_charger_is_plugged(void);
-
-static struct bq51051b_wlc_platform_data bq51051b_wlc_pmic_pdata = {
-	.chg_state_gpio  = GPIO_WLC_STATE,
-	.active_n_gpio   = GPIO_WLC_ACTIVE,
-	.wlc_is_plugged  = wireless_charger_is_plugged,
-};
-
-struct platform_device wireless_charger = {
-	.name		= "bq51051b_wlc",
-	.id		= -1,
-	.dev = {
-		.platform_data = &bq51051b_wlc_pmic_pdata,
-	},
-};
-
-static int wireless_charger_is_plugged(void)
-{
-	static bool initialized = false;
-	unsigned int wlc_active_n = 0;
-	int ret = 0;
-
-	wlc_active_n = bq51051b_wlc_pmic_pdata.active_n_gpio;
-	if (!wlc_active_n) {
-		pr_warn("wlc : active_n gpio is not defined yet");
-		return 0;
-	}
-
-	if (!initialized) {
-		ret =  gpio_request_one(wlc_active_n, GPIOF_DIR_IN,
-				"active_n_gpio");
-		if (ret < 0) {
-			pr_err("wlc: active_n gpio request failed\n");
-			return 0;
-		}
-		initialized = true;
-	}
-
-	return !(gpio_get_value(wlc_active_n));
-}
-
-static __init void mako_fixup_wlc_gpio(void) {
-	if (lge_get_board_revno() >= HW_REV_1_1)
-		bq51051b_wlc_pmic_pdata.active_n_gpio = GPIO_WLC_ACTIVE_11;
-}
-
-#else
-static int wireless_charger_is_plugged(void) { return 0; }
-static __init void mako_set_wlc_gpio(void) { }
-#endif
-
->>>>>>> parent of ce012d6... leds for capacitive buttons
 /*
  * Battery characteristic
  * Typ.2100mAh capacity, Li-Ion Polymer 3.8V
@@ -771,11 +712,8 @@ void __init apq8064_init_pmic(void)
 	pmic_reset_irq = PM8921_IRQ_BASE + PM8921_RESOUT_IRQ;
 	mako_set_adcmap();
 	mako_fixed_leds();
-<<<<<<< HEAD
 #endif
-=======
 	mako_fixup_wlc_gpio();
->>>>>>> parent of ce012d6... leds for capacitive buttons
 
 	apq8064_device_ssbi_pmic1.dev.platform_data =
 		&apq8064_ssbi_pm8921_pdata;
