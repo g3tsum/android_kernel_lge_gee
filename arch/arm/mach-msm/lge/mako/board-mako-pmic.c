@@ -119,12 +119,8 @@ struct pm8xxx_mpp_init {
 
 /* Initial PM8921 GPIO configurations */
 static struct pm8xxx_gpio_init pm8921_gpios[] __initdata = {
-#ifdef CONFIG_EARJACK_DEBUGGER
 	PM8921_GPIO_INPUT(13, PM_GPIO_PULL_DN), /* EARJACK_DEBUGGER */
-#endif
-#ifdef CONFIG_SLIMPORT_ANX7808
 	PM8921_GPIO_INPUT(14, PM_GPIO_PULL_DN), /* SLIMPORT_CBL_DET */
-#endif
 	PM8921_GPIO_OUTPUT(15, 0, HIGH), /* ANX_P_DWN_CTL */
 	PM8921_GPIO_OUTPUT(16, 0, HIGH), /* ANX_AVDD33_EN */
 	PM8921_GPIO_OUTPUT(17, 0, HIGH), /* CAM_VCM_EN */
@@ -163,11 +159,6 @@ static struct pm8xxx_misc_platform_data apq8064_pm8921_misc_pdata = {
 
 #define PM8921_LC_LED_MAX_CURRENT 4	/* I = 4mA */
 #define PM8921_LC_LED_LOW_CURRENT 1	/* I = 1mA */
-#ifdef CONFIG_MACH_APQ8064_J1A
-#define PM8921_KEY_LED_MAX_CURRENT      6       /* I = 6mA */
-#define PM8XXX_LED_PWM_DUTY_MS0	  50
-#define PM8XXX_LED_PWM_DUTY_MS1   512
-#endif
 #define PM8XXX_LED_PWM_ADJUST_BRIGHTNESS_E 10	/* max duty percentage */
 #define PM8XXX_LED_PWM_PERIOD     1000
 #define PM8XXX_LED_PWM_DUTY_MS    50
@@ -182,19 +173,6 @@ static struct pm8xxx_misc_platform_data apq8064_pm8921_misc_pdata = {
  */
 #define PM8XXX_PWM_CHANNEL_NONE		-1
 
-#ifdef CONFIG_MACH_APQ8064_J1A
-static struct led_info pm8921_led_info[] = {
-	[0] = {
-		.name			= "led:red",
-	},
-	[1] = {
-		.name			= "button-backlight",
-	},
-	[2] = {
-		.name			= "led:green",
-	},
-};
-#else
 static struct led_info pm8921_led_info[] = {
 	[0] = {
 		.name = "red",
@@ -206,41 +184,11 @@ static struct led_info pm8921_led_info[] = {
 		.name = "blue",
 	},
 };
-#endif
 
 static struct led_platform_data pm8921_led_core_pdata = {
 	.num_leds = ARRAY_SIZE(pm8921_led_info),
 	.leds = pm8921_led_info,
 };
-
-#ifdef CONFIG_MACH_APQ8064_J1A
-
-static struct pm8xxx_led_config pm8921_led_configs[] = {
-	[0] = {
-		.id = PM8XXX_ID_LED_0,
-		.mode = PM8XXX_LED_MODE_MANUAL,
-		.max_current = PM8921_LC_LED_MAX_CURRENT,
-	},
-	[1] = {
-		.id = PM8XXX_ID_LED_1,
-		.mode = PM8XXX_LED_MODE_MANUAL,
-		.max_current = PM8921_KEY_LED_MAX_CURRENT,
-
-	},
-	[2] = {
-		.id = PM8XXX_ID_LED_2,
-		.mode = PM8XXX_LED_MODE_MANUAL,
-		.max_current = PM8921_LC_LED_MAX_CURRENT,
-	},
-};
-
-static struct pm8xxx_led_platform_data apq8064_pm8921_leds_pdata = {
-		.led_core = &pm8921_led_core_pdata,
-		.configs = pm8921_led_configs,
-		.num_configs = ARRAY_SIZE(pm8921_led_configs),
-};
-
-#else
 
 static int pm8921_led0_pwm_duty_pcts[PM8XXX_LED_PWM_DUTY_PCTS] = {0,};
 static int pm8921_led1_pwm_duty_pcts[PM8XXX_LED_PWM_DUTY_PCTS] = {0,};
@@ -312,7 +260,6 @@ static struct pm8xxx_led_platform_data apq8064_pm8921_leds_pdata = {
 		.num_configs = ARRAY_SIZE(pm8921_led_configs),
 		.use_pwm = 1,
 };
-#endif
 
 static struct pm8xxx_adc_amux apq8064_pm8921_adc_channels_data[] = {
 	{"vcoin", CHANNEL_VCOIN, CHAN_PATH_SCALING2, AMUX_RSV1,
@@ -402,6 +349,65 @@ static int batt_temp_ctrl_level[] = {
 	-100,
 };
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_WIRELESS_CHARGER
+#define GPIO_WLC_ACTIVE        PM8921_GPIO_PM_TO_SYS(PM8921_GPIO_WLC_ACTIVE)
+#define GPIO_WLC_ACTIVE_11     PM8921_GPIO_PM_TO_SYS(PM8921_GPIO_WLC_ACTIVE_11)
+#define GPIO_WLC_STATE         PM8921_GPIO_PM_TO_SYS(26)
+
+static int wireless_charger_is_plugged(void);
+
+static struct bq51051b_wlc_platform_data bq51051b_wlc_pmic_pdata = {
+	.chg_state_gpio  = GPIO_WLC_STATE,
+	.active_n_gpio   = GPIO_WLC_ACTIVE,
+	.wlc_is_plugged  = wireless_charger_is_plugged,
+};
+
+struct platform_device wireless_charger = {
+	.name		= "bq51051b_wlc",
+	.id		= -1,
+	.dev = {
+		.platform_data = &bq51051b_wlc_pmic_pdata,
+	},
+};
+
+static int wireless_charger_is_plugged(void)
+{
+	static bool initialized = false;
+	unsigned int wlc_active_n = 0;
+	int ret = 0;
+
+	wlc_active_n = bq51051b_wlc_pmic_pdata.active_n_gpio;
+	if (!wlc_active_n) {
+		pr_warn("wlc : active_n gpio is not defined yet");
+		return 0;
+	}
+
+	if (!initialized) {
+		ret =  gpio_request_one(wlc_active_n, GPIOF_DIR_IN,
+				"active_n_gpio");
+		if (ret < 0) {
+			pr_err("wlc: active_n gpio request failed\n");
+			return 0;
+		}
+		initialized = true;
+	}
+
+	return !(gpio_get_value(wlc_active_n));
+}
+
+static __init void mako_fixup_wlc_gpio(void) {
+	if (lge_get_board_revno() >= HW_REV_1_1)
+		bq51051b_wlc_pmic_pdata.active_n_gpio = GPIO_WLC_ACTIVE_11;
+}
+
+#else
+static int wireless_charger_is_plugged(void) { return 0; }
+static __init void mako_set_wlc_gpio(void) { }
+#endif
+
+>>>>>>> parent of ce012d6... leds for capacitive buttons
 /*
  * Battery characteristic
  * Typ.2100mAh capacity, Li-Ion Polymer 3.8V
@@ -764,10 +770,12 @@ void __init apq8064_init_pmic(void)
 {
 	pmic_reset_irq = PM8921_IRQ_BASE + PM8921_RESOUT_IRQ;
 	mako_set_adcmap();
-
-#if !defined(CONFIG_MACH_APQ8064_J1A)
 	mako_fixed_leds();
+<<<<<<< HEAD
 #endif
+=======
+	mako_fixup_wlc_gpio();
+>>>>>>> parent of ce012d6... leds for capacitive buttons
 
 	apq8064_device_ssbi_pmic1.dev.platform_data =
 		&apq8064_ssbi_pm8921_pdata;
