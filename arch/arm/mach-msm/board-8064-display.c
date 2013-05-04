@@ -28,11 +28,11 @@
 #include "devices.h"
 #include "board-8064.h"
 
-#include <msm/msm_fb.h>
-#include <msm/msm_fb_def.h>
-#include <msm/mipi_dsi.h>
-#include <msm/mdp.h>
-#include <msm/mdp4.h>
+#include <../../../drivers/video/msm/msm_fb.h>
+#include <../../../drivers/video/msm/msm_fb_def.h>
+#include <../../../drivers/video/msm/mipi_dsi.h>
+#include <../../../drivers/video/msm/mdp.h>
+#include <../../../drivers/video/msm/mdp4.h>
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 /* prim = 1366 x 768 x 3(bpp) x 3(pages) */

@@ -231,6 +231,11 @@ static struct platform_device battery_bcl_device = {
 struct fmem_platform_data apq8064_fmem_pdata = {
 };
 
+static int apq8064_paddr_to_memtype(unsigned int paddr)
+{
+	return MEMTYPE_EBI1;
+}
+
 static struct memtype_reserve apq8064_reserve_table[] __initdata = {
 	[MEMTYPE_SMI] = {
 	},
@@ -682,6 +687,13 @@ static void __init apq8064_calculate_reserve_sizes(void)
 	reserve_mpdcvs_memory();
 }
 
+static struct reserve_info apq8064_reserve_info __initdata = {
+  .memtype_reserve_table = apq8064_reserve_table,
+  .calculate_reserve_sizes = apq8064_calculate_reserve_sizes,
+  .reserve_fixed_area = apq8064_reserve_fixed_area,
+  .paddr_to_memtype = apq8064_paddr_to_memtype,
+};
+
 static char prim_panel_name[PANEL_NAME_MAX_LEN];
 static char ext_panel_name[PANEL_NAME_MAX_LEN];
 
@@ -710,6 +722,18 @@ static int __init hdmi_resulution_setup(char *param)
 	return ret;
 }
 early_param("ext_resolution", hdmi_resulution_setup);
+
+static void __init apq8064_reserve(void)
+{
+  apq8064_set_display_params(prim_panel_name, ext_panel_name,
+    ext_resolution);
+  msm_reserve();
+}
+
+static void __init apq8064_early_reserve(void)
+{
+	reserve_info = &apq8064_reserve_info;
+}
 
 #ifdef CONFIG_USB_EHCI_MSM_HSIC
 /* Bandwidth requests (zero) if no vote placed */

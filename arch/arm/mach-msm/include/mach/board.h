@@ -193,6 +193,7 @@ struct camera_vreg_t {
 	int min_voltage;
 	int max_voltage;
 	int op_mode;
+	uint32_t delay;
 };
 
 struct msm_gpio_set_tbl {
@@ -220,6 +221,12 @@ struct msm_camera_gpio_conf {
 	uint8_t camera_off_table_size;
 	uint32_t *camera_on_table;
 	uint8_t camera_on_table_size;
+};
+enum msm_camera_vreg_name_t {
+  CAM_VDIG,
+  CAM_VIO,
+  CAM_VANA,
+  CAM_VAF,
 };
 
 enum msm_camera_i2c_mux_mode {

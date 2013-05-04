@@ -39,7 +39,6 @@
 #define MSM_CAMERA_MSG 0
 #define MSM_CAMERA_EVT 1
 #define NUM_WB_EXP_NEUTRAL_REGION_LINES 4
-#define NUM_WB_EXP_STAT_OUTPUT_BUFFERS  3
 #define NUM_AUTOFOCUS_MULTI_WINDOW_GRIDS 16
 #define NUM_STAT_OUTPUT_BUFFERS      3
 #define NUM_AF_STAT_OUTPUT_BUFFERS      3
@@ -333,21 +332,6 @@ struct msm_camera_cci_gpio_cfg {
 enum msm_camera_i2c_reg_addr_type {
 	MSM_CAMERA_I2C_BYTE_ADDR = 1,
 	MSM_CAMERA_I2C_WORD_ADDR,
-};
-
-enum msm_camera_i2c_data_type {
-	MSM_CAMERA_I2C_BYTE_DATA = 1,
-	MSM_CAMERA_I2C_WORD_DATA,
-	MSM_CAMERA_I2C_SET_BYTE_MASK,
-	MSM_CAMERA_I2C_UNSET_BYTE_MASK,
-	MSM_CAMERA_I2C_SET_WORD_MASK,
-	MSM_CAMERA_I2C_UNSET_WORD_MASK,
-	MSM_CAMERA_I2C_SET_BYTE_WRITE_MASK_DATA,
-};
-
-enum msm_camera_i2c_cmd_type {
-	MSM_CAMERA_I2C_CMD_WRITE,
-	MSM_CAMERA_I2C_CMD_POLL,
 };
 
 /* this structure is used in kernel */
