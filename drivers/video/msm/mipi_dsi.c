@@ -351,6 +351,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	pr_debug("%s-:\n", __func__);
 
 	return ret;
+#endif
 }
 
 static int mipi_dsi_early_off(struct platform_device *pdev)
