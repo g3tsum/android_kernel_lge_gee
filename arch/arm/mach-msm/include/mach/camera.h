@@ -330,11 +330,6 @@ struct msm_camera_cci_gpio_cfg {
 	uint16_t i2c_queue;
 };
 
-enum msm_camera_i2c_cmd_type {
-	MSM_CAMERA_I2C_CMD_WRITE,
-	MSM_CAMERA_I2C_CMD_POLL,
-};
-
 /* this structure is used in kernel */
 struct msm_queue_cmd {
 	struct list_head list_config;
