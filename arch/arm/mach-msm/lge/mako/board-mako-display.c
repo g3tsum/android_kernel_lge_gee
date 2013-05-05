@@ -959,13 +959,6 @@ void __init apq8064_init_fb(void)
 #define I2C_LIQUID (1 << 4)
 #define I2C_J1V (1 << 5)
 
-struct i2c_registry {
-  u8                     machs;
-  int                    bus;
-  struct i2c_board_info *info;
-  int                    len;
-};
-
 #define PWM_SIMPLE_EN 0xA0
 #define PWM_BRIGHTNESS 0x20
 #endif

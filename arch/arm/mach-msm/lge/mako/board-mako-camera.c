@@ -785,5 +785,12 @@ struct msm_camera_board_info apq8064_camera_board_info = {
 	.board_info = apq8064_camera_i2c_boardinfo,
 	.num_i2c_board_info = ARRAY_SIZE(apq8064_camera_i2c_boardinfo),
 };
+
+/* Enabling flash LED for camera */
+struct msm_camera_board_info apq8064_lge_camera_board_info = {
+  .board_info = apq8064_lge_camera_i2c_boardinfo,
+  .num_i2c_board_info = ARRAY_SIZE(apq8064_lge_camera_i2c_boardinfo),
+};
+
 #endif
 #endif
