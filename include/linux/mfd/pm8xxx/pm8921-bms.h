@@ -12,7 +12,6 @@
 
 #ifndef __PM8XXX_BMS_H
 #define __PM8XXX_BMS_H
-#endif
 
 #include <linux/errno.h>
 #include <linux/mfd/pm8xxx/batterydata-lib.h>
@@ -88,8 +87,6 @@ struct pm8921_bms_platform_data {
 	int				high_ocv_correction_limit_uv;
 	int				low_ocv_correction_limit_uv;
 	int				hold_soc_est;
-};
-
 #if defined(CONFIG_PM8921_BMS) || defined(CONFIG_PM8921_BMS_MODULE)
 	int				eoc_check_soc;
 	int				bms_support_wlc;
@@ -97,6 +94,7 @@ struct pm8921_bms_platform_data {
 	int				wlc_max_voltage_uv;
 	int				(*wlc_is_plugged)(void);
 	int				first_fixed_iavg_ma;
+#endif
 };
 
 #if defined(CONFIG_PM8921_BMS) || defined(CONFIG_PM8921_BMS_MODULE)
