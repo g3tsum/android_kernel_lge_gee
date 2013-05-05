@@ -392,6 +392,7 @@ static ssize_t hdmi_common_wta_hpd(struct device *dev,
 		hpd = 1;
 	else
 		hpd = atoi(buf);
+
 	if (external_common_state->hpd_feature) {
 		if (hpd == 0 && external_common_state->hpd_feature_on) {
 			external_common_state->hpd_feature(0);
@@ -410,6 +411,7 @@ static ssize_t hdmi_common_wta_hpd(struct device *dev,
 	} else {
 		DEV_DBG("%s: 'not supported'\n", __func__);
 	}
+
 	return ret;
 }
 
@@ -792,7 +794,6 @@ static DEVICE_ATTR(format_3d, S_IRUGO | S_IWUSR | S_IWGRP,
 	hdmi_3d_rda_format_3d, hdmi_3d_wta_format_3d);
 #endif
 static DEVICE_ATTR(hdmi_primary, S_IRUGO, hdmi_common_rda_hdmi_primary, NULL);
-
 static DEVICE_ATTR(audio_data_block, S_IRUGO, hdmi_common_rda_audio_data_block,
 	NULL);
 static DEVICE_ATTR(spkr_alloc_data_block, S_IRUGO,
@@ -1395,9 +1396,6 @@ static void add_supported_video_format(
 
 	if (supported && mhl_supported) {
 		disp_mode_list->disp_mode_list[
-			disp_mode_list->num_of_elements++] = video_format;
-		} else
-			disp_mode_list->disp_mode_list[
 			disp_mode_list->num_of_elements++] = video_format;
 		if (video_format == external_common_state->video_resolution) {
 			DEV_DBG("%s: Default resolution %d [%s] supported\n",
