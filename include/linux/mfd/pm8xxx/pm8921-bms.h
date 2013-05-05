@@ -12,6 +12,7 @@
 
 #ifndef __PM8XXX_BMS_H
 #define __PM8XXX_BMS_H
+#endif
 
 #include <linux/errno.h>
 #include <linux/mfd/pm8xxx/batterydata-lib.h>
