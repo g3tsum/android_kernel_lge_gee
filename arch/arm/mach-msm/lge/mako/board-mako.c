@@ -80,7 +80,7 @@
 #include <mach/msm_serial_hs.h>
 
 #include "msm_watchdog.h"
-#include "board-8064.h"
+#include "board-mako.h"
 #include "clock.h"
 #include "spm.h"
 #include <mach/mpm.h>
@@ -3017,13 +3017,6 @@ static void __init apq8064_init_dsps(void)
 #define I2C_J1V		BIT(5)
 #define I2C_MPQ_HRD	BIT(6)
 #define I2C_MPQ_DTV	BIT(7)
-
-struct i2c_registry {
-	u8                     machs;
-	int                    bus;
-	struct i2c_board_info *info;
-	int                    len;
-};
 
 static struct i2c_registry apq8064_i2c_devices[] __initdata = {
 	{

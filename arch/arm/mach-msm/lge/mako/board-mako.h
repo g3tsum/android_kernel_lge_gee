@@ -41,6 +41,11 @@ extern struct pm8xxx_regulator_platform_data
 
 extern int msm8064_pm8921_regulator_pdata_len __devinitdata;
 
+extern struct pm8xxx_regulator_platform_data
+	msm8064_pm8917_regulator_pdata[] __devinitdata;
+
+extern int msm8064_pm8917_regulator_pdata_len __devinitdata;
+
 #define GPIO_VREG_ID_EXT_5V		0
 #define GPIO_VREG_ID_EXT_3P3V		1
 #define GPIO_VREG_ID_EXT_TS_SW		2
@@ -52,16 +57,19 @@ extern int msm8064_pm8921_regulator_pdata_len __devinitdata;
 #define GPIO_VREG_ID_AVC_5V		3
 #define GPIO_VREG_ID_AVC_3P3V		4
 
-#define GPIO_VREG_ID_EXT_DSV_LOAD	0
-
 #define APQ8064_EXT_3P3V_REG_EN_GPIO	77
-#define APQ8064_EXT_DSV_LOAD_EN_GPIO	86
 
 extern struct gpio_regulator_platform_data
 	apq8064_gpio_regulator_pdata[] __devinitdata;
 
+extern struct gpio_regulator_platform_data
+	mpq8064_gpio_regulator_pdata[] __devinitdata;
+
 extern struct rpm_regulator_platform_data
 	apq8064_rpm_regulator_pdata __devinitdata;
+
+extern struct rpm_regulator_platform_data
+	apq8064_rpm_regulator_pm8921_pdata __devinitdata;
 
 extern struct regulator_init_data msm8064_saw_regulator_pdata_8921_s5;
 extern struct regulator_init_data msm8064_saw_regulator_pdata_8921_s6;
@@ -88,7 +96,6 @@ extern struct platform_device batt_temp_ctrl;
 extern struct msm_camera_board_info apq8064_camera_board_info;
 /* Enabling flash LED for camera */
 extern struct msm_camera_board_info apq8064_lge_camera_board_info;
-
 void apq8064_init_cam(void);
 
 #define APQ_8064_GSBI1_QUP_I2C_BUS_ID 0
@@ -119,13 +126,68 @@ void apq8064_init_cam(void);
 #define I2C_SLAVE_ADDR_FLASH				(0xA6 >> 1)
 
 //unsigned char apq8064_mhl_display_enabled(void);
+
+unsigned char apq8064_hdmi_as_primary_selected(void);
+unsigned char apq8064_mhl_display_enabled(void);
 void apq8064_init_fb(void);
 void apq8064_allocate_fb_region(void);
 void apq8064_mdp_writeback(struct memtype_reserve *reserve_table);
-void __init apq8064_set_display_params(char *prim_panel, char *ext_panel);
+void __init apq8064_set_display_params(char *prim_panel, char *ext_panel,
+		unsigned char resolution);
 
 void apq8064_init_gpu(void);
 void apq8064_pm8xxx_gpio_mpp_init(void);
+void __init configure_apq8064_pm8917_power_grid(void);
+
+#define PLATFORM_IS_MPQ8064() \
+	(machine_is_mpq8064_hrd() || \
+	 machine_is_mpq8064_dtv() || \
+	 machine_is_mpq8064_cdp() \
+	)
+
+
+#define GPIO_EXPANDER_IRQ_BASE	(TABLA_INTERRUPT_BASE + \
+					NR_TABLA_IRQS)
+#define GPIO_EXPANDER_GPIO_BASE	(PM8821_MPP_BASE + PM8821_NR_MPPS)
+
+#define GPIO_EPM_EXPANDER_BASE	GPIO_EXPANDER_GPIO_BASE
+#define SX150X_EPM_NR_GPIOS	16
+#define SX150X_EPM_NR_IRQS	8
+
+#define SX150X_EXP1_GPIO_BASE	(GPIO_EPM_EXPANDER_BASE + \
+					SX150X_EPM_NR_GPIOS)
+#define SX150X_EXP1_IRQ_BASE	(GPIO_EXPANDER_IRQ_BASE + \
+				SX150X_EPM_NR_IRQS)
+#define SX150X_EXP1_NR_IRQS	16
+#define SX150X_EXP1_NR_GPIOS	16
+
+#define SX150X_EXP2_GPIO_BASE	(SX150X_EXP1_GPIO_BASE + \
+					SX150X_EXP1_NR_GPIOS)
+#define SX150X_EXP2_IRQ_BASE	(SX150X_EXP1_IRQ_BASE + SX150X_EXP1_NR_IRQS)
+#define SX150X_EXP2_NR_IRQS	8
+#define SX150X_EXP2_NR_GPIOS	8
+
+#define SX150X_EXP3_GPIO_BASE	(SX150X_EXP2_GPIO_BASE + \
+					SX150X_EXP2_NR_GPIOS)
+#define SX150X_EXP3_IRQ_BASE	(SX150X_EXP2_IRQ_BASE + SX150X_EXP2_NR_IRQS)
+#define SX150X_EXP3_NR_IRQS	8
+#define SX150X_EXP3_NR_GPIOS	8
+
+#define SX150X_EXP4_GPIO_BASE	(SX150X_EXP3_GPIO_BASE + \
+					SX150X_EXP3_NR_GPIOS)
+#define SX150X_EXP4_IRQ_BASE	(SX150X_EXP3_IRQ_BASE + SX150X_EXP3_NR_IRQS)
+#define SX150X_EXP4_NR_IRQS	16
+#define SX150X_EXP4_NR_GPIOS	16
+
+#define SX150X_GPIO(_expander, _pin) (SX150X_EXP##_expander##_GPIO_BASE + _pin)
+
+enum {
+	SX150X_EPM,
+	SX150X_EXP1,
+	SX150X_EXP2,
+	SX150X_EXP3,
+	SX150X_EXP4,
+};
 
 extern struct msm_rtb_platform_data apq8064_rtb_pdata;
 extern struct msm_cache_dump_platform_data apq8064_cache_dump_pdata;

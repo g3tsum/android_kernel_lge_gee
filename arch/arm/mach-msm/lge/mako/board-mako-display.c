@@ -30,7 +30,7 @@
 #include <mach/socinfo.h>
 
 #include "devices.h"
-#include "board-8064.h"
+#include "board-mako.h"
 
 #include <msm/msm_fb.h>
 #include <msm/msm_fb_def.h>
