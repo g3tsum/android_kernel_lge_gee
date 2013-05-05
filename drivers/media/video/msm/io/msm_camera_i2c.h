@@ -45,6 +45,7 @@ enum msm_camera_i2c_cmd_type {
 };
 
 struct msm_camera_i2c_reg_tbl {
+	uint32_t delay;
 	uint16_t reg_addr;
 	uint16_t reg_data;
 	enum msm_camera_i2c_data_type dt;

@@ -618,6 +618,7 @@ enum msm_bus_perf_setting {
 };
 
 struct msm_cam_clk_info {
+	uint32_t delay;
 	const char *clk_name;
 	long clk_rate;
 };
