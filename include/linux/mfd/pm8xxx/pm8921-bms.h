@@ -27,6 +27,13 @@ struct pm8xxx_bms_core_data {
 	unsigned int	batt_id_channel;
 };
 
+enum battery_type {
+	BATT_UNKNOWN = 0,
+	BATT_PALLADIUM,
+	BATT_DESAY,
+	BATT_LGE,
+};
+
 /**
  * struct pm8921_bms_platform_data -
  * @batt_type:		allows to force chose battery calibration data
@@ -83,6 +90,18 @@ struct pm8921_bms_platform_data {
 };
 
 #if defined(CONFIG_PM8921_BMS) || defined(CONFIG_PM8921_BMS_MODULE)
+	int				eoc_check_soc;
+	int				bms_support_wlc;
+	int				wlc_term_ua;
+	int				wlc_max_voltage_uv;
+	int				(*wlc_is_plugged)(void);
+	int				first_fixed_iavg_ma;
+};
+
+#if defined(CONFIG_PM8921_BMS) || defined(CONFIG_PM8921_BMS_MODULE)
+extern struct pm8921_bms_battery_data  palladium_1500_data;
+extern struct pm8921_bms_battery_data  desay_5200_data;
+extern struct pm8921_bms_battery_data  lge_2100_mako_data;
 /**
  * pm8921_bms_get_vsense_avg - return the voltage across the sense
  *				resitor in microvolts
