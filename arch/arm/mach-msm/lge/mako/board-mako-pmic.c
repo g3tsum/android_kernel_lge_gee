@@ -435,16 +435,17 @@ static int batt_temp_ctrl_level[] = {
 #define EOC_CHECK_SOC	1
 
 static struct pm8921_charger_platform_data apq8064_pm8921_chg_pdata __devinitdata = {
-	.safety_time  = 512,
 	.update_time  = 60000,
 	.max_voltage  = MAX_VOLTAGE_MV,
 	.min_voltage  = 3200,
-	.alarm_voltage  = 3500,
-	.resume_voltage_delta  = VBATDET_DELTA_MV,
+	.alarm_low_mv    = 3400,
+	.alarm_high_mv    = 4000,
+	.resume_voltage_delta  = 60,
+	.resume_charge_percent  = 99,
 	.term_current  = CHG_TERM_MA,
 
-	.cool_temp  = INT_MIN,
-	.warm_temp  = INT_MIN,
+	.cool_temp  = 10,
+	.warm_temp  = 45,
 	.cool_bat_chg_current  = 350,
 	.warm_bat_chg_current  = WARM_BATT_CHG_I_MA,
 	.cold_thr  = 1,
@@ -463,20 +464,22 @@ static struct pm8921_charger_platform_data apq8064_pm8921_chg_pdata __devinitdat
 
 static struct pm8xxx_ccadc_platform_data
 apq8064_pm8xxx_ccadc_pdata = {
-	.r_sense		= 10,
+	.r_sense_uohm		= 10000,
 	.calib_delay_ms		= 600000,
 };
 
 static struct pm8921_bms_platform_data
 apq8064_pm8921_bms_pdata __devinitdata = {
 	.battery_type  = BATT_LGE,
-	.r_sense  = 10,
+	.r_sense_uohm  = 10000,
 	.v_cutoff  = 3500,
 	.max_voltage_uv  = MAX_VOLTAGE_MV * 1000,
 	.rconn_mohm  = 37,
 	.shutdown_soc_valid_limit  = 20,
 	.adjust_soc_low_threshold  = 25,
 	.chg_term_ua  = CHG_TERM_MA * 1000,
+	.normal_voltage_calc_ms    = 20000,
+	.low_voltage_calc_ms    = 1000,
 	.eoc_check_soc  = EOC_CHECK_SOC,
 	.first_fixed_iavg_ma  = 500,
 };

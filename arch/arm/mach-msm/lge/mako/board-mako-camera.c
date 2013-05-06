@@ -13,6 +13,7 @@
 
 #include <linux/i2c.h>
 #include <linux/gpio.h>
+#include <linux/platform_data/flash_lm3559.h>
 
 #include <asm/mach-types.h>
 
@@ -20,6 +21,7 @@
 #include <mach/msm_bus_board.h>
 #include <mach/gpiomux.h>
 #include <mach/socinfo.h>
+#include <mach/board_lge.h>
 
 #include "devices.h"
 #include "board-mako.h"
@@ -784,12 +786,6 @@ static struct i2c_board_info apq8064_camera_i2c_boardinfo[] = {
 struct msm_camera_board_info apq8064_camera_board_info = {
 	.board_info = apq8064_camera_i2c_boardinfo,
 	.num_i2c_board_info = ARRAY_SIZE(apq8064_camera_i2c_boardinfo),
-};
-
-/* Enabling flash LED for camera */
-struct msm_camera_board_info apq8064_lge_camera_board_info = {
-  .board_info = apq8064_lge_camera_i2c_boardinfo,
-  .num_i2c_board_info = ARRAY_SIZE(apq8064_lge_camera_i2c_boardinfo),
 };
 
 #endif
