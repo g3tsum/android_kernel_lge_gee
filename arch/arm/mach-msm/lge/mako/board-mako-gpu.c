@@ -1,4 +1,5 @@
 /* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, LGE Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -20,7 +21,7 @@
 #include <mach/socinfo.h>
 
 #include "devices.h"
-#include "board-8064.h"
+#include "board-mako.h"
 
 #ifdef CONFIG_MSM_DCVS
 static struct msm_dcvs_freq_entry grp3d_freq[] = {
@@ -226,7 +227,7 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 			.io_fraction = 0,
 		},
 		{
-			.gpu_freq = 320000000,
+			.gpu_freq = 325000000,
 			.bus_freq = 3,
 			.io_fraction = 33,
 		},
@@ -276,17 +277,13 @@ void __init apq8064_init_gpu(void)
 {
 	unsigned int version = socinfo_get_version();
 
-	if (cpu_is_apq8064ab())
-		kgsl_3d0_pdata.pwrlevel[0].gpu_freq = 450000000;
-	if (SOCINFO_VERSION_MAJOR(version) == 2) {
-		kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 2);
-	} else {
-		if ((SOCINFO_VERSION_MAJOR(version) == 1) &&
-				(SOCINFO_VERSION_MINOR(version) == 1))
-			kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 1);
-		else
-			kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 0);
-	}
+	if ((SOCINFO_VERSION_MAJOR(version) == 1) &&
+			(SOCINFO_VERSION_MINOR(version) == 1))
+		kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 1);
+	else
+		kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 0);
 
 	platform_device_register(&device_kgsl_3d0);
 }
+
+
