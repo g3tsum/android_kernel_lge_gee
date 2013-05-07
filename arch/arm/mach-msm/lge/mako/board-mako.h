@@ -57,6 +57,8 @@ extern int msm8064_pm8917_regulator_pdata_len __devinitdata;
 #define GPIO_VREG_ID_AVC_5V		3
 #define GPIO_VREG_ID_AVC_3P3V		4
 
+#define GPIO_VREG_ID_EXT_DSV_LOAD       0
+
 #define APQ8064_EXT_3P3V_REG_EN_GPIO	77
 #define APQ8064_EXT_DSV_LOAD_EN_GPIO    86
 
