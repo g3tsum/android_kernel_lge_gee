@@ -18,6 +18,7 @@
  *
  */
 #include <linux/gpio.h>
+#include <linux/syscore_ops.h>
 
 #include "msm_fb.h"
 #include "mipi_dsi.h"
@@ -96,20 +97,6 @@ static int mipi_lgit_lcd_on(struct platform_device *pdev)
 		}
 	}
 	skip_init = false;
-	mipi_dsi_op_mode_config(DSI_VIDEO_MODE);
-	mdp4_overlay_dsi_video_start();
-
-	mdelay(10);
-
-	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
-	ret = mipi_dsi_cmds_tx(mfd, &lgit_tx_buf,
-			mipi_lgit_pdata->power_on_set_2,
-			mipi_lgit_pdata->power_on_set_size_2);
-	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x14000000);
-	if (ret < 0) {
-		pr_err("%s: failed to transmit power_on_set_2 cmds\n", __func__);
-		return ret;
-	}
 
 	ret = lgit_external_dsv_onoff(1);
 	if (ret < 0) {
@@ -119,7 +106,6 @@ static int mipi_lgit_lcd_on(struct platform_device *pdev)
 
 	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
 	ret = mipi_dsi_cmds_tx(&lgit_tx_buf,
-	ret = mipi_dsi_cmds_tx(mfd, &lgit_tx_buf,
 			mipi_lgit_pdata->power_on_set_3,
 			mipi_lgit_pdata->power_on_set_size_3);
 	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x14000000);
@@ -180,6 +166,37 @@ static int mipi_lgit_lcd_off(struct platform_device *pdev)
 	return 0;
 }
 
+static void mipi_lgit_lcd_shutdown(void)
+{
+	int ret = 0;
+
+	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
+	ret = mipi_dsi_cmds_tx(&lgit_tx_buf,
+			mipi_lgit_pdata->power_off_set_1,
+			mipi_lgit_pdata->power_off_set_size_1);
+	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x14000000);
+	if (ret < 0) {
+		pr_err("%s: failed to transmit power_off_set_1 cmds\n", __func__);
+	}
+
+	ret = lgit_external_dsv_onoff(0);
+	if (ret < 0) {
+		pr_err("%s: failed to turn off external dsv\n", __func__);
+	}
+	mdelay(20);
+
+	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
+	ret = mipi_dsi_cmds_tx(&lgit_tx_buf,
+			mipi_lgit_pdata->power_off_set_2,
+			mipi_lgit_pdata->power_off_set_size_2);
+	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x14000000);
+	if (ret < 0) {
+		pr_err("%s: failed to transmit power_off_set_2 cmds\n", __func__);
+	}
+
+	pr_info("%s finished\n", __func__);
+}
+
 static int mipi_lgit_backlight_on_status(void)
 {
 	return (mipi_lgit_pdata->bl_on_status());
@@ -193,6 +210,10 @@ static void mipi_lgit_set_backlight_board(struct msm_fb_data_type *mfd)
 	mipi_lgit_pdata->backlight_level(level, 0, 0);
 }
 
+struct syscore_ops panel_syscore_ops = {
+	.shutdown = mipi_lgit_lcd_shutdown,
+};
+
 static int mipi_lgit_lcd_probe(struct platform_device *pdev)
 {
 	if (pdev->id == 0) {
@@ -204,6 +225,8 @@ static int mipi_lgit_lcd_probe(struct platform_device *pdev)
 
 	skip_init = true;
 	msm_fb_add_device(pdev);
+
+	register_syscore_ops(&panel_syscore_ops);
 
 	return 0;
 }

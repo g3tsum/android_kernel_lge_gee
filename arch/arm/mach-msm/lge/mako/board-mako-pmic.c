@@ -21,6 +21,7 @@
 #include <linux/leds-pm8xxx.h>
 #include <linux/mfd/pm8xxx/pm8xxx-adc.h>
 #include <linux/mfd/pm8xxx/pm8921-bms.h>
+#include <linux/power/bq51051b_charger.h>
 #include <linux/platform_data/battery_temp_ctrl.h>
 #include <linux/gpio.h>
 #include <asm/mach-types.h>
@@ -132,6 +133,19 @@ static struct pm8xxx_gpio_init pm8921_gpios[] __initdata = {
 	PM8921_GPIO_OUTPUT(34, 0, HIGH), /* WCD_RESET_N */
 };
 
+#ifdef CONFIG_WIRELESS_CHARGER
+#define PM8921_GPIO_WLC_ACTIVE      25
+#define PM8921_GPIO_WLC_ACTIVE_11   17
+static struct pm8xxx_gpio_init pm8921_gpios_wlc[] __initdata = {
+	PM8921_GPIO_INPUT(PM8921_GPIO_WLC_ACTIVE,PM_GPIO_PULL_UP_1P5_30),
+	PM8921_GPIO_OUTPUT(26, 0, HIGH), /* WLC CHG_STAT */
+};
+static struct pm8xxx_gpio_init pm8921_gpios_wlc_rev11[] __initdata = {
+	PM8921_GPIO_INPUT(PM8921_GPIO_WLC_ACTIVE_11,PM_GPIO_PULL_UP_1P5_30),
+	PM8921_GPIO_OUTPUT(26, 0, HIGH), /* WLC CHG_STAT */
+};
+#endif
+
 void __init apq8064_pm8xxx_gpio_mpp_init(void)
 {
 	int i, rc;
@@ -144,7 +158,29 @@ void __init apq8064_pm8xxx_gpio_mpp_init(void)
 			break;
 		}
 	}
-
+#ifdef CONFIG_WIRELESS_CHARGER
+	if (lge_get_board_revno() >= HW_REV_1_1) {
+		for (i = 0; i < ARRAY_SIZE(pm8921_gpios_wlc_rev11); i++) {
+			rc = pm8xxx_gpio_config(pm8921_gpios_wlc_rev11[i].gpio,
+					&pm8921_gpios_wlc_rev11[i].config);
+			if (rc < 0) {
+				pr_err("%s: pm8xxx_gpio_config: rc=%d\n",
+						__func__, rc);
+				break;
+			}
+		}
+	} else {
+		for (i = 0; i < ARRAY_SIZE(pm8921_gpios_wlc); i++) {
+			rc = pm8xxx_gpio_config(pm8921_gpios_wlc[i].gpio,
+						&pm8921_gpios_wlc[i].config);
+			if (rc < 0) {
+				pr_err("%s: pm8xxx_gpio_config: rc=%d\n",
+						__func__, rc);
+				break;
+			}
+		}
+	}
+#endif
 }
 
 static struct pm8xxx_pwrkey_platform_data apq8064_pm8921_pwrkey_pdata = {
@@ -189,79 +225,6 @@ static struct led_platform_data pm8921_led_core_pdata = {
 	.num_leds = ARRAY_SIZE(pm8921_led_info),
 	.leds = pm8921_led_info,
 };
-
-#ifdef CONFIG_MACH_APQ8064_J1A
-
-#ifdef CONFIG_LGE_PM_PWM_LED
-static int pm8921_led0_pwm_duty_pcts0[60] = {
-	1, 2, 8, 10, 14, 18, 20, 24, 30, 34,
-	36, 40, 42, 48, 50, 55, 58, 60, 62, 64,
-	66, 68, 71, 73, 76, 80, 80, 80, 76, 73,
-	71, 68, 66, 64, 62, 60, 58, 56, 54, 52,
-	50, 48, 46, 44, 40, 36, 34, 30, 24, 20,
-	18, 16, 14, 12, 10, 8, 6, 4, 1
-};
-
-static int pm8921_led0_pwm_duty_pcts1[60] = {
-	60, 80, 60, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-};
-
-static struct pm8xxx_pwm_duty_cycles pm8921_led0_pwm_duty_cycles = {
-	.duty_pcts0 = (int *)&pm8921_led0_pwm_duty_pcts0,
-	.duty_pcts1 = (int *)&pm8921_led0_pwm_duty_pcts1,
-	.num_duty_pcts0 = ARRAY_SIZE(pm8921_led0_pwm_duty_pcts0),
-	.num_duty_pcts1 = ARRAY_SIZE(pm8921_led0_pwm_duty_pcts1),
-	.duty_ms0 = PM8XXX_LED_PWM_DUTY_MS0,
-	.duty_ms1 = PM8XXX_LED_PWM_DUTY_MS1,
-	.start_idx = 0,
-};
-#endif
-
-static struct pm8xxx_led_config pm8921_led_configs[] = {
-	[0] = {
-		.id = PM8XXX_ID_LED_0,
-#ifdef CONFIG_LGE_PM_PWM_LED
-		.mode = PM8XXX_LED_MODE_PWM2,
-		.pwm_channel = 5,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
-		.pwm_duty_cycles = &pm8921_led0_pwm_duty_cycles,
-#else
-		.mode = PM8XXX_LED_MODE_MANUAL,
-#endif
-		.max_current = PM8921_LC_LED_MAX_CURRENT,
-	},
-	[1] = {
-		.id = PM8XXX_ID_LED_1,
-		.mode = PM8XXX_LED_MODE_MANUAL,
-		.max_current = PM8921_KEY_LED_MAX_CURRENT,
-
-	},
-	[2] = {
-		.id = PM8XXX_ID_LED_2,
-#ifdef CONFIG_LGE_PM_PWM_LED
-		.mode = PM8XXX_LED_MODE_PWM1,
-		.pwm_channel = 4,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
-		.pwm_duty_cycles = &pm8921_led0_pwm_duty_cycles,
-#else
-		.mode = PM8XXX_LED_MODE_MANUAL,
-#endif
-		.max_current = PM8921_LC_LED_MAX_CURRENT,
-	},
-};
-
-static struct pm8xxx_led_platform_data apq8064_pm8921_leds_pdata = {
-		.led_core = &pm8921_led_core_pdata,
-		.configs = pm8921_led_configs,
-		.num_configs = ARRAY_SIZE(pm8921_led_configs),
-};
-
-#else
 
 static int pm8921_led0_pwm_duty_pcts[PM8XXX_LED_PWM_DUTY_PCTS] = {0,};
 static int pm8921_led1_pwm_duty_pcts[PM8XXX_LED_PWM_DUTY_PCTS] = {0,};
@@ -422,6 +385,55 @@ static int batt_temp_ctrl_level[] = {
 	-100,
 };
 
+#ifdef CONFIG_WIRELESS_CHARGER
+#define GPIO_WLC_ACTIVE        PM8921_GPIO_PM_TO_SYS(PM8921_GPIO_WLC_ACTIVE)
+#define GPIO_WLC_ACTIVE_11     PM8921_GPIO_PM_TO_SYS(PM8921_GPIO_WLC_ACTIVE_11)
+#define GPIO_WLC_STATE         PM8921_GPIO_PM_TO_SYS(26)
+
+static int wireless_charger_is_plugged(void);
+
+static struct bq51051b_wlc_platform_data bq51051b_wlc_pmic_pdata = {
+	.chg_state_gpio  = GPIO_WLC_STATE,
+	.active_n_gpio   = GPIO_WLC_ACTIVE,
+	.wlc_is_plugged  = wireless_charger_is_plugged,
+};
+
+struct platform_device wireless_charger = {
+	.name		= "bq51051b_wlc",
+	.id		= -1,
+	.dev = {
+		.platform_data = &bq51051b_wlc_pmic_pdata,
+	},
+};
+
+static int wireless_charger_is_plugged(void)
+{
+	static bool initialized = false;
+	unsigned int wlc_active_n = 0;
+	int ret = 0;
+
+	wlc_active_n = bq51051b_wlc_pmic_pdata.active_n_gpio;
+	if (!wlc_active_n) {
+		pr_warn("wlc : active_n gpio is not defined yet");
+		return 0;
+	}
+
+	if (!initialized) {
+		ret =  gpio_request_one(wlc_active_n, GPIOF_DIR_IN,
+				"active_n_gpio");
+		if (ret < 0) {
+			pr_err("wlc: active_n gpio request failed\n");
+			return 0;
+		}
+		initialized = true;
+	}
+
+	return !(gpio_get_value(wlc_active_n));
+}
+
+
+#endif
+
 /*
  * Battery characteristic
  * Typ.2100mAh capacity, Li-Ion Polymer 3.8V
@@ -435,17 +447,16 @@ static int batt_temp_ctrl_level[] = {
 #define EOC_CHECK_SOC	1
 
 static struct pm8921_charger_platform_data apq8064_pm8921_chg_pdata __devinitdata = {
+	.safety_time  = 512,
 	.update_time  = 60000,
 	.max_voltage  = MAX_VOLTAGE_MV,
 	.min_voltage  = 3200,
-	.alarm_low_mv    = 3400,
-	.alarm_high_mv    = 4000,
-	.resume_voltage_delta  = 60,
-	.resume_charge_percent  = 99,
+	.alarm_voltage  = 3500,
+	.resume_voltage_delta  = VBATDET_DELTA_MV,
 	.term_current  = CHG_TERM_MA,
 
-	.cool_temp  = 10,
-	.warm_temp  = 45,
+	.cool_temp  = INT_MIN,
+	.warm_temp  = INT_MIN,
 	.cool_bat_chg_current  = 350,
 	.warm_bat_chg_current  = WARM_BATT_CHG_I_MA,
 	.cold_thr  = 1,
@@ -470,7 +481,7 @@ apq8064_pm8xxx_ccadc_pdata = {
 
 static struct pm8921_bms_platform_data
 apq8064_pm8921_bms_pdata __devinitdata = {
-	.battery_type  = BATT_LGE,
+	.battery_type	= BATT_UNKNOWN, //FIXME Define correct type
 	.r_sense_uohm  = 10000,
 	.v_cutoff  = 3500,
 	.max_voltage_uv  = MAX_VOLTAGE_MV * 1000,
@@ -478,127 +489,26 @@ apq8064_pm8921_bms_pdata __devinitdata = {
 	.shutdown_soc_valid_limit  = 20,
 	.adjust_soc_low_threshold  = 25,
 	.chg_term_ua  = CHG_TERM_MA * 1000,
-	.normal_voltage_calc_ms    = 20000,
-	.low_voltage_calc_ms    = 1000,
-	.eoc_check_soc  = EOC_CHECK_SOC,
-	.first_fixed_iavg_ma  = 500,
+	.normal_voltage_calc_ms		= 20000,
+	.low_voltage_calc_ms		= 1000,
+	.alarm_low_mv			= 3400,
+	.alarm_high_mv			= 4000,
+	.high_ocv_correction_limit_uv	= 50,
+	.low_ocv_correction_limit_uv	= 100,
+	.hold_soc_est			= 3,
+        //	.eoc_check_soc  = EOC_CHECK_SOC,
+        //	.bms_support_wlc  = 1,
+        //	.wlc_term_ua = 110000,
+        //	.wlc_max_voltage_uv = 4290000,
+        //	.wlc_is_plugged  = wireless_charger_is_plugged,
+        //	.first_fixed_iavg_ma  = 500,
 };
 
 /* battery data */
-static struct single_row_lut batt_2100_fcc_temp = {
-	.x = {-20, 0, 25, 40, 60 },
-	.y = {2068, 2064, 2103, 2072, 2084},
-	.cols = 5
-};
-
-static struct single_row_lut batt_2100_fcc_sf = {
-	.x     = {0 },
-	.y     = {100 },
-	.cols  = 1
-};
-
-static struct sf_lut batt_2100_rbatt_sf =  {
-	.rows = 28,
-	.cols = 5,
-	.row_entries = {-20, 0, 25, 40, 60 },
-	.percent =  {100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50,
-		     45, 40, 35, 30, 25, 20, 15, 10,
-		     9, 8, 7, 6, 5, 4, 3, 2, 1 },
-	.sf = {
-		{639,265,100,75,66},
-		{700,262,104,79,68},
-		{727,259,106,81,70},
-		{746,258,106,82,72},
-		{764,260,106,83,74},
-		{785,263,106,84,74},
-		{818,268,100,84,75},
-		{855,272,99,83,74},
-		{901,275,100,76,68},
-		{955,280,103,78,69},
-		{1016,287,107,80,71},
-		{1080,297,112,83,73},
-		{1147,309,116,87,75},
-		{1221,324,120,90,73},
-		{1308,345,124,90,72},
-		{1436,397,125,89,73},
-		{1673,500,128,87,70},
-		{2288,587,156,102,78},
-		{1681,361,140,94,75},
-		{1886,368,145,95,75},
-		{2140,377,148,94,73},
-		{2462,388,151,93,73},
-		{2877,412,160,96,74},
-		{3422,473,174,99,77},
-		{4273,562,195,105,81},
-		{5469,719,228,112,84},
-		{8749,1722,274,120,93},
-		{20487,18766,897,170,1139},
-	}
-};
-static struct pc_temp_ocv_lut batt_2100_pc_temp_ocv = {
-	.rows = 29,
-	.cols = 5,
-	.temp = {-20, 0, 25, 40, 60 },
-	.percent = {100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50,
-		    45, 40, 35, 30, 25, 20, 15, 10,
-		    9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
-	.ocv = {
-		{4331, 4325, 4327, 4317, 4315},
-		{4237, 4252, 4261, 4253, 4253},
-		{4163, 4190, 4202, 4195, 4196},
-		{4091, 4132, 4147, 4140, 4141},
-		{4034, 4074, 4093, 4088, 4088},
-		{3990, 4017, 4043, 4039, 4039},
-		{3952, 3964, 3992, 3993, 3993},
-		{3920, 3923, 3937, 3953, 3952},
-		{3890, 3887, 3895, 3913, 3914},
-		{3863, 3854, 3860, 3864, 3865},
-		{3839, 3825, 3831, 3832, 3833},
-		{3815, 3804, 3809, 3808, 3809},
-		{3794, 3786, 3791, 3789, 3790},
-		{3775, 3772, 3775, 3774, 3774},
-		{3757, 3758, 3764, 3763, 3755},
-		{3739, 3741, 3750, 3747, 3735},
-		{3720, 3724, 3725, 3721, 3710},
-		{3694, 3707, 3689, 3686, 3673},
-		{3654, 3684, 3674, 3669, 3659},
-		{3645, 3679, 3670, 3667, 3657},
-		{3635, 3673, 3664, 3663, 3653},
-		{3620, 3662, 3648, 3655, 3640},
-		{3601, 3643, 3612, 3631, 3611},
-		{3575, 3611, 3563, 3591, 3570},
-		{3538, 3562, 3501, 3540, 3521},
-		{3484, 3495, 3430, 3480, 3460},
-		{3405, 3403, 3347, 3401, 3377},
-		{3284, 3276, 3223, 3280, 3244},
-		{3000, 3000, 3000, 3000, 3000}
-	}
-};
-
-static struct sf_lut batt_2100_pc_sf = {
-	.rows = 1,
-	.cols = 1,
-	.row_entries = {0 },
-	.percent = {100 },
-	.sf = {
-		{100 }
-	}
-};
-
-/* used in drivers/power/pm8921-bms.c */
-struct pm8921_bms_battery_data lge_2100_mako_data =  {
-	.fcc = 2100,
-	.fcc_temp_lut = &batt_2100_fcc_temp,
-	.fcc_sf_lut = &batt_2100_fcc_sf,
-	.pc_temp_ocv_lut = &batt_2100_pc_temp_ocv,
-	.pc_sf_lut = &batt_2100_pc_sf,
-	.rbatt_sf_lut = &batt_2100_rbatt_sf,
-	.default_rbatt_mohm = 182,
-};
 
 static unsigned int keymap[] = {
-	KEY(0, 0, KEY_VOLUMEUP),
-	KEY(0, 1, KEY_VOLUMEDOWN),
+	KEY(0, 0, KEY_VOLUMEDOWN),
+	KEY(0, 1, KEY_VOLUMEUP),
 };
 
 static struct matrix_keymap_data keymap_data = {
@@ -606,6 +516,12 @@ static struct matrix_keymap_data keymap_data = {
 	.keymap         = keymap,
 };
 
+static __init void mako_fixed_keymap(void) {
+	if (lge_get_board_revno() < HW_REV_C) {
+		keymap[0] = KEY(0, 0, KEY_VOLUMEUP);
+		keymap[1] = KEY(0, 1, KEY_VOLUMEDOWN);
+	}
+}
 
 static struct pm8xxx_keypad_platform_data keypad_data = {
 	.input_name             = "keypad_8064",
@@ -779,10 +695,10 @@ struct platform_device batt_temp_ctrl = {
 
 void __init mako_set_adcmap(void)
 {
-	pm8xxx_set_adcmap_btm_threshold(adcmap_btm_threshold,
-			ARRAY_SIZE(adcmap_btm_threshold));
-	pm8xxx_set_adcmap_pa_therm(adcmap_pa_therm,
-			ARRAY_SIZE(adcmap_pa_therm));
+  //	pm8xxx_set_adcmap_btm_threshold(adcmap_btm_threshold,
+  //			ARRAY_SIZE(adcmap_btm_threshold));
+  //	pm8xxx_set_adcmap_pa_therm(adcmap_pa_therm,
+  //			ARRAY_SIZE(adcmap_pa_therm));
 	/*
 	pm8xxx_set_adcmap_ntcg_104ef_104fb(adcmap_ntcg_104ef_104fb,
 			ARRAY_SIZE(adcmap_ntcg_104ef_104fb));
@@ -792,9 +708,10 @@ void __init mako_set_adcmap(void)
 void __init apq8064_init_pmic(void)
 {
 	pmic_reset_irq = PM8921_IRQ_BASE + PM8921_RESOUT_IRQ;
+
+	mako_fixed_keymap();
 	mako_set_adcmap();
 	mako_fixed_leds();
-#endif
 
 	apq8064_device_ssbi_pmic1.dev.platform_data =
 		&apq8064_ssbi_pm8921_pdata;
@@ -803,3 +720,5 @@ void __init apq8064_init_pmic(void)
 	apq8064_pm8921_platform_data.num_regulators =
 		msm8064_pm8921_regulator_pdata_len;
 }
+
+
