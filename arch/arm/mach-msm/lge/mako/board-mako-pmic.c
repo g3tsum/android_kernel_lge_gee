@@ -431,14 +431,7 @@ static int wireless_charger_is_plugged(void)
 	return !(gpio_get_value(wlc_active_n));
 }
 
-static __init void mako_fixup_wlc_gpio(void) {
-	if (lge_get_board_revno() >= HW_REV_1_1)
-		bq51051b_wlc_pmic_pdata.active_n_gpio = GPIO_WLC_ACTIVE_11;
-}
 
-#else
-static int wireless_charger_is_plugged(void) { return 0; }
-static __init void mako_set_wlc_gpio(void) { }
 #endif
 
 /*
@@ -719,7 +712,6 @@ void __init apq8064_init_pmic(void)
 	mako_fixed_keymap();
 	mako_set_adcmap();
 	mako_fixed_leds();
-        mako_fixup_wlc_gpio();
 
 	apq8064_device_ssbi_pmic1.dev.platform_data =
 		&apq8064_ssbi_pm8921_pdata;
