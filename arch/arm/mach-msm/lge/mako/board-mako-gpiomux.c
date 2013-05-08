@@ -726,51 +726,6 @@ static struct msm_gpiomux_config apq8064_nfc_configs[] __initdata = {
 
 #endif 
 
-#ifdef CONFIG_BCM2079X
-
-static struct gpiomux_setting nfc_bcm2079x_ven_cfg = { // NFC_WAKE
-	.func = GPIOMUX_FUNC_GPIO,
-	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_NONE,
-	.dir = GPIOMUX_OUT_LOW,
-};
-
-static struct gpiomux_setting nfc_bcm2079x_irq_cfg = { // NFC_IRQ
-	.func = GPIOMUX_FUNC_GPIO,
-	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_DOWN, // BCM2079X should be PULL_NONE? MDM to confirm.
-	.dir = GPIOMUX_IN,
-};
-
-static struct gpiomux_setting nfc_bcm2079x_firm_cfg = { // REG_PU
-	.func = GPIOMUX_FUNC_GPIO,
-	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_NONE,
-	.dir = GPIOMUX_OUT_LOW,
-};
-
-static struct msm_gpiomux_config apq8064_bcm2079x_nfc_configs[] __initdata = {
-	{
-		.gpio = 37,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &nfc_bcm2079x_firm_cfg,
-		},
-	},
-	{
-		.gpio = 29,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &nfc_bcm2079x_irq_cfg,
-		},
-	},
-	{
-		.gpio = 55,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &nfc_bcm2079x_ven_cfg,
-		},
-	},
-};
-#endif 
-
 void __init apq8064_init_gpiomux(void)
 {
 	int rc;
@@ -815,11 +770,6 @@ void __init apq8064_init_gpiomux(void)
 	if (machine_is_apq8064_mtp())
 		msm_gpiomux_install(apq8064_hsic_configs,
 				ARRAY_SIZE(apq8064_hsic_configs));
-#endif
-
-#ifdef CONFIG_BCM2079X
-	msm_gpiomux_install(apq8064_bcm2079x_nfc_configs,
-			ARRAY_SIZE(apq8064_bcm2079x_nfc_configs));
 #endif
 
 #ifdef CONFIG_LGE_NFC

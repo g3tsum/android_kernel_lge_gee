@@ -84,9 +84,6 @@ int __init apq8064_add_sdcc(unsigned int controller,
 		struct mmc_platform_data *plat);
 extern void __init lge_add_sound_devices(void);
 extern void __init lge_add_backlight_devices(void);
-#ifdef CONFIG_BCM2079X
-void __init lge_add_bcm2079x_device(void);
-#endif
 void apq8064_init_mmc(void);
 void apq8064_init_gpiomux(void);
 void apq8064_init_pmic(void);
@@ -97,8 +94,6 @@ extern struct platform_device wireless_charger;
 extern struct platform_device batt_temp_ctrl;
 
 extern struct msm_camera_board_info apq8064_camera_board_info;
-/* Enabling flash LED for camera */
-extern struct msm_camera_board_info apq8064_lge_camera_board_info;
 void apq8064_init_cam(void);
 
 #define APQ_8064_GSBI1_QUP_I2C_BUS_ID 0
