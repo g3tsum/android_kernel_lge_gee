@@ -18,65 +18,6 @@
 
 #define PM8921_BMS_DEV_NAME	"pm8921-bms"
 
-#define FCC_CC_COLS    5
-#define FCC_TEMP_COLS    8
-
-#define PC_CC_ROWS             29
-#define PC_CC_COLS             13
-
-#define PC_TEMP_ROWS    29
-#define PC_TEMP_COLS    8
-
-#define MAX_SINGLE_LUT_COLS  20
-
-/**
- * struct sf_lut -
- * @rows:  number of percent charge entries should be <= PC_CC_ROWS
- * @cols:  number of charge cycle entries should be <= PC_CC_COLS
- * @row_entries:  the charge cycles/temperature at which sf data
- *      is available in the table.
- *    The charge cycles must be in increasing order from 0 to rows.
- * @percent:  the percent charge at which sf data is available in the table
- *    The  percentcharge must be in decreasing order from 0 to cols.
- * @sf:    the scaling factor data
- */
-
-/**
- * struct pc_temp_ocv_lut -
- * @rows:  number of percent charge entries should be <= PC_TEMP_ROWS
- * @cols:  number of temperature entries should be <= PC_TEMP_COLS
- * @temp:  the temperatures at which ocv data is available in the table
- *    The temperatures must be in increasing order from 0 to rows.
- * @percent:  the percent charge at which ocv data is available in the table
- *    The  percentcharge must be in decreasing order from 0 to cols.
- * @ocv:  the open circuit voltage
- */
-
-/**
- * struct pm8921_bms_battery_data -
- * @fcc:    full charge capacity (mAmpHour)
- * @fcc_temp_lut:  table to get fcc at a given temp
- * @pc_temp_ocv_lut:  table to get percent charge given batt temp and cycles
- * @pc_sf_lut:    table to get percent charge scaling factor given cycles
- *      and percent charge
- * @rbatt_sf_lut:  table to get battery resistance scaling factor given
- *      temperature and percent charge
- * @default_rbatt_mohm:  the default value of battery resistance to use when
- *      readings from bms are not available.
- * @delta_rbatt_mohm:  the resistance to be added towards lower soc to
- *      compensate for battery capacitance.
- */
-struct pm8921_bms_battery_data {
-  unsigned int    fcc;
-  struct single_row_lut  *fcc_temp_lut;
-  struct single_row_lut  *fcc_sf_lut;
-  struct pc_temp_ocv_lut  *pc_temp_ocv_lut;
-  struct sf_lut    *pc_sf_lut;
-  struct sf_lut    *rbatt_sf_lut;
-  int      default_rbatt_mohm;
-  int      delta_rbatt_mohm;
-};
-
 
 struct pm8xxx_bms_core_data {
 	unsigned int	batt_temp_channel;
@@ -84,13 +25,6 @@ struct pm8xxx_bms_core_data {
 	unsigned int	ref625mv_channel;
 	unsigned int	ref1p25v_channel;
 	unsigned int	batt_id_channel;
-};
-
-enum battery_type {
-	BATT_UNKNOWN = 0,
-	BATT_PALLADIUM,
-	BATT_DESAY,
-	BATT_LGE,
 };
 
 /**
@@ -146,20 +80,9 @@ struct pm8921_bms_platform_data {
 	int				high_ocv_correction_limit_uv;
 	int				low_ocv_correction_limit_uv;
 	int				hold_soc_est;
-#if defined(CONFIG_PM8921_BMS) || defined(CONFIG_PM8921_BMS_MODULE)
-	int				eoc_check_soc;
-	int				bms_support_wlc;
-	int				wlc_term_ua;
-	int				wlc_max_voltage_uv;
-	int				(*wlc_is_plugged)(void);
-	int				first_fixed_iavg_ma;
-#endif
 };
 
 #if defined(CONFIG_PM8921_BMS) || defined(CONFIG_PM8921_BMS_MODULE)
-extern struct pm8921_bms_battery_data  palladium_1500_data;
-extern struct pm8921_bms_battery_data  desay_5200_data;
-extern struct pm8921_bms_battery_data  lge_2100_mako_data;
 /**
  * pm8921_bms_get_vsense_avg - return the voltage across the sense
  *				resitor in microvolts
