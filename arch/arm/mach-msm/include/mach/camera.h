@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -39,6 +39,7 @@
 #define MSM_CAMERA_MSG 0
 #define MSM_CAMERA_EVT 1
 #define NUM_WB_EXP_NEUTRAL_REGION_LINES 4
+#define NUM_WB_EXP_STAT_OUTPUT_BUFFERS  3
 #define NUM_AUTOFOCUS_MULTI_WINDOW_GRIDS 16
 #define NUM_STAT_OUTPUT_BUFFERS      3
 #define NUM_AF_STAT_OUTPUT_BUFFERS      3
@@ -306,6 +307,52 @@ struct msm_camera_cci_wait_sync_cfg {
 struct msm_camera_cci_gpio_cfg {
 	uint16_t gpio_queue;
 	uint16_t i2c_queue;
+};
+
+enum msm_camera_i2c_cmd_type {
+	MSM_CAMERA_I2C_CMD_WRITE,
+	MSM_CAMERA_I2C_CMD_POLL,
+};
+
+struct msm_camera_i2c_reg_conf {
+	uint16_t reg_addr;
+	uint16_t reg_data;
+	enum msm_camera_i2c_data_type dt;
+	enum msm_camera_i2c_cmd_type cmd_type;
+	int16_t mask;
+};
+
+struct msm_camera_cci_i2c_write_cfg {
+	struct msm_camera_i2c_reg_conf *reg_conf_tbl;
+	enum msm_camera_i2c_reg_addr_type addr_type;
+	enum msm_camera_i2c_data_type data_type;
+	uint16_t size;
+};
+
+struct msm_camera_cci_i2c_read_cfg {
+	uint16_t addr;
+	enum msm_camera_i2c_reg_addr_type addr_type;
+	uint8_t *data;
+	uint16_t num_byte;
+};
+
+struct msm_camera_cci_i2c_queue_info {
+	uint32_t max_queue_size;
+	uint32_t report_id;
+	uint32_t irq_en;
+	uint32_t capture_rep_data;
+};
+
+struct msm_camera_cci_ctrl {
+	int32_t status;
+	struct msm_camera_cci_client *cci_info;
+	enum msm_cci_cmd_type cmd;
+	union {
+		struct msm_camera_cci_i2c_write_cfg cci_i2c_write_cfg;
+		struct msm_camera_cci_i2c_read_cfg cci_i2c_read_cfg;
+		struct msm_camera_cci_wait_sync_cfg cci_wait_sync_cfg;
+		struct msm_camera_cci_gpio_cfg gpio_cfg;
+	} cfg;
 };
 
 /* this structure is used in kernel */
@@ -646,11 +693,11 @@ int msm_cam_clk_enable(struct device *dev, struct msm_cam_clk_info *clk_info,
 int msm_cam_core_reset(void);
 
 int msm_camera_config_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
-                int num_vreg, enum msm_camera_vreg_name_t *vreg_seq,
-                int num_vreg_seq, struct regulator **reg_ptr, int config);
+		int num_vreg, enum msm_camera_vreg_name_t *vreg_seq,
+		int num_vreg_seq, struct regulator **reg_ptr, int config);
 int msm_camera_enable_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
-                int num_vreg, enum msm_camera_vreg_name_t *vreg_seq,
-                int num_vreg_seq, struct regulator **reg_ptr, int config);
+		int num_vreg, enum msm_camera_vreg_name_t *vreg_seq,
+		int num_vreg_seq, struct regulator **reg_ptr, int enable);
 
 int msm_camera_config_gpio_table
 	(struct msm_camera_sensor_info *sinfo, int gpio_en);

@@ -32,11 +32,6 @@ struct msm_camera_i2c_client {
 	enum msm_camera_i2c_reg_addr_type addr_type;
 };
 
-enum msm_camera_i2c_cmd_type {
-	MSM_CAMERA_I2C_CMD_WRITE,
-	MSM_CAMERA_I2C_CMD_POLL,
-};
-
 struct msm_camera_i2c_reg_tbl {
 	uint32_t delay;
 	uint16_t reg_addr;
