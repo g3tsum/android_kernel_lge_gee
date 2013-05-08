@@ -75,7 +75,6 @@
 #include <linux/fmem.h>
 #include <mach/msm_pcie.h>
 #include <mach/restart.h>
-#include <mach/board_lge.h>
 #include <mach/msm_iomap.h>
 #include <mach/msm_serial_hs.h>
 
@@ -2698,10 +2697,10 @@ static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi3_pdata = {
 	.src_clk_rate = 24000000,
 };
 
- static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi4_pdata = {
-   .clk_freq = 100000,
-   .src_clk_rate = 24000000,
-  .keep_ahb_clk_on = 1,
+static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi4_pdata = {
+	.clk_freq = 100000,
+	.src_clk_rate = 24000000,
+};
 
 static struct msm_i2c_platform_data mpq8064_i2c_qup_gsbi5_pdata = {
 	.clk_freq = 100000,
@@ -3302,6 +3301,7 @@ static void __init apq8064_common_init(void)
 
 	msm_hsic_pdata.swfi_latency =
 		msm_rpmrs_levels[0].latency_us;
+	if (machine_is_apq8064_mtp()) {
 		msm_hsic_pdata.log2_irq_thresh = 5,
 		apq8064_device_hsic_host.dev.platform_data = &msm_hsic_pdata;
 		device_initialize(&apq8064_device_hsic_host.dev);
@@ -3314,6 +3314,7 @@ static void __init apq8064_common_init(void)
 	apq8064_pm8xxx_gpio_mpp_init();
 	apq8064_init_mmc();
 
+	if (machine_is_apq8064_mtp()) {
 		if (socinfo_get_platform_subtype() == PLATFORM_SUBTYPE_DSDA2) {
 			amdm_8064_device.dev.platform_data =
 				&amdm_platform_data;
