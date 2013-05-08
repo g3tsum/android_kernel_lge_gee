@@ -89,25 +89,6 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	else
 		down(&mfd->dma->mutex);
 
-#if defined(CONFIG_FB_MSM_MIPI_DSI_LGIT)
-	ret = panel_next_off(pdev);
-	if (ret < 0) {
-		pr_err("%s: failed to turn off the panel\n", __func__);
-		if (mdp_rev >= MDP_REV_41)
-			mutex_unlock(&mfd->dma->ov_mutex);
-		else
-			up(&mfd->dma->mutex);
-		return ret;
-	}
-#endif
-
-	mdp4_overlay_dsi_state_set(ST_DSI_SUSPEND);
-
-	/*
-	 * Description: dsi clock is need to perform shutdown.
-	 * mdp4_dsi_cmd_dma_busy_wait() will enable dsi clock if disabled.
-	 * also, wait until dma (overlay and dmap) finish.
-	 */
 	if (mfd->panel_info.type == MIPI_CMD_PANEL) {
 		mipi_dsi_prepare_clocks();
 		mipi_dsi_ahb_ctrl(1);
@@ -118,7 +99,7 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	}
 
 	/*
-	 * Description: change to DSI_CMD_MODE since it needed to
+	 * Desctiption: change to DSI_CMD_MODE since it needed to
 	 * tx DCS dsiplay off comamnd to panel
 	 */
 	mipi_dsi_op_mode_config(DSI_CMD_MODE);
@@ -287,10 +268,8 @@ static int mipi_dsi_on(struct platform_device *pdev)
 		down(&mfd->dma->mutex);
 
 	if (mfd->op_enable)
-		ret = panel_next_on(pdev);
 	ret = panel_next_on(pdev);
 
-#if !defined(CONFIG_FB_MSM_MIPI_DSI_LGIT)
 	mipi_dsi_op_mode_config(mipi->mode);
 
 	if (mfd->panel_info.type == MIPI_CMD_PANEL) {
@@ -351,7 +330,6 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	pr_debug("%s-:\n", __func__);
 
 	return ret;
-#endif
 }
 
 static int mipi_dsi_early_off(struct platform_device *pdev)
