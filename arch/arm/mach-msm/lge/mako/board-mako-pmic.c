@@ -524,7 +524,7 @@ void __init apq8064_init_pmic(void)
 	}
 
 	if (machine_is_apq8064_mako()) {
-		apq8064_pm8921_bms_pdata.battery_type = BATT_LGE;
+		apq8064_pm8921_bms_pdata.battery_type = BATT_UNKNOWN;
 	} else if (machine_is_apq8064_liquid()) {
 		apq8064_pm8921_bms_pdata.battery_type = BATT_DESAY;
 	} else if (machine_is_apq8064_cdp()) {
