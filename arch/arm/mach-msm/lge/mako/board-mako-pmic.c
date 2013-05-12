@@ -436,7 +436,7 @@ apq8064_pm8xxx_ccadc_pdata = {
 
 static struct pm8921_bms_platform_data
 apq8064_pm8921_bms_pdata __devinitdata = {
-	.battery_type			= BATT_UNKNOWN,
+	.battery_type			= BATT_LGE,
 	.r_sense_uohm			= 10000,
 	.v_cutoff			= 3400,
 	.max_voltage_uv			= MAX_VOLTAGE_MV * 1000,
@@ -524,9 +524,7 @@ void __init apq8064_init_pmic(void)
 	}
 
 	if (machine_is_apq8064_mako()) {
-		apq8064_pm8921_bms_pdata.battery_type = BATT_UNKNOWN;
-	} else if (machine_is_apq8064_liquid()) {
-		apq8064_pm8921_bms_pdata.battery_type = BATT_DESAY;
+		apq8064_pm8921_bms_pdata.battery_type = BATT_LGE;
 	} else if (machine_is_apq8064_cdp()) {
 		apq8064_pm8921_chg_pdata.has_dc_supply = true;
 	}
