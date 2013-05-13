@@ -11,7 +11,6 @@
  */
 
 #include <linux/mfd/pm8xxx/batterydata-lib.h>
-#include <linux/mfd/pm8xxx/pm8921-bms.h>
 
 static struct single_row_lut fcc_temp = {
 	.x		= {-20, 0, 25, 40, 65},

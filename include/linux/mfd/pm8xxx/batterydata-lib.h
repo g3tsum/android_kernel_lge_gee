@@ -14,6 +14,7 @@
 #define __PM8XXX_BMS_BATTERYDATA_H
 
 #include <linux/errno.h>
+#include <linux/mfd/pm8xxx/pm8921-bms.h>
 
 #define FCC_CC_COLS		5
 #define FCC_TEMP_COLS		8
@@ -69,6 +70,13 @@ struct pc_temp_ocv_lut {
 	int ocv[PC_TEMP_ROWS][PC_TEMP_COLS];
 };
 
+enum battery_type {
+	BATT_UNKNOWN = 0,
+	BATT_PALLADIUM,
+	BATT_DESAY,
+	BATT_LGE,
+};
+
 /**
  * struct bms_battery_data -
  * @fcc:		full charge capacity (mAmpHour)
@@ -100,6 +108,9 @@ struct bms_battery_data {
 
 #if defined(CONFIG_PM8921_BMS) || \
 	defined(CONFIG_PM8921_BMS_MODULE)
+extern struct bms_battery_data  palladium_1500_data;
+extern struct bms_battery_data  desay_5200_data;
+extern struct pm8921_bms_battery_data  lge_2100_mako_data;
 
 int interpolate_fcc(struct single_row_lut *fcc_temp_lut, int batt_temp);
 int interpolate_scalingfactor(struct sf_lut *sf_lut, int row_entry, int pc);
