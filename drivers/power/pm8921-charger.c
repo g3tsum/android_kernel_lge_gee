@@ -286,6 +286,8 @@ struct pm8921_chg_chip {
 	bool				host_mode;
 	bool				has_dc_supply;
 	u8				active_path;
+	int				ext_batt_health;
+	int				ext_batt_temp_monitor;
 	int				recent_reported_soc;
 	int				battery_less_hardware;
 	int				ibatmax_max_adj_ma;
@@ -1668,7 +1670,10 @@ static int get_prop_batt_status(struct pm8921_chg_chip *chip)
 		if (!pm_chg_get_rt_status(chip, BATT_INSERTED_IRQ)
 			|| !pm_chg_get_rt_status(chip, BAT_TEMP_OK_IRQ)
 			|| pm_chg_get_rt_status(chip, CHGHOT_IRQ)
-			|| pm_chg_get_rt_status(chip, VBATDET_LOW_IRQ))
+|| pm_chg_get_rt_status(chip, VBATDET_LOW_IRQ)
+			|| (chip->ext_batt_temp_monitor &&
+				(chip->ext_batt_health == POWER_SUPPLY_HEALTH_OVERHEAT)))
+ 
 
 			batt_state = POWER_SUPPLY_STATUS_NOT_CHARGING;
 	}
@@ -1771,15 +1776,19 @@ static int get_prop_batt_health(struct pm8921_chg_chip *chip)
 {
 	int temp;
 
-	temp = pm_chg_get_rt_status(chip, BATTTEMP_HOT_IRQ);
-	if (temp)
-		return POWER_SUPPLY_HEALTH_OVERHEAT;
+	if (chip->ext_batt_temp_monitor) {
+		return chip->ext_batt_health;
+	} else {
+		temp = pm_chg_get_rt_status(chip, BATTTEMP_HOT_IRQ);
+		if (temp)
+			return POWER_SUPPLY_HEALTH_OVERHEAT;
 
-	temp = pm_chg_get_rt_status(chip, BATTTEMP_COLD_IRQ);
-	if (temp)
-		return POWER_SUPPLY_HEALTH_COLD;
+		temp = pm_chg_get_rt_status(chip, BATTTEMP_COLD_IRQ);
+		if (temp)
+			return POWER_SUPPLY_HEALTH_COLD;
 
-	return POWER_SUPPLY_HEALTH_GOOD;
+			return POWER_SUPPLY_HEALTH_GOOD;
+	}
 }
 
 static int get_prop_charge_type(struct pm8921_chg_chip *chip)
@@ -2282,6 +2291,21 @@ int pm8921_set_usb_power_supply_type(enum power_supply_type type)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(pm8921_set_usb_power_supply_type);
+
+int pm8921_set_ext_battery_health(int health)
+{
+	if (!the_chip) {
+		pr_err("called before init\n");
+		return -EINVAL;
+	}
+
+	the_chip->ext_batt_health  = health;
+
+	pr_debug("health = %d\n", the_chip->ext_batt_health);
+	return 0;
+}
+EXPORT_SYMBOL(pm8921_set_ext_battery_health);
+
 
 int pm8921_batt_temperature(void)
 {
@@ -3879,7 +3903,9 @@ static void __devinit determine_initial_state(struct pm8921_chg_chip *chip)
 	pm8921_chg_enable_irq(chip, CHGFAIL_IRQ);
 	pm8921_chg_enable_irq(chip, FASTCHG_IRQ);
 	pm8921_chg_enable_irq(chip, VBATDET_LOW_IRQ);
-	pm8921_chg_enable_irq(chip, BAT_TEMP_OK_IRQ);
+
+	if (!chip->ext_batt_temp_monitor)
+		pm8921_chg_enable_irq(chip, BAT_TEMP_OK_IRQ);
 
 	if (get_prop_batt_present(the_chip) || is_dc_chg_plugged_in(the_chip))
 		if (usb_chg_current)
@@ -4782,6 +4808,9 @@ static int __devinit pm8921_charger_probe(struct platform_device *pdev)
 	chip->hot_thr = pdata->hot_thr;
 	chip->rconn_mohm = pdata->rconn_mohm;
 	chip->led_src_config = pdata->led_src_config;
+	chip->ext_batt_temp_monitor = pdata->ext_batt_temp_monitor;
+	if (chip->ext_batt_temp_monitor)
+		chip->ext_batt_health = POWER_SUPPLY_HEALTH_GOOD;
 	chip->has_dc_supply = pdata->has_dc_supply;
 	chip->battery_less_hardware = pdata->battery_less_hardware;
 	chip->btc_override = pdata->btc_override;
@@ -4878,6 +4907,8 @@ static int __devinit pm8921_charger_probe(struct platform_device *pdev)
 
 	enable_irq_wake(chip->pmic_chg_irq[USBIN_VALID_IRQ]);
 	enable_irq_wake(chip->pmic_chg_irq[DCIN_VALID_IRQ]);
+	if (!chip->ext_batt_temp_monitor)
+		enable_irq_wake(chip->pmic_chg_irq[BAT_TEMP_OK_IRQ]);
 	enable_irq_wake(chip->pmic_chg_irq[VBATDET_LOW_IRQ]);
 	enable_irq_wake(chip->pmic_chg_irq[FASTCHG_IRQ]);
 

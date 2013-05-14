@@ -27,6 +27,7 @@
 #include <asm/mach/mmc.h>
 #include <mach/msm_bus_board.h>
 #include <mach/board.h>
+#include <mach/board_lge.h>
 #include <mach/gpiomux.h>
 #include <mach/restart.h>
 #include <mach/socinfo.h>
@@ -561,7 +562,7 @@ static struct sf_lut batt_2100_pc_sf = {
 };
 
 /* used in drivers/power/pm8921-bms.c */
-struct pm8921_bms_battery_data lge_2100_mako_data =  {
+struct bms_battery_data lge_2100_mako_data =  {
 	.fcc = 2100,
 	.fcc_temp_lut = &batt_2100_fcc_temp,
 	.fcc_sf_lut = &batt_2100_fcc_sf,
@@ -722,11 +723,11 @@ static int batt_temp_get_current_limit(void)
 	return ret.intval;
 }
 
-static int batt_temp_set_state(int health)
+static int batt_temp_set_state(int health, int i_value)
 {
 	int ret = 0;
 
-	ret = pm8921_set_ext_battery_health(health);
+	ret = pm8921_set_ext_battery_health(health, i_value);
 	if (ret)
 		pr_err("%s: failed to set health\n", __func__);
 

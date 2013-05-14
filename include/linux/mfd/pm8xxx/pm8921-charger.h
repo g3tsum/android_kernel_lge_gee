@@ -160,6 +160,7 @@ struct pm8921_charger_platform_data {
 	int				warm_temp;
 	unsigned int			temp_check_period;
 	unsigned int			max_bat_chg_current;
+	int				ext_batt_temp_monitor;
 	unsigned int			usb_max_current;
 	unsigned int			cool_bat_chg_current;
 	unsigned int			warm_bat_chg_current;
@@ -315,6 +316,8 @@ int pm8921_usb_ovp_disable(int disable);
  * Returns 1 if batfet is closed 0 if open. On configurations without
  * batfet this will return 0.
  */
+int pm8921_set_ext_battery_health(int health);
+
 int pm8921_is_batfet_closed(void);
 #else
 static inline void pm8921_charger_vbus_draw(unsigned int mA)
