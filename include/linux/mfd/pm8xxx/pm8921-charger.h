@@ -205,6 +205,16 @@ int pm8921_charger_register_vbus_sn(void (*callback)(int));
 void pm8921_charger_unregister_vbus_sn(void (*callback)(int));
 
 /**
+ * pm8921_charger_enable -
+ *
+ * @enable: 1 means enable charging, 0 means disable
+ *
+ * Enable/Disable battery charging current, the device will still draw current
+ * from the charging source
+ */
+int pm8921_charger_enable(bool enable);
+
+/**
  * pm8921_is_usb_chg_plugged_in - is usb plugged in
  *
  * if usb is under voltage or over voltage this will return false
@@ -329,6 +339,10 @@ static inline int pm8921_charger_register_vbus_sn(void (*callback)(int))
 }
 static inline void pm8921_charger_unregister_vbus_sn(void (*callback)(int))
 {
+}
+static inline int pm8921_charger_enable(bool enable)
+{
+  return -ENXIO;
 }
 static inline int pm8921_is_usb_chg_plugged_in(void)
 {

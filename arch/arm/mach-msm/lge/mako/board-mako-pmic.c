@@ -410,6 +410,8 @@ static int apq8064_pm8921_therm_mitigation[] = {
 
 #define MAX_VOLTAGE_MV          4200
 #define CHG_TERM_MA		100
+#define MAX_BATT_CHG_I_MA  1350
+#define WARM_BATT_CHG_I_MA  400
 static struct pm8921_charger_platform_data
 apq8064_pm8921_chg_pdata __devinitdata = {
 	.update_time		= 60000,
@@ -424,9 +426,9 @@ apq8064_pm8921_chg_pdata __devinitdata = {
 	.cool_temp		= 10,
 	.warm_temp		= 45,
 	.temp_check_period	= 1,
-	.max_bat_chg_current	= 1100,
+	.max_bat_chg_current  = MAX_BATT_CHG_I_MA,
 	.cool_bat_chg_current	= 350,
-	.warm_bat_chg_current	= 350,
+	.warm_bat_chg_current  = WARM_BATT_CHG_I_MA,
 	.cool_bat_voltage	= 4100,
 	.warm_bat_voltage	= 4100,
 	.thermal_mitigation	= apq8064_pm8921_therm_mitigation,
