@@ -14,7 +14,6 @@
 #define __PM8XXX_BMS_BATTERYDATA_H
 
 #include <linux/errno.h>
-#include <linux/mfd/pm8xxx/pm8921-bms.h>
 
 #define FCC_CC_COLS		5
 #define FCC_TEMP_COLS		8
