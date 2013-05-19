@@ -242,6 +242,14 @@ static struct platform_device apq8064_android_pmem_audio_device = {
 #endif /* CONFIG_MSM_MULTIMEDIA_USE_ION */
 #endif
 
+#ifdef CONFIG_BATTERY_BCL
+static struct platform_device battery_bcl_device = {
+  .name = "battery_current_limit",
+  .id = -1,
+  };
+#endif
+
+
 struct fmem_platform_data apq8064_fmem_pdata = {
 };
 
@@ -1453,6 +1461,8 @@ static struct msm_thermal_data msm_thermal_pdata = {
 	.limit_temp_degC = 60,
 	.temp_hysteresis_degC = 10,
 	.freq_step = 2,
+	.core_temp_hysteresis_degC = 10,
+	.core_control_mask = 0xe,
 };
 
 #define MSM_SHARED_RAM_PHYS 0x80000000
@@ -1810,7 +1820,6 @@ static struct platform_device *common_devices[] __initdata = {
 	&apq8064_device_dmov,
 	&apq8064_device_ssbi_pmic2,
 	&apq8064_device_ext_dsv_load_vreg,
-        &batt_temp_ctrl,
 	&msm_device_smd_apq8064,
 	&apq8064_device_otg,
 	&apq8064_device_gadget_peripheral,
@@ -1890,6 +1899,7 @@ static struct platform_device *common_devices[] __initdata = {
 	&apq8064_rpm_device,
 	&apq8064_rpm_log_device,
 	&apq8064_rpm_stat_device,
+	&apq8064_rpm_master_stat_device,
 #ifdef CONFIG_MSM_TZ_LOG
 	&apq_device_tz_log,
 #endif
@@ -1900,11 +1910,12 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm_bus_8064_cpss_fpb,
 	&apq8064_msm_device_vidc,
 	&msm_pil_dsps,
-	&msm_8960_riva,
 	&msm_8960_q6_lpass,
 	&msm_pil_vidc,
 	&msm_gss,
 	&apq8064_rtb_device,
+	&apq8064_dcvs_device,
+	&apq8064_msm_gov_device,
 	&apq8064_device_cache_erp,
 	&msm8960_device_ebi1_ch0_erp,
 	&msm8960_device_ebi1_ch1_erp,
@@ -1923,6 +1934,11 @@ static struct platform_device *common_devices[] __initdata = {
 	&apq8064_iommu_domain_device,
 	&msm_tsens_device,
 	&apq8064_cache_dump_device,
+	&msm_8064_device_tspp,	
+	#ifdef CONFIG_BATTERY_BCL			
+	&battery_bcl_device,			
+	#endif			
+	&apq8064_msm_mpd_device,
 };
 
 static struct platform_device *cdp_devices[] __initdata = {
