@@ -81,6 +81,9 @@ GPATH
 GRTAGS
 GSYMS
 GTAGS
+zip
+build
+build-all
 
 *.orig
 *~
