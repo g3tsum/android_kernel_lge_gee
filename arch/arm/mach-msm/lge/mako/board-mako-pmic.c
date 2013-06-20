@@ -496,8 +496,6 @@ struct bms_battery_data lge_2100_mako_data =  {
 	.default_rbatt_mohm = 182,
 };
 
-/* Commenting this out for now, since it errors and is not my most important issue at the moment. Will revisit later.
-
 static unsigned int keymap[] = {
 	KEY(0, 0, KEY_VOLUMEUP),
 	KEY(0, 1, KEY_VOLUMEDOWN),
@@ -507,6 +505,7 @@ static struct matrix_keymap_data keymap_data = {
 	.keymap_size    = ARRAY_SIZE(keymap),
 	.keymap         = keymap,
 };
+
 
 static struct pm8xxx_keypad_platform_data keypad_data = {
 	.input_name             = "keypad_8064",
@@ -521,7 +520,6 @@ static struct pm8xxx_keypad_platform_data keypad_data = {
 	.wakeup                 = 1,
 	.keymap_data            = &keymap_data,
 };
-*/
 
 static struct pm8921_platform_data
 apq8064_pm8921_platform_data __devinitdata = {
@@ -531,6 +529,7 @@ apq8064_pm8921_platform_data __devinitdata = {
 	.mpp_pdata		= &apq8064_pm8921_mpp_pdata,
 	.rtc_pdata		= &apq8064_pm8921_rtc_pdata,
 	.pwrkey_pdata		= &apq8064_pm8921_pwrkey_pdata,
+	.keypad_pdata		= &keypad_data,
 	.misc_pdata		= &apq8064_pm8921_misc_pdata,
 	.leds_pdata		= &apq8064_pm8921_leds_pdata,
 	.adc_pdata		= &apq8064_pm8921_adc_pdata,
