@@ -127,6 +127,9 @@
 /** Maximum time(ms) to wait for tdls del sta to complete **/
 #define WAIT_TIME_TDLS_DEL_STA      1500
 
+/** Maximum time(ms) to wait for Link Establish Req to complete **/
+#define WAIT_TIME_TDLS_LINK_ESTABLISH_REQ      1500
+
 /** Maximum time(ms) to wait for tdls mgmt to complete **/
 #define WAIT_TIME_TDLS_MGMT         11000
 
@@ -175,7 +178,7 @@
 #define WLAN_HDD_PUBLIC_ACTION_TDLS_DISC_RESP 14
 #define WLAN_HDD_TDLS_ACTION_FRAME 12
 #ifdef WLAN_FEATURE_HOLD_RX_WAKELOCK
-#define HDD_WAKE_LOCK_DURATION 500 //in msecs
+#define HDD_WAKE_LOCK_DURATION 50 //in msecs
 #endif
 
 #define HDD_SAP_WAKE_LOCK_DURATION 10000 //in msecs
@@ -516,14 +519,6 @@ typedef enum{
     HDD_SSR_DISABLED,
 }e_hdd_ssr_required;
 
-#ifdef WLAN_FEATURE_GTK_OFFLOAD
-typedef struct
-{
-   v_BOOL_t requested;
-   tSirGtkOffloadParams gtkOffloadReqParams;
-}hddGtkOffloadParams;
-#endif
-
 struct hdd_station_ctx
 {
   /** Handle to the Wireless Extension State */
@@ -546,7 +541,7 @@ struct hdd_station_ctx
 #endif
 
 #ifdef WLAN_FEATURE_GTK_OFFLOAD
-   hddGtkOffloadParams gtkOffloadRequestParams;
+   tSirGtkOffloadParams gtkOffloadReqParams;
 #endif
    /*Increment whenever ibss New peer joins and departs the network */
    int ibss_sta_generation;
@@ -760,6 +755,7 @@ struct hdd_adapter_s
    struct completion tdls_add_station_comp;
    struct completion tdls_del_station_comp;
    struct completion tdls_mgmt_comp;
+   struct completion tdls_link_establish_req_comp;
    eHalStatus tdlsAddStaStatus;
 #endif
    /* Track whether the linkup handling is needed  */
@@ -855,6 +851,15 @@ typedef struct hdd_priv_data_s
    int used_len;
    int total_len;
 }hdd_priv_data_t;
+
+typedef struct
+{
+   vos_timer_t trafficTimer;
+   atomic_t    isActiveMode;
+   v_U8_t      isInitialized;
+   vos_lock_t  trafficLock;
+   v_TIME_t    lastFrameTs;
+}hdd_traffic_monitor_t;
 
 /** Adapter stucture definition */
 
@@ -1002,6 +1007,8 @@ struct hdd_context_s
     tANI_U16 connected_peer_count;
     tdls_scan_context_t tdls_scan_ctxt;
 #endif
+
+    hdd_traffic_monitor_t traffic_monitor;
 };
 
 

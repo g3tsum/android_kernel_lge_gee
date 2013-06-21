@@ -789,6 +789,7 @@ tANI_BOOLEAN smeProcessCommand( tpAniSirGlobal pMac )
                         case eSmeCommandTdlsSendMgmt:     
                         case eSmeCommandTdlsAddPeer:
                         case eSmeCommandTdlsDelPeer:
+                        case eSmeCommandTdlsLinkEstablish:
 #ifdef FEATURE_WLAN_TDLS_INTERNAL
                         case eSmeCommandTdlsDiscovery:
                         case eSmeCommandTdlsLinkSetup:
@@ -1170,6 +1171,29 @@ eHalStatus sme_UpdateConfig(tHalHandle hHal, tpSmeConfigParams pSmeConfigParams)
 
    return status;
 }
+
+#ifdef WLAN_FEATURE_GTK_OFFLOAD
+void sme_ProcessGetGtkInfoRsp( tHalHandle hHal,
+                            tpSirGtkOffloadGetInfoRspParams pGtkOffloadGetInfoRsp)
+{
+   tpAniSirGlobal pMac = PMAC_STRUCT( hHal );
+
+   if (NULL == pMac)
+   {
+       VOS_TRACE(VOS_MODULE_ID_SME, VOS_TRACE_LEVEL_FATAL,
+           "%s: pMac is null", __func__);
+       return ;
+   }
+   if (pMac->pmc.GtkOffloadGetInfoCB == NULL)
+   {
+       VOS_TRACE(VOS_MODULE_ID_SME, VOS_TRACE_LEVEL_ERROR,
+           "%s: HDD callback is null", __func__);
+       return ;
+   }
+   pMac->pmc.GtkOffloadGetInfoCB(pMac->pmc.GtkOffloadGetInfoCBContext,
+                                 pGtkOffloadGetInfoRsp);
+}
+#endif
 
 /* ---------------------------------------------------------------------------
     \fn sme_ChangeConfigParams
@@ -1716,6 +1740,7 @@ eHalStatus sme_ProcessMsg(tHalHandle hHal, vos_msg_t* pMsg)
           case eWNI_SME_TDLS_DEL_STA_IND:
           case eWNI_SME_TDLS_DEL_ALL_PEER_IND:
           case eWNI_SME_MGMT_FRM_TX_COMPLETION_IND:
+          case eWNI_SME_TDLS_LINK_ESTABLISH_RSP:
 #ifdef FEATURE_WLAN_TDLS_OXYGEN_DISAPPEAR_AP
           case eWNI_SME_TDLS_AP_DISAPPEAR_IND:
 #endif
@@ -1763,6 +1788,19 @@ eHalStatus sme_ProcessMsg(tHalHandle hHal, vos_msg_t* pMsg)
                 break;
 #endif // WLAN_FEATURE_ROAM_SCAN_OFFLOAD
 
+#ifdef WLAN_FEATURE_GTK_OFFLOAD
+           case eWNI_PMC_GTK_OFFLOAD_GETINFO_RSP:
+                if (pMsg->bodyptr)
+                {
+                    sme_ProcessGetGtkInfoRsp(pMac, pMsg->bodyptr);
+                    vos_mem_free(pMsg->bodyptr);
+                }
+                else
+                {
+                    smsLog(pMac, LOGE, "Empty rsp message for (eWNI_PMC_GTK_OFFLOAD_GETINFO_RSP), nothing to process");
+                }
+                break ;
+#endif
           default:
 
              if ( ( pMsg->type >= eWNI_SME_MSG_TYPES_BEGIN )
@@ -5603,18 +5641,19 @@ eHalStatus sme_DeregisterMgmtFrame(tHalHandle hHal, tANI_U8 sessionId,
     \param context - HDD Callback param
     \return eHalStatus
   ---------------------------------------------------------------------------*/
-
 eHalStatus sme_RemainOnChannel(tHalHandle hHal, tANI_U8 sessionId,
                                tANI_U8 channel, tANI_U32 duration,
-                               remainOnChanCallback callback, 
-                               void *pContext)
+                               remainOnChanCallback callback,
+                               void *pContext,
+                               tANI_U8 isP2PProbeReqAllowed)
 {
   eHalStatus status = eHAL_STATUS_SUCCESS;
   tpAniSirGlobal pMac = PMAC_STRUCT(hHal);
 
   if ( eHAL_STATUS_SUCCESS == ( status = sme_AcquireGlobalLock( &pMac->sme ) ) )
   {
-    status = p2pRemainOnChannel (hHal, sessionId, channel, duration, callback, pContext
+    status = p2pRemainOnChannel (hHal, sessionId, channel, duration, callback, pContext,
+                                 isP2PProbeReqAllowed
 #ifdef WLAN_FEATURE_P2P_INTERNAL
                                 , eP2PRemainOnChnReasonUnknown
 #endif
@@ -7452,13 +7491,6 @@ eHalStatus sme_setNeighborLookupRssiThreshold(tHalHandle hHal,
         }
         sme_ReleaseGlobalLock( &pMac->sme );
     }
-
-#ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
-    if (pMac->roam.configParam.isRoamOffloadScanEnabled)
-    {
-       csrRoamOffloadScan(pMac, ROAM_SCAN_OFFLOAD_UPDATE_CFG, REASON_LOOKUP_THRESH_CHANGED);
-    }
-#endif
     return status;
 }
 
@@ -7638,6 +7670,13 @@ eHalStatus sme_UpdateEmptyScanRefreshPeriod(tHalHandle hHal, v_U16_t nEmptyScanR
         sme_ReleaseGlobalLock( &pMac->sme );
     }
 
+#ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
+    if (pMac->roam.configParam.isRoamOffloadScanEnabled)
+    {
+       csrRoamOffloadScan(pMac, ROAM_SCAN_OFFLOAD_UPDATE_CFG,
+                          REASON_EMPTY_SCAN_REF_PERIOD_CHANGED);
+    }
+#endif
     return status ;
 }
 
@@ -7699,6 +7738,13 @@ eHalStatus sme_setNeighborScanMaxChanTime(tHalHandle hHal, const v_U16_t nNeighb
         pMac->roam.neighborRoamInfo.cfgParams.maxChannelScanTime = nNeighborScanMaxChanTime;
         sme_ReleaseGlobalLock( &pMac->sme );
     }
+#ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
+    if (pMac->roam.configParam.isRoamOffloadScanEnabled)
+    {
+       csrRoamOffloadScan(pMac, ROAM_SCAN_OFFLOAD_UPDATE_CFG,
+                          REASON_SCAN_CH_TIME_CHANGED);
+    }
+#endif
 
     return status ;
 }
@@ -7732,7 +7778,7 @@ v_U16_t sme_getNeighborScanMaxChanTime(tHalHandle hHal)
     \brief  Update nNeighborScanPeriod
             This function is called through dynamic setConfig callback function
             to configure nNeighborScanPeriod
-            Usage: adb shell iwpriv wlan0 setConfig nNeighborScanPeriod=[0 .. 60]
+            Usage: adb shell iwpriv wlan0 setConfig nNeighborScanPeriod=[0 .. 1000]
     \param  hHal - HAL handle for device
     \param  nNeighborScanPeriod - neighbor scan period
     \- return Success or failure
@@ -7754,6 +7800,13 @@ eHalStatus sme_setNeighborScanPeriod(tHalHandle hHal, const v_U16_t nNeighborSca
         pMac->roam.neighborRoamInfo.cfgParams.neighborScanPeriod = nNeighborScanPeriod;
         sme_ReleaseGlobalLock( &pMac->sme );
     }
+#ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
+    if (pMac->roam.configParam.isRoamOffloadScanEnabled)
+    {
+       csrRoamOffloadScan(pMac, ROAM_SCAN_OFFLOAD_UPDATE_CFG,
+                          REASON_SCAN_HOME_TIME_CHANGED);
+    }
+#endif
 
     return status ;
 }
@@ -8057,6 +8110,33 @@ tANI_U8 sme_IsFeatureSupportedByFW(tANI_U8 featEnumValue)
    return IS_FEATURE_SUPPORTED_BY_FW(featEnumValue);
 }
 #ifdef FEATURE_WLAN_TDLS
+
+/* ---------------------------------------------------------------------------
+    \fn sme_SendTdlsMgmtFrame
+    \brief  API to send TDLS management frames.
+
+    \param  peerMac - peer's Mac Adress.
+    \param  tdlsLinkEstablishParams - TDLS Peer Link Establishment Parameters
+    \- return VOS_STATUS_SUCCES
+    -------------------------------------------------------------------------*/
+VOS_STATUS sme_SendTdlsLinkEstablishParams(tHalHandle hHal,
+                                                   tANI_U8 sessionId,
+                                                   tSirMacAddr peerMac,
+                                                   tCsrTdlsLinkEstablishParams *tdlsLinkEstablishParams)
+{
+    eHalStatus          status    = eHAL_STATUS_SUCCESS;
+    tpAniSirGlobal      pMac      = PMAC_STRUCT(hHal);
+
+    status = sme_AcquireGlobalLock( &pMac->sme );
+
+    if ( HAL_STATUS_SUCCESS( status ) )
+    {
+        status = csrTdlsSendLinkEstablishParams(hHal, sessionId, peerMac, tdlsLinkEstablishParams) ;
+        sme_ReleaseGlobalLock( &pMac->sme );
+    }
+   return status ;
+}
+
 /* ---------------------------------------------------------------------------
     \fn sme_SendTdlsMgmtFrame
     \brief  API to send TDLS management frames.

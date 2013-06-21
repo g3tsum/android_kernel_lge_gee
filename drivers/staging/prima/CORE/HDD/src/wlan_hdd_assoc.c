@@ -815,8 +815,7 @@ static eHalStatus hdd_DisConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo *
             // In case of JB, as Change-Iface may or maynot be called for p2p0
             // Enable BMPS/IMPS in case P2P_CLIENT disconnected
             if(((WLAN_HDD_INFRA_STATION == pAdapter->device_mode) ||
-                (WLAN_HDD_P2P_CLIENT == pAdapter->device_mode)) &&
-                (vos_concurrent_sessions_running()))
+                (WLAN_HDD_P2P_CLIENT == pAdapter->device_mode)))
             {
                //Enable BMPS only of other Session is P2P Client
                hdd_context_t *pHddCtx = NULL;
@@ -832,20 +831,12 @@ static eHalStatus hdd_DisConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo *
                        if((0 == pHddCtx->no_of_sessions[VOS_STA_SAP_MODE]) &&
                           (0 == pHddCtx->no_of_sessions[VOS_P2P_GO_MODE]))
                        {
-                          if (pHddCtx->hdd_wlan_suspended)
-                          {
-                             if(WLAN_HDD_INFRA_STATION == pAdapter->device_mode)
-                             {
-                                hdd_reset_pwrparams(pHddCtx);
-                             }
-                             else
-                             {
-                                hdd_set_pwrparams(pHddCtx);
-                             }
-                          }
-
+                           if (pHddCtx->hdd_wlan_suspended)
+                           {
+                               hdd_set_pwrparams(pHddCtx);
+                           }
                            hdd_enable_bmps_imps(pHddCtx);
-                       }
+                      }
                    }
                }
             }
@@ -872,9 +863,9 @@ static eHalStatus hdd_DisConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo *
     if ((WLAN_HDD_INFRA_STATION == pAdapter->device_mode) ||
         (WLAN_HDD_P2P_CLIENT == pAdapter->device_mode))
     {
-        pHddStaCtx->gtkOffloadRequestParams.requested = FALSE;
-        memset(&pHddStaCtx->gtkOffloadRequestParams.gtkOffloadReqParams,
-              0, sizeof (tSirGtkOffloadParams));
+        memset(&pHddStaCtx->gtkOffloadReqParams, 0,
+              sizeof (tSirGtkOffloadParams));
+        pHddStaCtx->gtkOffloadReqParams.ulFlags = GTK_OFFLOAD_DISABLE;
     }
 #endif
 
@@ -1018,12 +1009,14 @@ static VOS_STATUS hdd_roamRegisterSTA( hdd_adapter_t *pAdapter,
       return vosStatus;
    }
 
-   // if ( WPA ), tell TL to go to 'connected' and after keys come to the driver,
-
+   // if (WPA), tell TL to go to 'connected' and after keys come to the driver,
+   // then go to 'authenticated'.  For all other authentication types
+   // (those that donot require upper layer authentication) we can put
+   // TL directly into 'authenticated' state.
    if (staDesc.wSTAType != WLAN_STA_IBSS)
       VOS_ASSERT( fConnected );
 
-   if ( !pRoamInfo->fAuthRequired && (WLAN_STA_IBSS == staDesc.wSTAType) )
+   if ( !pRoamInfo->fAuthRequired )
    {
       // Connections that do not need Upper layer auth, transition TL directly
       // to 'Authenticated' state.
@@ -1035,8 +1028,8 @@ static VOS_STATUS hdd_roamRegisterSTA( hdd_adapter_t *pAdapter,
    else
    {
       VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_MED,
-              "ULA auth StaId= %d.  Changing TL state to CONNECTED at Join time",
-              pHddStaCtx->conn_info.staId[0] );
+                 "ULA auth StaId= %d. Changing TL state to CONNECTED"
+                 "at Join time", pHddStaCtx->conn_info.staId[0] );
       vosStatus = WLANTL_ChangeSTAState( pHddCtx->pvosContext, staDesc.ucSTAId,
                                       WLANTL_STA_CONNECTED );
       pHddStaCtx->conn_info.uIsAuthenticated = VOS_FALSE;
@@ -1361,12 +1354,23 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
 
             hdd_SendReAssocEvent(dev, pAdapter, pRoamInfo, reqRsnIe, reqRsnLength);
             //Reassoc successfully
-            vosStatus = WLANTL_ChangeSTAState( pHddCtx->pvosContext, pHddStaCtx->conn_info.staId[ 0 ],
-                     WLANTL_STA_CONNECTED );
-            VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO,
-                     "%s: staId: %d Changing TL state to CONNECTED",
-                     __func__, pHddStaCtx->conn_info.staId[0]);
-            pHddStaCtx->conn_info.uIsAuthenticated = VOS_FALSE;
+            if( pRoamInfo->fAuthRequired )
+            {
+                vosStatus = WLANTL_ChangeSTAState( pHddCtx->pvosContext,
+                                                   pHddStaCtx->conn_info.staId[ 0 ],
+                                                   WLANTL_STA_CONNECTED );
+                pHddStaCtx->conn_info.uIsAuthenticated = VOS_FALSE;
+            }
+            else
+            {
+                VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
+                          "%s: staId: %d Changing TL state to AUTHENTICATED",
+                          __func__, pHddStaCtx->conn_info.staId[ 0 ] );
+                vosStatus = WLANTL_ChangeSTAState( pHddCtx->pvosContext,
+                                                   pHddStaCtx->conn_info.staId[ 0 ],
+                                                   WLANTL_STA_AUTHENTICATED );
+                pHddStaCtx->conn_info.uIsAuthenticated = VOS_TRUE;
+            }
         }
 
         if ( VOS_IS_STATUS_SUCCESS( vosStatus ) )
@@ -1432,24 +1436,16 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
 
                if(NULL != pHddCtx)
                {
-                   //Only P2P Client is there Enable Bmps back
-                   if((0 == pHddCtx->no_of_sessions[VOS_STA_SAP_MODE]) &&
-                      (0 == pHddCtx->no_of_sessions[VOS_P2P_GO_MODE]))
-                   {
-                      if (pHddCtx->hdd_wlan_suspended)
-                      {
-                         if(WLAN_HDD_INFRA_STATION == pAdapter->device_mode)
+                    //Only P2P Client is there Enable Bmps back
+                    if((0 == pHddCtx->no_of_sessions[VOS_STA_SAP_MODE]) &&
+                       (0 == pHddCtx->no_of_sessions[VOS_P2P_GO_MODE]))
+                    {
+                         if (pHddCtx->hdd_wlan_suspended)
                          {
-                            hdd_reset_pwrparams(pHddCtx);
+                             hdd_set_pwrparams(pHddCtx);
                          }
-                         else
-                         {
-                            hdd_set_pwrparams(pHddCtx);
-                         }
-                      }
-
-                       hdd_enable_bmps_imps(pHddCtx);
-                   }
+                         hdd_enable_bmps_imps(pHddCtx);
+                    }
                }
            }
         }
@@ -1757,12 +1753,39 @@ static eHalStatus hdd_RoamSetKeyCompleteHandler( hdd_adapter_t *pAdapter, tCsrRo
       }
       else
       {
-          // TODO: Considering getting a state machine in HDD later.
-          // This routuine is invoked twice. 1)set PTK 2)set GTK.
-          vosStatus = WLANTL_STAPtkInstalled( pHddCtx->pvosContext,
-                                            pHddStaCtx->conn_info.staId[ 0 ]);
-          pHddStaCtx->roam_info.roamingState = HDD_ROAM_STATE_NONE;
+         // TODO: Considering getting a state machine in HDD later.
+         // This routine is invoked twice. 1)set PTK 2)set GTK.
+         // The folloing if statement will be TRUE when setting GTK.
+         // At this time we don't handle the state in detail.
+         // Related CR: 174048 - TL not in authenticated state
+         if ( ( eCSR_ROAM_RESULT_AUTHENTICATED == roamResult ) &&
+             (pRoamInfo != NULL) && !pRoamInfo->fAuthRequired )
+         {
+            VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_MED, "Key set "
+                       "for StaId= %d.  Changing TL state to AUTHENTICATED",
+                       pHddStaCtx->conn_info.staId[ 0 ] );
+
+            // Connections that do not need Upper layer authentication,
+            // transition TL to 'Authenticated' state after the keys are set.
+            vosStatus = WLANTL_ChangeSTAState( pHddCtx->pvosContext,
+                                               pHddStaCtx->conn_info.staId[ 0 ],
+                                               WLANTL_STA_AUTHENTICATED );
+
+            pHddStaCtx->conn_info.uIsAuthenticated = VOS_TRUE;
+         }
+         else
+         {
+            vosStatus = WLANTL_STAPtkInstalled( pHddCtx->pvosContext,
+                                                pHddStaCtx->conn_info.staId[ 0 ]);
+         }
+
+         pHddStaCtx->roam_info.roamingState = HDD_ROAM_STATE_NONE;
       }
+   }
+   else
+   {
+      // possible disassoc after issuing set key and waiting set key complete
+      pHddStaCtx->roam_info.roamingState = HDD_ROAM_STATE_NONE;
    }
 
    EXIT();
@@ -2031,7 +2054,7 @@ VOS_STATUS hdd_roamRegisterTDLSSTA( hdd_adapter_t *pAdapter,
         staDesc.ucIsReplayCheckValid = VOS_FALSE;
 #endif
 
-    staDesc.ucInitState = WLANTL_STA_AUTHENTICATED ;
+    staDesc.ucInitState = WLANTL_STA_CONNECTED ;
 
    /* Register the Station with TL...  */
     vosStatus = WLANTL_RegisterSTAClient( pVosContext,
@@ -2092,6 +2115,7 @@ eHalStatus hdd_RoamTdlsStatusUpdateHandler(hdd_adapter_t *pAdapter,
       roamResult == eCSR_ROAM_RESULT_TEARDOWN_TDLS_PEER_IND ? "DEL_TDLS_PEER_IND" :
       roamResult == eCSR_ROAM_RESULT_DELETE_ALL_TDLS_PEER_IND? "DEL_ALL_TDLS_PEER_IND" :
       roamResult == eCSR_ROAM_RESULT_UPDATE_TDLS_PEER? "UPDATE_TDLS_PEER" :
+      roamResult == eCSR_ROAM_RESULT_LINK_ESTABLISH_REQ_RSP? "LINK_ESTABLISH_REQ_RSP" :
 #ifdef FEATURE_WLAN_TDLS_OXYGEN_DISAPPEAR_AP
       roamResult == eCSR_ROAM_RESULT_TDLS_DISAPPEAR_AP_IND? "DISAPPEAR_AP_DEREG_STA" :
 #endif
@@ -2150,10 +2174,14 @@ eHalStatus hdd_RoamTdlsStatusUpdateHandler(hdd_adapter_t *pAdapter,
                     }
 
                     (WLAN_HDD_GET_CTX(pAdapter))->sta_to_adapter[pRoamInfo->staId] = pAdapter;
-                    /* store the ucast signature which will be used later when
-                       registering to TL
-                     */
+                    /* store the ucast signature , if required for further reference. */
+
                     wlan_hdd_tdls_set_signature( pAdapter, pRoamInfo->peerMac, pRoamInfo->ucastSig );
+                    /* start TDLS client registration with TL */
+                    status = hdd_roamRegisterTDLSSTA( pAdapter,
+                                                      pRoamInfo->peerMac,
+                                                      pRoamInfo->staId,
+                                                      pRoamInfo->ucastSig);
                 }
                 else
                 {
@@ -2178,6 +2206,16 @@ eHalStatus hdd_RoamTdlsStatusUpdateHandler(hdd_adapter_t *pAdapter,
              */
             pAdapter->tdlsAddStaStatus = pRoamInfo->statusCode;
             complete(&pAdapter->tdls_add_station_comp);
+            break;
+        }
+        case eCSR_ROAM_RESULT_LINK_ESTABLISH_REQ_RSP:
+        {
+            if (eSIR_SME_SUCCESS != pRoamInfo->statusCode)
+            {
+                VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_ERROR,
+                     "%s: Link Establish Request failed. %d", __func__, pRoamInfo->statusCode);
+            }
+            complete(&pAdapter->tdls_link_establish_req_comp);
             break;
         }
         case eCSR_ROAM_RESULT_DELETE_TDLS_PEER:
@@ -2700,6 +2738,7 @@ static tANI_S32 hdd_ProcessGENIE(hdd_adapter_t *pAdapter,
     tANI_U8 *pRsnIe;
     tANI_U16 RSNIeLen;
     tPmkidCacheInfo PMKIDCache[4]; // Local transfer memory
+    v_BOOL_t updatePMKCache = FALSE;
 
     /* Clear struct of tDot11fIERSN and tDot11fIEWPA specifically setting present
        flag to 0 */
@@ -2752,10 +2791,11 @@ static tANI_S32 hdd_ProcessGENIE(hdd_adapter_t *pAdapter,
             {
                 break;
             }
-            if ( hdd_IsMACAddrNULL( (u_char *) pBssid , sizeof( (char *) pBssid)))
+            if ( hdd_IsMACAddrNULL( (u_char *) pBssid->ether_addr_octet , 6))
             {
                 break;
             }
+            updatePMKCache = TRUE;
             // For right now, I assume setASSOCIATE() has passed in the bssid.
             vos_mem_copy(PMKIDCache[i].BSSID,
                             pBssid, ETHER_ADDR_LEN);
@@ -2763,13 +2803,17 @@ static tANI_S32 hdd_ProcessGENIE(hdd_adapter_t *pAdapter,
                             dot11RSNIE.pmkid[i],
                             CSR_RSN_PMKID_SIZE);
         }
-        // Calling csrRoamSetPMKIDCache to configure the PMKIDs into the cache
-        hddLog(LOG1, FL("%s: Calling csrRoamSetPMKIDCache with cache entry %ld."),
+
+        if (updatePMKCache)
+        {
+            // Calling csrRoamSetPMKIDCache to configure the PMKIDs into the cache
+            hddLog(LOG1, FL("%s: Calling csrRoamSetPMKIDCache with cache entry %ld."),
                                                                             __func__, i );
-        // Finally set the PMKSA ID Cache in CSR
-        result = sme_RoamSetPMKIDCache(halHandle,pAdapter->sessionId,
-                                        PMKIDCache,
-                                        dot11RSNIE.pmkid_count );
+            // Finally set the PMKSA ID Cache in CSR
+            result = sme_RoamSetPMKIDCache(halHandle,pAdapter->sessionId,
+                                           PMKIDCache,
+                                           dot11RSNIE.pmkid_count );
+        }
     }
     else if (gen_ie[0] == DOT11F_EID_WPA)
     {
