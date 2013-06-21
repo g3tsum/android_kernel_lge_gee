@@ -8047,12 +8047,13 @@ static int wlan_hdd_cfg80211_set_mac_acl(struct wiphy *wiphy,
             }
         }
 
+	/*
         if (VOS_STATUS_SUCCESS != WLANSAP_SetMacACL(pVosContext, pConfig))
         {
             VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_ERROR,
                        "%s: SAP Set Mac Acl fail", __func__);
             return -EINVAL;
-        }
+        }*/ /* Disable for compilation sake */
     }
     else
     {
