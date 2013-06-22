@@ -20,6 +20,25 @@
 #include <linux/cpu.h>
 #include <linux/reboot.h>
 #include <linux/earlysuspend.h>
+#include <linux/cpufreq.h>
+#include <linux/msm_thermal.h>
+#include <linux/platform_device.h>
+#include <linux/of.h>
+#include <linux/hrtimer.h>
+#include <mach/cpufreq.h>
+
+static DEFINE_MUTEX(emergency_shutdown_mutex);
+
+static int enabled;
+
+//Throttling indicator, 0=not throttled, 1=low, 2=mid, 3=max
+static int thermal_throttled = 0;
+
+//Safe the cpu max freq before throttling
+static int pre_throttled_max = 0;
+
+//screen status
+static bool screen_blank = false;
 
 /*
  * Poll for temperature changes every 2 seconds.
@@ -30,9 +49,6 @@ unsigned int polling = HZ*2;
 unsigned int temp_threshold = 60;
 module_param(temp_threshold, int, 0755);
 
-#define DEF_TEMP_SENSOR      0
-
-static int enabled;
 static struct msm_thermal_data msm_thermal_info;
 
 static struct workqueue_struct *wq;
@@ -46,7 +62,8 @@ unsigned int freq_buffer;
 unsigned short get_threshold(void)
 {
 	return temp_threshold;
-#define DEF_TEMP_SENSOR      0
+
+#define DEF_TEMP_SENSOR       0
 #define DEF_TEMP_SENSOR0      0
 #define DEF_TEMP_SENSOR1      1
 
@@ -67,37 +84,6 @@ unsigned short get_threshold(void)
 
 //Sampling interval
 #define DEF_THERMAL_CHECK_MS 100
-
-static DEFINE_MUTEX(emergency_shutdown_mutex);
-
-static int enabled;
-
-//Throttling indicator, 0=not throttled, 1=low, 2=mid, 3=max
-static int thermal_throttled = 0;
-
-//Safe the cpu max freq before throttling
-static int pre_throttled_max = 0;
-
-//screen status
-static bool screen_blank = false;
-
-#include <linux/cpufreq.h>
-#include <linux/msm_tsens.h>
-#include <linux/msm_thermal.h>
-#include <linux/platform_device.h>
-#include <linux/of.h>
-#include <linux/hrtimer.h>
-#include <mach/cpufreq.h>
-
-static DEFINE_MUTEX(emergency_shutdown_mutex);
-
-static int enabled;
-
-//Throttling indicator, 0=not throttled, 1=low, 2=mid, 3=max
-static int thermal_throttled = 0;
-
-//Save the cpu max freq before throttling
-static int pre_throttled_max = 0;
 
 static struct msm_thermal_data msm_thermal_info;
 
@@ -678,6 +664,7 @@ static void disable_msm_thermal(void)
     int cpu = 0;
     struct cpufreq_policy *cpu_policy = NULL;
 
+     enabled = 0;
     /* make sure check_temp is no longer running */
     cancel_delayed_work(&check_temp_work);
     flush_scheduled_work();
@@ -692,6 +679,18 @@ static void disable_msm_thermal(void)
             }
         }
     }
+
+   pr_warn("msm_thermal: Warning! Thermal guard disabled!");
+}
+
+static void enable_msm_thermal(void)
+{
+    enabled = 1;
+    /* make sure check_temp is running */
+    queue_delayed_work(check_temp_workq, &check_temp_work,
+                       msecs_to_jiffies(msm_thermal_info.poll_ms));
+
+    pr_info("msm_thermal: Thermal guard enabled.");
 }
 
 int __devinit msm_thermal_init(struct msm_thermal_data *pdata)
@@ -709,6 +708,8 @@ int __devinit msm_thermal_init(struct msm_thermal_data *pdata)
     ret = param_set_bool(val, kp);
     if (!enabled)
         disable_msm_thermal();
+    else if (enabled == 1)
+        enable_msm_thermal();
     else
         pr_info("msm_thermal: no action for enabled = %d\n", enabled);
 
