@@ -57,6 +57,11 @@
 #define LGE_DSDR_SUPPORT
 #endif
 
+#if (defined(CONFIG_FB_MSM_DEFAULT_DEPTH_ARGB8888) ||\
+		defined(CONFIG_FB_MSM_DEFAULT_DEPTH_RGBA8888))
+extern int load_888rle_image(char *filename);
+#endif
+
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MSM_FB_NUM	3
 #endif
