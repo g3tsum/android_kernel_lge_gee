@@ -1056,7 +1056,7 @@ v_U8_t* wlan_hdd_cfg80211_get_ie_ptr(v_U8_t *pIes, int length, v_U8_t eid)
 /* Check if rate is 11g rate or not */
 static int wlan_hdd_rate_is_11g(u8 rate)
 {
-    u8 gRateArray[8] = {12, 18, 24, 36, 48, 72, 96, 104}; /* actual rate * 2 */
+    static const u8 gRateArray[8] = {12, 18, 24, 36, 48, 72, 96, 108}; /* actual rate * 2 */
     u8 i;
     for (i = 0; i < 8; i++)
     {
@@ -6747,7 +6747,7 @@ static int wlan_hdd_cfg80211_set_power_mgmt(struct wiphy *wiphy,
         (eConnectionState_Associated ==
              (WLAN_HDD_GET_STATION_CTX_PTR(pAdapter))->conn_info.connState))
     {
-        vos_status = hdd_conf_hostarpoffload(pAdapter, TRUE);
+        vos_status = hdd_conf_arp_offload(pAdapter, TRUE);
         if (!VOS_IS_STATUS_SUCCESS(vos_status))
         {
             hddLog(VOS_TRACE_LEVEL_INFO,
@@ -7550,7 +7550,7 @@ static int wlan_hdd_cfg80211_tdls_oper(struct wiphy *wiphy, struct net_device *d
         "NL80211_TDLS_TEARDOWN",
         "NL80211_TDLS_ENABLE_LINK",
         "NL80211_TDLS_DISABLE_LINK",
-        "NL80211_TDLS_UNKONW_OPER"};
+        "NL80211_TDLS_UNKNOWN_OPER"};
 #endif
     hddTdlsPeer_t *pTdlsPeer;
 
