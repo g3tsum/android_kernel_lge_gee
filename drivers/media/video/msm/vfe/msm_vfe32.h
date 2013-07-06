@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -126,8 +126,8 @@
 #define VFE_IRQ_STATUS0_ASYNC_TIMER2  0x40000000  /* bit 30 */
 #define VFE_IRQ_STATUS0_ASYNC_TIMER3  0x80000000  /* bit 32 */
 
-#define VFE_IRQ_STATUS1_RDI0_REG_UPDATE_MASK  0x4000000 /*bit 26*/
-#define VFE_IRQ_STATUS1_RDI1_REG_UPDATE_MASK  0x8000000 /*bit 27*/
+#define VFE_IRQ_STATUS1_RDI0_REG_UPDATE_MASK  0x4000000  /*bit 26*/
+#define VFE_IRQ_STATUS1_RDI1_REG_UPDATE_MASK  0x8000000  /*bit 27*/
 #define VFE_IRQ_STATUS1_RDI2_REG_UPDATE_MASK  0x10000000 /*bit 28*/
 
 /*TODOs the irq status passed from axi to vfe irq handler does not account
@@ -200,8 +200,6 @@
 #define HFR_MODE_OFF 1
 #define VFE_FRAME_SKIP_PERIOD_MASK 0x0000001F /*bits 0 -4*/
 
-#define VFE_RELOAD_ALL_WRITE_MASTERS 0x00003FFF
-
 enum VFE32_DMI_RAM_SEL {
 	NO_MEM_SELECTED          = 0,
 	BLACK_LUT_RAM_BANK0      = 0x1,
@@ -233,8 +231,6 @@ enum vfe_output_state {
 	VFE_STATE_STARTED,
 	VFE_STATE_STOP_REQUESTED,
 	VFE_STATE_STOPPED,
-	VFE_STATE_HW_STOP_REQUESTED,
-	VFE_STATE_HW_STOPPED,
 };
 
 #define V32_CAMIF_OFF             0x000001E4
@@ -547,12 +543,6 @@ enum VFE_YUV_INPUT_COSITING_MODE {
 
 #define VFE32_GAMMA_NUM_ENTRIES  64
 
-#define VFE32_GAMMA_CH0_G_POS    0
-
-#define VFE32_GAMMA_CH1_B_POS    32
-
-#define VFE32_GAMMA_CH2_R_POS    64
-
 #define VFE32_LA_TABLE_LENGTH    64
 
 #define VFE32_LINEARIZATON_TABLE_LENGTH    36
@@ -830,7 +820,7 @@ struct vfe32_output_ch {
 #define VFE32_IMASK_STATS_IHIST_BUS_OVFL      (0x00000001<<20)
 #define VFE32_IMASK_STATS_SKIN_BHIST_BUS_OVFL (0x00000001<<21)
 #define VFE32_IMASK_AXI_ERROR                 (0x00000001<<22)
-
+#define VFE32_IMASK_BUS_OVFL_ERROR		0x005FFF00
 #define VFE_COM_STATUS 0x000FE000
 
 struct vfe32_output_path {
@@ -904,7 +894,6 @@ struct vfe32_frame_extra {
 #define VFE_BUS_STATS_SKIN_BHIST_WR_PONG_ADDR    0x00000140
 #define VFE_BUS_STATS_SKIN_BHIST_UB_CFG          0x00000144
 #define VFE_CAMIF_COMMAND               0x000001E0
-#define VFE_CAMIF_FRAME_CFG		0x000001EC
 #define VFE_CAMIF_STATUS                0x00000204
 #define VFE_REG_UPDATE_CMD              0x00000260
 #define VFE_DEMUX_GAIN_0                0x00000288
@@ -937,7 +926,8 @@ struct vfe32_frame_extra {
 
 #define VFE33_DMI_DATA_HI               0x000005A0
 #define VFE33_DMI_DATA_LO               0x000005A4
-#define VFE_AXI_CFG_MASK                0x80000000
+
+#define VFE_AXI_CFG_MASK                0xFFFFFFFF
 
 #define VFE32_OUTPUT_MODE_PT			BIT(0)
 #define VFE32_OUTPUT_MODE_S			BIT(1)
@@ -991,7 +981,6 @@ struct vfe_share_ctrl_t {
 	uint16_t cmd_type;
 	uint8_t vfe_reset_flag;
 	uint8_t dual_enabled;
-	uint8_t lp_mode;
 
 	uint8_t axi_ref_cnt;
 	uint16_t comp_output_mode;
@@ -1012,9 +1001,6 @@ struct vfe_share_ctrl_t {
 	atomic_t rdi1_update_ack_pending;
 	atomic_t rdi2_update_ack_pending;
 
-	uint8_t stream_error;
-	uint32_t rdi_comp;
-
 };
 
 struct axi_ctrl_t {
@@ -1034,7 +1020,6 @@ struct axi_ctrl_t {
 	struct vfe_share_ctrl_t *share_ctrl;
 	struct device *iommu_ctx_imgwr;
 	struct device *iommu_ctx_misc;
-	uint32_t simultaneous_sof_frame;
 };
 
 struct vfe32_ctrl_type {
