@@ -16,31 +16,6 @@
 #include "msm.h"
 #include "msm_ispif.h"
 #include "msm_camera_i2c_mux.h"
-//Start  LGE_BSP_CAMERA : dont use for shutter lag time - jonghwan.ko@lge.com
-//#define REDUCE_SHUTTER_LAG_TIME
-//End  LGE_BSP_CAMERA : dont use for shutter lag time - jonghwan.ko@lge.com
-//LGE_UPDATE_S hojin.ryu@lge.com 20121107 Added IEF On/Off Switch functions
-#ifdef CONFIG_MACH_LGE
-#ifdef CONFIG_FB_MSM_MIPI_LGIT_VIDEO_WXGA_PT
-#define LGIT_IEF_SWITCH
-
-#ifdef LGIT_IEF_SWITCH
-extern int mipi_lgit_lcd_ief_off(void);
-extern int mipi_lgit_lcd_ief_on(void);
-#endif
-#endif
-#endif
-//LGE_UPDATE_E hojin.ryu@lge.com 20121107
-
-/*LGE_UPDATE_S Color Engine Switch for camera, 2012.11.19, elin.lee@lge.com*/
-#if defined (CONFIG_FB_MSM_MIPI_LGIT_VIDEO_FHD_INVERSE_PT) || defined (CONFIG_FB_MSM_MIPI_LGIT_VIDEO_FHD_INVERSE_PT_PANEL)
-#define LGIT_COLOR_ENGINE_SWITCH
-
-#ifdef LGIT_COLOR_ENGINE_SWITCH
-extern int mipi_lgit_lcd_color_engine_off(void);
-#endif
-#endif
-/*LGE_UPDATE_E Color Engine Switch for camera, 2012.11.19, elin.lee@lge.com*/
 
 /*=============================================================*/
 void msm_sensor_adjust_frame_lines1(struct msm_sensor_ctrl_t *s_ctrl)
@@ -196,27 +171,7 @@ void msm_sensor_start_stream(struct msm_sensor_ctrl_t *s_ctrl)
 		s_ctrl->msm_sensor_reg->start_stream_conf,
 		s_ctrl->msm_sensor_reg->start_stream_conf_size,
 		s_ctrl->msm_sensor_reg->default_data_type);
-    /* LGE_CHANGE_S, soojung.lim@lge.com, 2012-10-31, Wise screen / Because of the display engine  */
-if(sub_cam_id_for_keep_screen_on != -2733){
-    /* LGE_CHANGE_E, soojung.lim@lge.com, 2012-10-31, Wise screen / Because of the display engine  */
-	//LGE_UPDATE_S hojin.ryu@lge.com 20121107	Turn IEF off when camera sensor starts
-#ifdef LGIT_IEF_SWITCH
-	if(system_state != SYSTEM_BOOTING) {
-		mipi_lgit_lcd_ief_off();
-	}
-#endif
-//LGE_UPDATE_E hojin.ryu@lge.com 20121107
 
-/*LGE_UPDATE_S Color Engine Switch for camera, 2012.11.19, elin.lee@lge.com*/
-#ifdef LGIT_COLOR_ENGINE_SWITCH
-    if(system_state != SYSTEM_BOOTING) {
-      mipi_lgit_lcd_color_engine_off();
-    }
-#endif
-/*LGE_UPDATE_S Color Engine Switch for camera, 2012.11.19, elin.lee@lge.com*/
-    /* LGE_CHANGE_S, soojung.lim@lge.com, 2012-10-31, Wise screen / Because of the display engine  */
-}
-    /* LGE_CHANGE_E, soojung.lim@lge.com, 2012-10-31, Wise screen / Because of the display engine  */
 //Start LGE_BSP_CAMERA : dont use for shutter lag time - jonghwan.ko@lge.com
 #ifndef REDUCE_SHUTTER_LAG_TIME //Test1: Changed from def to ndef
 	      pr_err(" %s : remove delay for shutter lag time \n", __func__ );
@@ -1880,16 +1835,6 @@ int32_t msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
 	struct device *dev = NULL;
 
 	pr_err( " %s : E sensor name is %s \n",__func__, s_ctrl->sensordata->sensor_name);
-    /* LGE_CHANGE_S, soojung.lim@lge.com, 2012-10-31, Wise screen / Because of the display engine  */
-	sub_cam_id_for_keep_screen_on = -1;
-    /* LGE_CHANGE_E, soojung.lim@lge.com, 2012-10-31, Wise screen / Because of the display engine  */
-	//LGE_UPDATE_S hojin.ryu@lge.com 20121107	Turn IEF on when getting out from camera
-#ifdef LGIT_IEF_SWITCH
-	if(system_state != SYSTEM_BOOTING){	
-		mipi_lgit_lcd_ief_on();
-	}
-#endif
-	//LGE_UPDATE_E hojin.ryu@lge.com 20121107
 
 	if (s_ctrl->sensor_device_type == MSM_SENSOR_PLATFORM_DEVICE)
 		dev = &s_ctrl->pdev->dev;
