@@ -28,6 +28,15 @@
 #include "msm_cam_server.h"
 #include "msm_vfe32.h"
 
+//Start LGE_BSP_CAMERA::youngwook.song@lge.com WBT Error
+#define BUFFER_SIZE_10 10
+//End LGE_BSP_CAMERA::youngwook.song@lge.com WBT Error
+//Start LGE_BSP_CAMERA::seongjo.kim@lge.com LCD Brightness down when camcording enter
+#include <linux/syscalls.h>
+int BrightnessDownRatio = 3;
+int CurrentBrightnessValue;
+int ControlBrightnessValue;
+//End LGE_BSP_CAMERA::seongjo.kim@lge.com LCD Brightness down when camcording enter
 atomic_t irq_cnt;
 
 #define VFE32_AXI_OFFSET 0x0050
@@ -137,7 +146,9 @@ static struct vfe32_cmd_type vfe32_cmd[] = {
 		{VFE_CMD_EPOCH2_ACK},
 		{VFE_CMD_START_RECORDING},
 /*60*/	{VFE_CMD_STOP_RECORDING},
-		{VFE_CMD_DUMMY_5},
+//Start LGE_BSP_CAMERA : iommu page fault patch for JB - jonghwan.ko@lge.com
+		{VFE_CMD_STOP_RECORDING_DONE},  //		{VFE_CMD_DUMMY_5},
+//End  LGE_BSP_CAMERA : iommu page fault patch for JB - jonghwan.ko@lge.com
 		{VFE_CMD_DUMMY_6},
 		{VFE_CMD_CAPTURE, V32_CAPTURE_LEN, 0xFF},
 		{VFE_CMD_DUMMY_7},
@@ -1549,8 +1560,11 @@ static int vfe_stats_cs_buf_init(
 	return 0;
 }
 
-static void vfe32_start_common(struct vfe32_ctrl_type *vfe32_ctrl)
-{
+static void vfe32_start_common(
+	struct msm_cam_media_controller *pmctl,  /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
+	struct vfe32_ctrl_type *vfe32_ctrl)
+ {
+	pmctl->hardware_running = 1; /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
 	CDBG("VFE opertaion mode = 0x%x, output mode = 0x%x\n",
 		vfe32_ctrl->share_ctrl->operation_mode,
 		vfe32_ctrl->share_ctrl->outpath.output_mode);
@@ -1580,6 +1594,15 @@ static int vfe32_stop_recording(
 	return 0;
 }
 
+//Start LGE_BSP_CAMERA : iommu page fault patch for JB - jonghwan.ko@lge.com
+static void vfe32_stop_recording_done(
+	struct msm_cam_media_controller *pmctl,
+	struct vfe32_ctrl_type *vfe32_ctrl)
+{
+	msm_camio_bus_scale_cfg(pmctl->sdata->pdata->cam_bus_scale_table, S_PREVIEW);
+}
+//End  LGE_BSP_CAMERA : iommu page fault patch for JB - jonghwan.ko@lge.com
+
 static void vfe32_start_liveshot(
 	struct msm_cam_media_controller *pmctl,
 	struct vfe32_ctrl_type *vfe32_ctrl)
@@ -1608,7 +1631,7 @@ static int vfe32_zsl(
 	struct vfe32_ctrl_type *vfe32_ctrl)
 {
 	vfe32_ctrl->share_ctrl->start_ack_pending = TRUE;
-	vfe32_start_common(vfe32_ctrl);
+	vfe32_start_common(pmctl, vfe32_ctrl); /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
 
 	msm_camera_io_w(1, vfe32_ctrl->share_ctrl->vfebase + 0x18C);
 	msm_camera_io_w(1, vfe32_ctrl->share_ctrl->vfebase + 0x188);
@@ -1621,7 +1644,7 @@ static int vfe32_capture_raw(
 {
 	vfe32_ctrl->share_ctrl->outpath.out0.capture_cnt = num_frames_capture;
 	vfe32_ctrl->share_ctrl->vfe_capture_count = num_frames_capture;
-	vfe32_start_common(vfe32_ctrl);
+	vfe32_start_common(pmctl,vfe32_ctrl);
 	return 0;
 }
 
@@ -1648,7 +1671,7 @@ static int vfe32_capture(
 
 	vfe32_ctrl->share_ctrl->vfe_capture_count = num_frames_capture;
 
-	vfe32_start_common(vfe32_ctrl);
+	vfe32_start_common(pmctl,vfe32_ctrl);
 	/* for debug */
 	msm_camera_io_w(1, vfe32_ctrl->share_ctrl->vfebase + 0x18C);
 	msm_camera_io_w(1, vfe32_ctrl->share_ctrl->vfebase + 0x188);
@@ -1659,7 +1682,7 @@ static int vfe32_start(
 	struct msm_cam_media_controller *pmctl,
 	struct vfe32_ctrl_type *vfe32_ctrl)
 {
-	vfe32_start_common(vfe32_ctrl);
+	vfe32_start_common(pmctl, vfe32_ctrl); /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
 	return 0;
 }
 
@@ -2027,6 +2050,63 @@ static void vfe32_send_isp_msg(
 			(void *)&isp_msg_evt);
 }
 
+//Start LGE_BSP_CAMERA::seongjo.kim@lge.com LCD Brightness down when camcording enter
+static int atoi(const char *name)
+{
+	int val = 0;
+	for (;; name++) {
+		switch (*name) {
+		case '0' ... '9':
+			val = 10*val+(*name-'0');
+			break;
+		default:
+			return val;
+		}
+	}
+}
+static void Set_LCD_Brightness(int value)
+{
+    int fd;
+    mm_segment_t old_fs = get_fs();
+	set_fs(KERNEL_DS);
+    fd = sys_open("/sys/class/leds/lcd-backlight/brightness", O_RDWR | O_CREAT | O_APPEND, 0644);
+    if (fd >= 0) {
+        char buffer[10];
+//Start LGE_BSP_CAMERA::youngwook.song@lge.com WBT Error
+        int bytes = snprintf(buffer, BUFFER_SIZE_10, "%d\n", value);
+//End LGE_BSP_CAMERA::youngwook.song@lge.com WBT Error
+        sys_write(fd, buffer, bytes);
+        sys_close(fd);
+    }
+	else
+	{
+	    printk("%s: Open Error\n",__func__);
+	}
+	set_fs(old_fs);
+}
+static int Get_LCD_Brightness(void)
+{
+	int fd;
+	int value = 0;
+	mm_segment_t old_fs = get_fs();
+	set_fs(KERNEL_DS);
+	fd = sys_open("/sys/class/leds/lcd-backlight/brightness", O_RDWR | O_CREAT | O_APPEND, 0644);
+	if (fd >= 0)
+	{
+		char buffer[10];
+		sys_read(fd,buffer,10);
+		value = atoi(buffer);
+		sys_close(fd);
+	}
+	else
+	{
+	    printk("%s: Open Error\n",__func__);
+	}
+	set_fs(old_fs);
+	return value;
+}
+//End LGE_BSP_CAMERA::seongjo.kim@lge.com LCD Brightness down when camcording enter
+
 static int vfe32_proc_general(
 	struct msm_cam_media_controller *pmctl,
 	struct msm_isp_cmd *cmd,
@@ -2048,6 +2128,7 @@ static int vfe32_proc_general(
 			vfe32_general_cmd[cmd->id]);
 		vfe32_ctrl->share_ctrl->vfe_reset_flag = true;
 		vfe32_reset(vfe32_ctrl);
+		pmctl->hardware_running = 0; /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
 		break;
 	case VFE_CMD_START:
 		pr_info("vfe32_proc_general: cmdID = %s\n",
@@ -2098,6 +2179,16 @@ static int vfe32_proc_general(
 	case VFE_CMD_START_RECORDING:
 		pr_info("vfe32_proc_general: cmdID = %s\n",
 			vfe32_general_cmd[cmd->id]);
+		//Start LGE_BSP_CAMERA::seongjo.kim@lge.com LCD Brightness down when camcording enter
+		CurrentBrightnessValue = Get_LCD_Brightness();
+		if (CurrentBrightnessValue > 140)
+		{
+			ControlBrightnessValue = CurrentBrightnessValue * (100-BrightnessDownRatio) / 100;
+			Set_LCD_Brightness(ControlBrightnessValue);
+			printk("[LCD_Control] Control LCD Brightness = %d\n",ControlBrightnessValue);
+		}
+		printk("[LCD_Control] Current LCD Brightness = %d\n",CurrentBrightnessValue);
+		//End LGE_BSP_CAMERA::seongjo.kim@lge.com LCD Brightness down when camcording enter
 		rc = vfe32_start_recording(pmctl, vfe32_ctrl);
 		break;
 	case VFE_CMD_STOP_RECORDING:
@@ -2105,6 +2196,16 @@ static int vfe32_proc_general(
 			vfe32_general_cmd[cmd->id]);
 		rc = vfe32_stop_recording(pmctl, vfe32_ctrl);
 		break;
+//Start LGE_BSP_CAMERA : iommu page fault patch for JB - jonghwan.ko@lge.com
+	case VFE_CMD_STOP_RECORDING_DONE:
+		pr_info("vfe32_proc_general: cmdID = VFE_CMD_STOP_RECORDING_DONE\n");
+		//Start LGE_BSP_CAMERA::seongjo.kim@lge.com LCD Brightness down when camcording enter
+		printk("[LCD_Control] Current LCD Brightness = %d\n",CurrentBrightnessValue);
+		Set_LCD_Brightness(CurrentBrightnessValue);
+		//End LGE_BSP_CAMERA::seongjo.kim@lge.com LCD Brightness down when camcording enter
+		vfe32_stop_recording_done(pmctl, vfe32_ctrl);
+		break;
+//End  LGE_BSP_CAMERA : iommu page fault patch for JB - jonghwan.ko@lge.com
 	case VFE_CMD_OPERATION_CFG: {
 		if (cmd->length != V32_OPERATION_CFG_LEN) {
 			rc = -EINVAL;
@@ -3189,6 +3290,7 @@ static int vfe32_proc_general(
 		}
 
 		vfe32_stop(vfe32_ctrl);
+pmctl->hardware_running = 0; /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
 		break;
 
 	case VFE_CMD_SYNC_TIMER_SETTING:
@@ -4262,6 +4364,11 @@ static void vfe32_process_camif_sof_irq(
 	}
 	if (vfe32_ctrl->vfe_sof_count_enable)
 		vfe32_ctrl->share_ctrl->vfeFrameId++;
+//LGE_UPDATE_S 0828 add messages to debug timeout error yt.jeon@lge.com
+		if (vfe32_ctrl->share_ctrl->vfeFrameId < 15) {
+			pr_err("%s: SOF frame id %d\n", __func__, vfe32_ctrl->share_ctrl->vfeFrameId);
+		}
+//LGE_UPDATE_E 0828 add messages to debug timeout error yt.jeon@lge.com	
 
 	vfe32_send_isp_msg(&vfe32_ctrl->subdev,
 		vfe32_ctrl->share_ctrl->vfeFrameId, MSG_ID_SOF_ACK);
@@ -6284,6 +6391,8 @@ void msm_axi_subdev_release(struct v4l2_subdev *sd)
 		return;
 	}
 
+	pr_err("%s called\n", __func__); /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
+	CDBG("%s, free_irq\n", __func__);
 	axi_ctrl->share_ctrl->axi_ref_cnt--;
 	if (axi_ctrl->share_ctrl->axi_ref_cnt > 0)
 		return;
@@ -6311,7 +6420,7 @@ void msm_axi_subdev_release(struct v4l2_subdev *sd)
 
 	msm_camio_bus_scale_cfg(
 		pmctl->sdata->pdata->cam_bus_scale_table, S_EXIT);
-
+	pr_err("%s called X\n", __func__); /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
 }
 
 void msm_vfe_subdev_release(struct v4l2_subdev *sd)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -243,34 +243,6 @@ static uint8_t msm_sensor_state_check(
 	return 0;
 }
 
-static int msm_mctl_add_intf_to_mctl_map(
-	struct msm_cam_media_controller *p_mctl,
-	struct intf_mctl_mapping_cfg *intf_map)
-{
-
-	int i;
-	int rc = 0;
-	uint32_t mctl_handle;
-
-	mctl_handle = msm_cam_find_handle_from_mctl_ptr(p_mctl);
-	if (mctl_handle == 0) {
-		pr_err("%s Error in finding handle from mctl_ptr, rc = %d",
-			__func__, rc);
-		return -EFAULT;
-	}
-	for (i = 0; i < intf_map->num_entries; i++) {
-		rc = msm_cam_server_config_interface_map(
-			intf_map->image_modes[i], mctl_handle,
-			intf_map->vnode_id, intf_map->is_bayer_sensor);
-		if (rc < 0) {
-				pr_err("%s Error in INTF MAPPING rc = %d",
-					__func__, rc);
-				return -EINVAL;
-		}
-	}
-	return rc;
-}
-
 /* called by the server or the config nodes to handle user space
 	commands*/
 static int msm_mctl_cmd(struct msm_cam_media_controller *p_mctl,
@@ -448,16 +420,6 @@ static int msm_mctl_cmd(struct msm_cam_media_controller *p_mctl,
 		}
 		break;
 	}
-	case MSM_CAM_IOCTL_INTF_MCTL_MAPPING_CFG: {
-		struct intf_mctl_mapping_cfg intf_map;
-		if (copy_from_user(&intf_map, argp, sizeof(intf_map))) {
-			ERR_COPY_FROM_USER();
-			rc = -EFAULT;
-		} else {
-			rc = msm_mctl_add_intf_to_mctl_map(p_mctl, &intf_map);
-		}
-		break;
-	}
 	case MSM_CAM_IOCTL_PICT_PP:
 		rc = msm_mctl_set_pp_key(p_mctl, (void __user *)arg);
 		break;
@@ -534,27 +496,11 @@ static int msm_mctl_cmd(struct msm_cam_media_controller *p_mctl,
 		}
 		break;
 
-	case MSM_CAM_IOCTL_AXI_LOW_POWER_MODE:
-		if (p_mctl->axi_sdev) {
-			v4l2_set_subdev_hostdata(p_mctl->axi_sdev, p_mctl);
-			rc = v4l2_subdev_call(p_mctl->axi_sdev, core, ioctl,
-				VIDIOC_MSM_AXI_LOW_POWER_MODE,
-				(void __user *)arg);
-		} else {
-			rc = 0;
-		}
-		break;
-
 	default:
-		if(p_mctl && p_mctl->isp_config) {
-			/* ISP config*/
-			D("%s:%d: go to default. Calling msm_isp_config\n",
-				__func__, __LINE__);
-			rc = p_mctl->isp_config(p_mctl, cmd, arg);
-		} else {
-			rc = -EINVAL;
-			pr_err("%s: media controller is null\n", __func__);
-		}
+		/* ISP config*/
+		D("%s:%d: go to default. Calling msm_isp_config\n",
+			__func__, __LINE__);
+		rc = p_mctl->isp_config(p_mctl, cmd, arg);
 		break;
 	}
 	D("%s: !!! cmd = %d, rc = %d\n",
@@ -566,18 +512,17 @@ static int msm_mctl_open(struct msm_cam_media_controller *p_mctl,
 				 const char *const apps_id)
 {
 	int rc = 0;
-	struct msm_sensor_ctrl_t *s_ctrl;
-	struct msm_camera_sensor_info *sinfo;
-	struct msm_camera_device_platform_data *camdev;
+	struct msm_sensor_ctrl_t *s_ctrl = get_sctrl(p_mctl->sensor_sdev);
+	struct msm_camera_sensor_info *sinfo =
+		(struct msm_camera_sensor_info *) s_ctrl->sensordata;
+	struct msm_camera_device_platform_data *camdev = sinfo->pdata;
 	uint8_t csid_core;
 	D("%s\n", __func__);
 	if (!p_mctl) {
 		pr_err("%s: param is NULL", __func__);
 		return -EINVAL;
 	}
-	s_ctrl = get_sctrl(p_mctl->sensor_sdev);
-	sinfo = (struct msm_camera_sensor_info *) s_ctrl->sensordata;
-	camdev = sinfo->pdata;
+
 	mutex_lock(&p_mctl->lock);
 	/* open sub devices - once only*/
 	if (!p_mctl->opencnt) {
@@ -648,6 +593,8 @@ static void msm_mctl_release(struct msm_cam_media_controller *p_mctl)
 	struct msm_sensor_ctrl_t *s_ctrl = get_sctrl(p_mctl->sensor_sdev);
 	struct msm_camera_sensor_info *sinfo =
 		(struct msm_camera_sensor_info *) s_ctrl->sensordata;
+	pr_err("%s called\n", __func__); /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
+
 	v4l2_subdev_call(p_mctl->sensor_sdev, core, ioctl,
 		VIDIOC_MSM_SENSOR_RELEASE, NULL);
 
@@ -667,15 +614,15 @@ static void msm_mctl_release(struct msm_cam_media_controller *p_mctl)
 			VIDIOC_MSM_AXI_RELEASE, NULL);
 	}
 
+	if (p_mctl->csid_sdev) {
+		v4l2_subdev_call(p_mctl->csid_sdev, core, ioctl,
+			VIDIOC_MSM_CSID_RELEASE, NULL);
+	}
+
 	if (p_mctl->csiphy_sdev) {
 		v4l2_subdev_call(p_mctl->csiphy_sdev, core, ioctl,
 			VIDIOC_MSM_CSIPHY_RELEASE,
 			sinfo->sensor_platform_info->csi_lane_params);
-	}
-
-	if (p_mctl->csid_sdev) {
-		v4l2_subdev_call(p_mctl->csid_sdev, core, ioctl,
-			VIDIOC_MSM_CSID_RELEASE, NULL);
 	}
 
 	if (p_mctl->act_sdev) {
@@ -684,9 +631,9 @@ static void msm_mctl_release(struct msm_cam_media_controller *p_mctl)
 	}
 
 	v4l2_subdev_call(p_mctl->sensor_sdev, core, s_power, 0);
+	pr_err("%s called X\n", __func__); /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
+	p_mctl->hardware_running = 0; /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
 
-	v4l2_subdev_call(p_mctl->ispif_sdev,
-			core, ioctl, VIDIOC_MSM_ISPIF_REL, NULL);
 	pm_qos_update_request(&p_mctl->pm_qos_req_list,
 				PM_QOS_DEFAULT_VALUE);
 	pm_qos_remove_request(&p_mctl->pm_qos_req_list);
@@ -798,10 +745,8 @@ int msm_mctl_init(struct msm_cam_v4l2_device *pcam)
 	v4l2_set_subdev_hostdata(pcam->sensor_sdev, pmctl);
 
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
-	if (!pmctl->client) {
-		pmctl->client = msm_ion_client_create(-1, "camera");
-		kref_init(&pmctl->refcount);
-	}
+	pmctl->client = msm_ion_client_create(-1, "camera");
+	kref_init(&pmctl->refcount);
 #endif
 
 	return 0;
@@ -1087,7 +1032,7 @@ static int msm_mctl_v4l2_s_ctrl(struct file *f, void *pctx,
 					__func__, pcam_inst);
 			rc = -EFAULT;
 		}
-		D("%s inst %p got plane info: num_planes = %d," \
+		D("%s inst %p got plane info: num_planes = %d,"
 				"plane size = %ld %ld ", __func__, pcam_inst,
 				pcam_inst->plane_info.num_planes,
 				pcam_inst->plane_info.plane[0].size,
@@ -1127,7 +1072,6 @@ static int msm_mctl_v4l2_reqbufs(struct file *f, void *pctx,
 		pmctl = msm_cam_server_get_mctl(pcam->mctl_handle);
 		if (pmctl == NULL) {
 			pr_err("%s Invalid mctl ptr", __func__);
-			mutex_unlock(&pcam_inst->inst_lock);
 			return -EINVAL;
 		}
 		pmctl->mctl_vbqueue_init(pcam_inst, &pcam_inst->vid_bufq,
@@ -1570,6 +1514,8 @@ static int msm_mctl_vidbuf_get_path(u32 extendedmode)
 		return OUTPUT_TYPE_R1;
 	case MSM_V4L2_EXT_CAPTURE_MODE_RDI2:
 		return OUTPUT_TYPE_R2;
+	case MSM_V4L2_EXT_CAPTURE_MODE_DEFAULT:
+	case MSM_V4L2_EXT_CAPTURE_MODE_PREVIEW:
 	default:
 		return OUTPUT_TYPE_P;
 	}
@@ -1621,7 +1567,7 @@ static int msm_mctl_v4l2_subscribe_event(struct v4l2_fh *fh,
 
 	if (sub->type == V4L2_EVENT_ALL)
 		sub->type = V4L2_EVENT_PRIVATE_START+MSM_CAM_APP_NOTIFY_EVENT;
-	rc = v4l2_event_subscribe(fh, sub, 100);
+	rc = v4l2_event_subscribe(fh, sub, 30);
 	if (rc < 0)
 		pr_err("%s: failed for evtType = 0x%x, rc = %d\n",
 						__func__, sub->type, rc);
