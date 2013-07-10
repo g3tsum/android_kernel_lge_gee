@@ -44,7 +44,7 @@ struct cpufreq_policy *policy = NULL;
 unsigned int max_freq;
 unsigned int freq_buffer;
 
-unsigned short get_threshold()
+unsigned short get_threshold(void)
 {
 	return temp_threshold;
 }
