@@ -50,14 +50,6 @@ struct scm_pwr_param {
 	phys_addr_t	coeffs_phy;
 };
 
-struct msm_algo_param {
-	enum msm_dcvs_algo_param_type		type;
-	union {
-		struct msm_dcvs_algo_param	dcvs_param;
-		struct msm_mpd_algo_param	mpd_param;
-	} u;
-};
-
 int msm_dcvs_scm_init(size_t size)
 {
 	int ret = 0;
@@ -113,14 +105,13 @@ int msm_dcvs_scm_set_algo_params(uint32_t core_id,
 {
 	int ret = 0;
 	struct scm_algo algo;
-	struct msm_algo_param *p = NULL;
+	struct msm_dcvs_algo_param *p = NULL;
 
-	p = kzalloc(PAGE_ALIGN(sizeof(struct msm_algo_param)), GFP_KERNEL);
+	p = kzalloc(PAGE_ALIGN(sizeof(struct msm_dcvs_algo_param)), GFP_KERNEL);
 	if (!p)
 		return -ENOMEM;
 
-	p->type = MSM_DCVS_ALGO_DCVS_PARAM;
-	memcpy(&p->u.dcvs_param, param, sizeof(struct msm_dcvs_algo_param));
+memcpy(p, param, sizeof(struct msm_dcvs_algo_param));
 
 	algo.core_id = core_id;
 	algo.algo_phy = virt_to_phys(p);
@@ -133,31 +124,6 @@ int msm_dcvs_scm_set_algo_params(uint32_t core_id,
 	return ret;
 }
 EXPORT_SYMBOL(msm_dcvs_scm_set_algo_params);
-
-int msm_mpd_scm_set_algo_params(struct msm_mpd_algo_param *param)
-{
-	int ret = 0;
-	struct scm_algo algo;
-	struct msm_algo_param *p = NULL;
-
-	p = kzalloc(PAGE_ALIGN(sizeof(struct msm_algo_param)), GFP_KERNEL);
-	if (!p)
-		return -ENOMEM;
-
-	p->type = MSM_DCVS_ALGO_MPD_PARAM;
-	memcpy(&p->u.mpd_param, param, sizeof(struct msm_mpd_algo_param));
-
-	algo.core_id = 0;
-	algo.algo_phy = virt_to_phys(p);
-
-	ret = scm_call(SCM_SVC_DCVS, DCVS_CMD_SET_ALGO_PARAM,
-			&algo, sizeof(algo), NULL, 0);
-
-	kfree(p);
-
-	return ret;
-}
-EXPORT_SYMBOL(msm_mpd_scm_set_algo_params);
 
 int msm_dcvs_scm_set_power_params(uint32_t core_id,
 		struct msm_dcvs_power_params *pwr_param,
