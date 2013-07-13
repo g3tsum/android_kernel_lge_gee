@@ -2356,6 +2356,10 @@ static int wlan_hdd_cfg80211_start_ap(struct wiphy *wiphy,
 #endif
         status = wlan_hdd_cfg80211_start_bss(pAdapter, &params->beacon, params->ssid,
                                              params->ssid_len, params->hidden_ssid);
+        if (0 == status)
+        {
+            hdd_start_p2p_go_connection_in_progress_timer(pAdapter);
+        }
     }
 
     EXIT();
@@ -4309,6 +4313,14 @@ v_BOOL_t hdd_isScanAllowed( hdd_context_t *pHddCtx )
     v_U8_t staId = 0;
     v_U8_t *staMac = NULL;
 
+    if (VOS_TIMER_STATE_RUNNING ==
+                vos_timer_getCurrentState(&pHddCtx->hdd_p2p_go_conn_is_in_progress))
+    {
+        hddLog(VOS_TRACE_LEVEL_INFO,
+              "%s: Connection is in progress, Do not allow the scan", __func__);
+        return VOS_FALSE;
+    }
+
     status = hdd_get_front_adapter ( pHddCtx, &pAdapterNode );
 
     while ( NULL != pAdapterNode && VOS_STATUS_SUCCESS == status )
@@ -5447,13 +5459,7 @@ int wlan_hdd_cfg80211_set_privacy( hdd_adapter_t *pAdapter,
 
     if (req->crypto.wpa_versions)
     {
-        if ( (NL80211_WPA_VERSION_1 == req->crypto.wpa_versions)
-            && ( (req->ie_len)
-           && (hdd_isWPAIEPresent(req->ie, req->ie_len) ) ) )
-           // Make sure that it is including a WPA IE.
-           /* Currently NL is putting WPA version 1 even for open,
-            * since p2p ie is also put in same buffer.
-            * */
+        if (NL80211_WPA_VERSION_1 == req->crypto.wpa_versions)
         {
             pWextState->wpaVersion = IW_AUTH_WPA_VERSION_WPA;
         }
@@ -7458,16 +7464,20 @@ static int wlan_hdd_cfg80211_tdls_mgmt(struct wiphy *wiphy, struct net_device *d
        }
     }
 
+    /* For explicit trigger of DIS_REQ come out of BMPS for
+       successfully receiving DIS_RSP from peer. */
     if ((SIR_MAC_TDLS_SETUP_RSP == action_code) ||
-        (SIR_MAC_TDLS_DIS_RSP == action_code))
+        (SIR_MAC_TDLS_DIS_RSP == action_code) ||
+        (SIR_MAC_TDLS_DIS_REQ == action_code))
     {
         if (TRUE == sme_IsPmcBmps(WLAN_HDD_GET_HAL_CTX(pAdapter)))
         {
             VOS_TRACE( VOS_MODULE_ID_HDD, TDLS_LOG_LEVEL,
-                       "%s: Sending Disc/Setup Rsp Frame.Disable BMPS", __func__);
+                       "%s: Sending frame action_code %u.Disable BMPS", __func__, action_code);
             hdd_disable_bmps_imps(pHddCtx, WLAN_HDD_INFRA_STATION);
         }
-        wlan_hdd_tdls_set_cap(pAdapter, peerMac, eTDLS_CAP_SUPPORTED);
+        if (SIR_MAC_TDLS_DIS_REQ != action_code)
+            wlan_hdd_tdls_set_cap(pAdapter, peerMac, eTDLS_CAP_SUPPORTED);
     }
 
     /* make sure doesn't call send_mgmt() while it is pending */

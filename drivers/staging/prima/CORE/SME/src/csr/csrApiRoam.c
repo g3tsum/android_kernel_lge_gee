@@ -1595,7 +1595,6 @@ eHalStatus csrChangeDefaultConfigParam(tpAniSirGlobal pMac, tCsrConfigParam *pPa
                 pMac->roam.configParam.nImmediateRoamRssiDiff );
         pMac->roam.configParam.nRoamPrefer5GHz = pParam->nRoamPrefer5GHz;
         pMac->roam.configParam.nRoamIntraBand = pParam->nRoamIntraBand;
-        pMac->roam.configParam.isWESModeEnabled = pParam->isWESModeEnabled;
         pMac->roam.configParam.nProbes = pParam->nProbes;
         pMac->roam.configParam.nRoamScanHomeAwayTime = pParam->nRoamScanHomeAwayTime;
 #endif
@@ -1747,7 +1746,6 @@ eHalStatus csrGetConfigParam(tpAniSirGlobal pMac, tCsrConfigParam *pParam)
         pParam->nImmediateRoamRssiDiff = pMac->roam.configParam.nImmediateRoamRssiDiff;
         pParam->nRoamPrefer5GHz = pMac->roam.configParam.nRoamPrefer5GHz;
         pParam->nRoamIntraBand = pMac->roam.configParam.nRoamIntraBand;
-        pParam->isWESModeEnabled = pMac->roam.configParam.isWESModeEnabled;
         pParam->nProbes = pMac->roam.configParam.nProbes;
         pParam->nRoamScanHomeAwayTime = pMac->roam.configParam.nRoamScanHomeAwayTime;
 #endif
@@ -5369,7 +5367,7 @@ static tANI_BOOLEAN csrRoamProcessResults( tpAniSirGlobal pMac, tSmeCmd *pComman
                 }
                 if (!CSR_IS_INFRA_AP(pProfile))
                 {
-                    pScanResult = csrScanAppendBssDescription( pMac, pSirBssDesc, pIes );
+                    pScanResult = csrScanAppendBssDescription( pMac, pSirBssDesc, pIes, FALSE );
                 }
                 csrRoamSaveConnectedBssDesc(pMac, sessionId, pSirBssDesc);
                 csrRoamFreeConnectProfile(pMac, &pSession->connectedProfile);
@@ -15054,7 +15052,7 @@ eHalStatus csrRoamOffloadScanRspHdlr(tpAniSirGlobal pMac, tANI_U8 reason)
             csrNeighborRoamProceedWithHandoffReq(pMac);
             break;
         default:
-            VOS_TRACE(VOS_MODULE_ID_SME, VOS_TRACE_LEVEL_DEBUG, "Rsp for Roam Scan Offload with unknown Reason %d", reason);
+            VOS_TRACE(VOS_MODULE_ID_SME, VOS_TRACE_LEVEL_INFO, "Rsp for Roam Scan Offload with reason %d", reason);
     }
     return eHAL_STATUS_SUCCESS;
 }
@@ -15881,7 +15879,11 @@ void csrRoamFTPreAuthRspProcessor( tHalHandle hHal, tpSirFTPreAuthRsp pFTPreAuth
     pMac->ft.ftSmeContext.FTState = eFT_AUTH_COMPLETE;
     // Indicate SME QoS module the completion of Preauth success. This will trigger the creation of RIC IEs
     pMac->ft.ftSmeContext.psavedFTPreAuthRsp = pFTPreAuthRsp;
-    sme_QosCsrEventInd(pMac, pMac->ft.ftSmeContext.smeSessionId, SME_QOS_CSR_PREAUTH_SUCCESS_IND, NULL);
+    /* No need to notify qos module if this is a non 11r roam*/
+    if (csrRoamIs11rAssoc(pMac))
+    {
+        sme_QosCsrEventInd(pMac, pMac->ft.ftSmeContext.smeSessionId, SME_QOS_CSR_PREAUTH_SUCCESS_IND, NULL);
+    }
     /* Start the pre-auth reassoc interval timer with a period of 400ms. When this expires, 
      * actual transition from the current to handoff AP is triggered */
     status = palTimerStart(pMac->hHdd, pMac->ft.ftSmeContext.preAuthReassocIntvlTimer,
