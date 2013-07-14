@@ -1925,8 +1925,7 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm_8064_device_tspp,	
 	#ifdef CONFIG_BATTERY_BCL			
 	&battery_bcl_device,			
-	#endif			
-	&apq8064_msm_mpd_device,
+	#endif
 };
 
 static struct platform_device *cdp_devices[] __initdata = {
