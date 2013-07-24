@@ -1176,6 +1176,19 @@ int hdd_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
            char extra[32];
            tANI_U8 len = 0;
 
+           /* Check if the features OKC/CCX/11R are supported simultaneously,
+              then this operation is not permitted (return FAILURE) */
+           if (ccxMode &&
+               hdd_is_okc_mode_enabled(pHddCtx) &&
+               sme_getIsFtFeatureEnabled((tHalHandle)(pHddCtx->hHal)))
+           {
+               VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_WARN,
+                  "%s: OKC/CCX/11R are supported simultaneously"
+                  " hence this operation is not permitted!", __func__);
+               ret = -EPERM;
+               goto exit;
+           }
+
            len = snprintf(extra, sizeof(extra), "%s %d", "GETCCXMODE", ccxMode);
            if (copy_to_user(priv_data.buf, &extra, len + 1))
            {
@@ -1190,6 +1203,19 @@ int hdd_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
            tANI_BOOLEAN okcMode = hdd_is_okc_mode_enabled(pHddCtx);
            char extra[32];
            tANI_U8 len = 0;
+
+           /* Check if the features OKC/CCX/11R are supported simultaneously,
+              then this operation is not permitted (return FAILURE) */
+           if (okcMode &&
+               sme_getIsCcxFeatureEnabled((tHalHandle)(pHddCtx->hHal)) &&
+               sme_getIsFtFeatureEnabled((tHalHandle)(pHddCtx->hHal)))
+           {
+               VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_WARN,
+                  "%s: OKC/CCX/11R are supported simultaneously"
+                  " hence this operation is not permitted!", __func__);
+               ret = -EPERM;
+               goto exit;
+           }
 
            len = snprintf(extra, sizeof(extra), "%s %d", "GETOKCMODE", okcMode);
            if (copy_to_user(priv_data.buf, &extra, len + 1))
@@ -1832,6 +1858,19 @@ int hdd_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
            tANI_U8 *value = command;
            tANI_U8 ccxMode = CFG_CCX_FEATURE_ENABLED_DEFAULT;
 
+           /* Check if the features OKC/CCX/11R are supported simultaneously,
+              then this operation is not permitted (return FAILURE) */
+           if (sme_getIsCcxFeatureEnabled((tHalHandle)(pHddCtx->hHal)) &&
+               hdd_is_okc_mode_enabled(pHddCtx) &&
+               sme_getIsFtFeatureEnabled((tHalHandle)(pHddCtx->hHal)))
+           {
+               VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_WARN,
+                  "%s: OKC/CCX/11R are supported simultaneously"
+                  " hence this operation is not permitted!", __func__);
+               ret = -EPERM;
+               goto exit;
+           }
+
            /* Move pointer to ahead of SETCCXMODE<delimiter> */
            value = value + 11;
            /* Convert the value from ascii to integer */
@@ -1902,6 +1941,19 @@ int hdd_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
        {
            tANI_U8 *value = command;
            tANI_U8 okcMode = CFG_OKC_FEATURE_ENABLED_DEFAULT;
+
+           /* Check if the features OKC/CCX/11R are supported simultaneously,
+              then this operation is not permitted (return FAILURE) */
+           if (sme_getIsCcxFeatureEnabled((tHalHandle)(pHddCtx->hHal)) &&
+               hdd_is_okc_mode_enabled(pHddCtx) &&
+               sme_getIsFtFeatureEnabled((tHalHandle)(pHddCtx->hHal)))
+           {
+               VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_WARN,
+                  "%s: OKC/CCX/11R are supported simultaneously"
+                  " hence this operation is not permitted!", __func__);
+               ret = -EPERM;
+               goto exit;
+           }
 
            /* Move pointer to ahead of SETOKCMODE<delimiter> */
            value = value + 11;
@@ -1985,6 +2037,21 @@ int hdd_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
                    pAdapter->sessionId);
        }
 #endif
+       else if (strncmp(command, "BTCOEXMODE", 10) == 0 )
+       {
+           char *dhcpPhase;
+           dhcpPhase = command + 12;
+           if ('1' == *dhcpPhase)
+           {
+               sme_DHCPStartInd(pHddCtx->hHal, pAdapter->device_mode,
+                                pAdapter->macAddressCurrent.bytes);
+           }
+           else if ('2' == *dhcpPhase)
+           {
+               sme_DHCPStopInd(pHddCtx->hHal, pAdapter->device_mode,
+                               pAdapter->macAddressCurrent.bytes);
+           }
+       }
        else {
            hddLog( VOS_TRACE_LEVEL_WARN, "%s: Unsupported GUI command %s",
                    __func__, command);
@@ -4095,6 +4162,8 @@ VOS_STATUS hdd_reset_all_adapters( hdd_context_t *pHddCtx )
       netif_tx_disable(pAdapter->dev);
       netif_carrier_off(pAdapter->dev);
 
+      pAdapter->sessionCtx.station.hdd_ReassocScenario = VOS_FALSE;
+
       hdd_deinit_tx_rx(pAdapter);
       hdd_wmm_adapter_close(pAdapter);
 
@@ -4149,6 +4218,7 @@ VOS_STATUS hdd_start_all_adapters( hdd_context_t *pHddCtx )
                wrqu.ap_addr.sa_family = ARPHRD_ETHER;
                memset(wrqu.ap_addr.sa_data,'\0',ETH_ALEN);
                wireless_send_event(pAdapter->dev, SIOCGIWAP, &wrqu, NULL);
+               pAdapter->sessionCtx.station.hdd_ReassocScenario = VOS_FALSE;
 
                /* indicate disconnected event to nl80211 */
                cfg80211_disconnected(pAdapter->dev, WLAN_REASON_UNSPECIFIED,
@@ -5992,6 +6062,9 @@ static int hdd_driver_init( void)
    {
       hddLog(VOS_TRACE_LEVEL_FATAL, "%s: Libra WLAN not Powered Up. "
           "exiting", __func__);
+#ifdef WLAN_OPEN_SOURCE
+      wake_lock_destroy(&wlan_wake_lock);
+#endif
       return -EIO;
    }
 
@@ -6010,6 +6083,9 @@ static int hdd_driver_init( void)
    }
    if (max_retries >= 5) {
       hddLog(VOS_TRACE_LEVEL_FATAL,"%s: WCNSS driver not ready", __func__);
+#ifdef WLAN_OPEN_SOURCE
+      wake_lock_destroy(&wlan_wake_lock);
+#endif
       return -ENODEV;
    }
 #endif
@@ -6099,7 +6175,6 @@ static int hdd_driver_init( void)
       send_btc_nlink_msg(WLAN_MODULE_UP_IND, 0);
 
       pr_info("%s: driver loaded\n", WLAN_MODULE_NAME);
-
    }
 
    EXIT();
