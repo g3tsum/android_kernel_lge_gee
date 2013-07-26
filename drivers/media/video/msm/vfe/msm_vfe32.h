@@ -200,8 +200,6 @@
 #define HFR_MODE_OFF 1
 #define VFE_FRAME_SKIP_PERIOD_MASK 0x0000001F /*bits 0 -4*/
 
-#define VFE_RELOAD_ALL_WRITE_MASTERS 0x00003FFF
-
 enum VFE32_DMI_RAM_SEL {
 	NO_MEM_SELECTED          = 0,
 	BLACK_LUT_RAM_BANK0      = 0x1,
@@ -233,8 +231,6 @@ enum vfe_output_state {
 	VFE_STATE_STARTED,
 	VFE_STATE_STOP_REQUESTED,
 	VFE_STATE_STOPPED,
-	VFE_STATE_HW_STOP_REQUESTED,
-	VFE_STATE_HW_STOPPED,
 };
 
 #define V32_CAMIF_OFF             0x000001E4
@@ -546,12 +542,6 @@ enum VFE_YUV_INPUT_COSITING_MODE {
 };
 
 #define VFE32_GAMMA_NUM_ENTRIES  64
-
-#define VFE32_GAMMA_CH0_G_POS    0
-
-#define VFE32_GAMMA_CH1_B_POS    32
-
-#define VFE32_GAMMA_CH2_R_POS    64
 
 #define VFE32_LA_TABLE_LENGTH    64
 
@@ -904,7 +894,6 @@ struct vfe32_frame_extra {
 #define VFE_BUS_STATS_SKIN_BHIST_WR_PONG_ADDR    0x00000140
 #define VFE_BUS_STATS_SKIN_BHIST_UB_CFG          0x00000144
 #define VFE_CAMIF_COMMAND               0x000001E0
-#define VFE_CAMIF_FRAME_CFG		0x000001EC
 #define VFE_CAMIF_STATUS                0x00000204
 #define VFE_REG_UPDATE_CMD              0x00000260
 #define VFE_DEMUX_GAIN_0                0x00000288
@@ -992,7 +981,6 @@ struct vfe_share_ctrl_t {
 	uint16_t cmd_type;
 	uint8_t vfe_reset_flag;
 	uint8_t dual_enabled;
-	uint8_t lp_mode;
 
 	uint8_t axi_ref_cnt;
 	uint16_t comp_output_mode;
@@ -1013,9 +1001,6 @@ struct vfe_share_ctrl_t {
 	atomic_t rdi1_update_ack_pending;
 	atomic_t rdi2_update_ack_pending;
 
-	uint8_t stream_error;
-	uint32_t rdi_comp;
-
 };
 
 struct axi_ctrl_t {
@@ -1035,7 +1020,6 @@ struct axi_ctrl_t {
 	struct vfe_share_ctrl_t *share_ctrl;
 	struct device *iommu_ctx_imgwr;
 	struct device *iommu_ctx_misc;
-	uint32_t simultaneous_sof_frame;
 };
 
 struct vfe32_ctrl_type {

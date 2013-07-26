@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -38,7 +38,6 @@
 // Start LGE_BSP_CAMERA::seongjo.kim@lge.com Control camera kernel log
 int logcount_nofreebuffer_available = 0;
 // End LGE_BSP_CAMERA::seongjo.kim@lge.com Control camera kernel log
-
 
 static int msm_vb2_ops_queue_setup(struct vb2_queue *vq,
 				const struct v4l2_format *fmt,
@@ -131,7 +130,7 @@ static int msm_vb2_ops_buf_init(struct vb2_buffer *vb)
 		if(mem == NULL){
 			pr_err("%s:mem is NULL, pcam_inst->vid_fmt.type=%d",__func__, pcam_inst->vid_fmt.type);
 			return -EINVAL;
-		}	
+		}		
 //End  LGE_BSP_CAMERA : Fixed WBT - jonghwan.ko@lge.com
 		if (buf_type == VIDEOBUF2_MULTIPLE_PLANES)
 			offset.data_offset =
@@ -229,7 +228,7 @@ static void msm_vb2_ops_buf_cleanup(struct vb2_buffer *vb)
 		for (i = 0; i < vb->num_planes; i++) {
 			mem = vb2_plane_cookie(vb, i);
 			if (!mem) {
-				D("%s Inst %p memory already freed up. return",
+				pr_err("%s Inst %p memory already freed up. return",
 					__func__, pcam_inst);
 				return;
 			}
@@ -250,7 +249,10 @@ static void msm_vb2_ops_buf_cleanup(struct vb2_buffer *vb)
 	} else {
 		mem = vb2_plane_cookie(vb, 0);
 		if (!mem)
+		{
+			pr_err("%s:mem is NULL, pcam_inst->vid_fmt.type=%d",__func__, pcam_inst->vid_fmt.type);
 			return;
+		}
 		D("%s: inst=0x%x, buf=0x%x, idx=%d\n", __func__,
 		(uint32_t)pcam_inst, (uint32_t)buf, vb->v4l2_buf.index);
 		vb_phyaddr = (unsigned long) videobuf2_to_pmem_contig(vb, 0);
@@ -270,7 +272,7 @@ static void msm_vb2_ops_buf_cleanup(struct vb2_buffer *vb)
 		spin_unlock_irqrestore(&pcam_inst->vq_irqlock, flags);
 	}
 	pmctl = msm_cam_server_get_mctl(pcam->mctl_handle);
-	if (pmctl == NULL || pmctl->client == NULL) {
+	if (pmctl == NULL) {
 		pr_err("%s No mctl found\n", __func__);
 		buf->state = MSM_BUFFER_STATE_UNUSED;
 		return;
@@ -407,35 +409,6 @@ void msm_mctl_gettimeofday(struct timeval *tv)
 	tv->tv_usec = ts.tv_nsec/1000;
 }
 
-void msm_mctl_getAVTimer(struct msm_cam_v4l2_dev_inst *pcam_inst, struct timeval *tv)
-{
-   uint32_t avtimer_msw_1st = 0, avtimer_lsw = 0;
-   uint32_t avtimer_msw_2nd = 0;
-   uint8_t iter = 0;
-   tv->tv_sec = 0; tv->tv_usec = 0;
-
-   if (!(pcam_inst->p_avtimer_lsw) || !(pcam_inst->p_avtimer_msw)) {
-       pr_err("%s: ioremap failed\n", __func__);
-       return;
-   }
-
-   do {
-       avtimer_msw_1st = msm_camera_io_r(pcam_inst->p_avtimer_msw);
-       avtimer_lsw = msm_camera_io_r(pcam_inst->p_avtimer_lsw);
-       avtimer_msw_2nd = msm_camera_io_r(pcam_inst->p_avtimer_msw);
-   } while ((avtimer_msw_1st != avtimer_msw_2nd) && (iter++ < AVTIMER_ITERATION_CTR));
-
-   /*Just return if the MSW TimeStamps don't converge after a few iterations
-      Application needs to handle the zero TS values*/
-   if(iter >= AVTIMER_ITERATION_CTR){
-       pr_err("%s: AVTimer MSW TS did not converge !!!\n", __func__);
-       return;
-   }
-
-   tv->tv_sec = avtimer_msw_1st;
-   tv->tv_usec = avtimer_lsw;
-}
-
 struct msm_frame_buffer *msm_mctl_buf_find(
 	struct msm_cam_media_controller *pmctl,
 	struct msm_cam_v4l2_dev_inst *pcam_inst, int del_buf,
@@ -453,6 +426,7 @@ struct msm_frame_buffer *msm_mctl_buf_find(
 			&pcam_inst->free_vq, list) {
 		buf_idx = buf->vidbuf.v4l2_buf.index;
 		mem = vb2_plane_cookie(&buf->vidbuf, 0);
+		
 //Start LGE_BSP_CAMERA : Fixed WBT - jonghwan.ko@lge.com
 		if(mem == NULL){
 			pr_err("%s:mem is NULL, pcam_inst->vid_fmt.type=%d",__func__, pcam_inst->vid_fmt.type);
@@ -460,7 +434,8 @@ struct msm_frame_buffer *msm_mctl_buf_find(
 			return NULL;
 		}		
 //End  LGE_BSP_CAMERA : Fixed WBT - jonghwan.ko@lge.com
-		if (mem->buffer_type == VIDEOBUF2_MULTIPLE_PLANES)
+		
+		if (mem->buffer_type ==	VIDEOBUF2_MULTIPLE_PLANES)
 			offset = mem->offset.data_offset +
 				pcam_inst->buf_offset[buf_idx][0].data_offset;
 		else
@@ -488,7 +463,7 @@ int msm_mctl_buf_done_proc(
 		struct msm_cam_media_controller *pmctl,
 		struct msm_cam_v4l2_dev_inst *pcam_inst,
 		struct msm_free_buf *fbuf,
-		uint32_t *frameid,
+		uint32_t *frame_id,
 		struct msm_cam_timestamp *cam_ts)
 {
 	struct msm_frame_buffer *buf = NULL;
@@ -501,20 +476,18 @@ int msm_mctl_buf_done_proc(
 		return -EINVAL;
 	}
 	if (!cam_ts->present) {
-		if (frameid)
-			buf->vidbuf.v4l2_buf.sequence = *frameid;
+		if (frame_id)
+			buf->vidbuf.v4l2_buf.sequence = *frame_id;
 		msm_mctl_gettimeofday(
 			&buf->vidbuf.v4l2_buf.timestamp);
 	} else {
 		D("%s Copying timestamp as %ld.%ld", __func__,
 			cam_ts->timestamp.tv_sec, cam_ts->timestamp.tv_usec);
 		buf->vidbuf.v4l2_buf.timestamp = cam_ts->timestamp;
-		buf->vidbuf.v4l2_buf.sequence  = cam_ts->frameid;
+		buf->vidbuf.v4l2_buf.sequence = cam_ts->frameid;
 	}
-	pcam_inst->sequence = buf->vidbuf.v4l2_buf.sequence;
-	D("%s Notify user about buffer %d image_mode %d frameid %d", __func__,
-		buf->vidbuf.v4l2_buf.index, pcam_inst->image_mode,
-		buf->vidbuf.v4l2_buf.sequence);
+//	pr_info("%s Notify user about buffer %d IM %d frame_id %d", __func__, buf->vidbuf.v4l2_buf.index,
+//		 pcam_inst->image_mode, buf->vidbuf.v4l2_buf.sequence);
 	vb2_buffer_done(&buf->vidbuf, VB2_BUF_STATE_DONE);
 	return 0;
 }
@@ -523,7 +496,7 @@ int msm_mctl_buf_done_proc(
 int msm_mctl_buf_done(struct msm_cam_media_controller *p_mctl,
 	struct msm_cam_buf_handle *buf_handle,
 	struct msm_free_buf *fbuf,
-	uint32_t frameid)
+	uint32_t frame_id)
 {
 	struct msm_cam_v4l2_dev_inst *pcam_inst;
 	int idx, rc;
@@ -546,11 +519,11 @@ int msm_mctl_buf_done(struct msm_cam_media_controller *p_mctl,
 	}
 
 	msm_mctl_check_pp(p_mctl, image_mode, &pp_divert_type, &pp_type);
-	D("%s: pp_type=%d, pp_divert_type = %d, frameid = 0x%x image_mode %d",
-		__func__, pp_type, pp_divert_type, frameid, image_mode);
+	D("%s: pp_type=%d, pp_divert_type = %d, frame_id = 0x%x image_mode %d",
+		__func__, pp_type, pp_divert_type, frame_id, image_mode);
 	if (pp_type || pp_divert_type) {
 		rc = msm_mctl_do_pp_divert(p_mctl, buf_handle,
-			fbuf, frameid, pp_type);
+			fbuf, frame_id, pp_type);
 	} else {
 		/* Find the instance on which vb2_buffer_done() needs to be
 		 * called, so that the user can get the buffer.
@@ -597,7 +570,7 @@ int msm_mctl_buf_done(struct msm_cam_media_controller *p_mctl,
 		}
 		memset(&cam_ts, 0, sizeof(cam_ts));
 		rc = msm_mctl_buf_done_proc(p_mctl, pcam_inst,
-			fbuf, &frameid, &cam_ts);
+			fbuf, &frame_id, &cam_ts);
 	}
 	return rc;
 }
@@ -754,18 +727,14 @@ int msm_mctl_reserve_free_buf(
 	 * camera instance, he would send the preferred camera instance.
 	 * If the preferred camera instance is NULL, get the
 	 * camera instance using the image mode passed */
-	if (!pcam_inst) {
+	if (!pcam_inst)
 		pcam_inst = msm_mctl_get_pcam_inst(pmctl, buf_handle);
-		if(!pcam_inst) {
-			pr_err("%s: pcam_inst is NULL\n", __func__);
-			return rc;
-		}
-	}
+
 	if (!pcam_inst || !pcam_inst->streamon) {
 		pr_err("%s: stream is turned off\n", __func__);
 		return rc;
 	}
-	spin_lock_irqsave(&pcam_inst->vq_irqlock, flags);
+	
 //LGE_UPDATE_S 0828 add messages to debug null elin.lee@lge.com
 	if(pcam_inst->free_vq.prev == NULL || pcam_inst->free_vq.next == NULL){
 		pr_err("%s: next= 0x%p, prev= 0x%p\n", __func__, pcam_inst->free_vq.next, pcam_inst->free_vq.prev);
@@ -773,13 +742,9 @@ int msm_mctl_reserve_free_buf(
 	}
 //LGE_UPDATE_S 0828 add messages to debug null elin.lee@lge.com
 
+	spin_lock_irqsave(&pcam_inst->vq_irqlock, flags);
 	list_for_each_entry(buf, &pcam_inst->free_vq, list) {
-		if (buf == NULL) {
-			pr_err("%s Inst %p Invalid buffer ptr",
-				__func__, pcam_inst);
-			spin_unlock_irqrestore(&pcam_inst->vq_irqlock, flags);
-			return rc;
-		}
+
 		if (buf->state != MSM_BUFFER_STATE_QUEUED)
 			continue;
 
@@ -832,7 +797,7 @@ int msm_mctl_reserve_free_buf(
 				return rc;
 			}
 //LGE_UPDATE_E 0828 add messages to debug null elin.lee@lge.com
-
+			
 			free_buf->ch_paddr[0] = (uint32_t)
 				videobuf2_to_pmem_contig(&buf->vidbuf, 0) +
 				mem->offset.sp_off.y_off;
@@ -848,6 +813,7 @@ int msm_mctl_reserve_free_buf(
 		rc = 0;
 		break;
 	}
+	
 	if (rc != 0)
 	// Start LGE_BSP_CAMERA::seongjo.kim@lge.com Control camera kernel log
 	{
@@ -863,6 +829,7 @@ int msm_mctl_reserve_free_buf(
 	spin_unlock_irqrestore(&pcam_inst->vq_irqlock, flags);
 	return rc;
 }
+
 int msm_mctl_release_free_buf(struct msm_cam_media_controller *pmctl,
 				struct msm_cam_v4l2_dev_inst *pcam_inst,
 				struct msm_free_buf *free_buf)
@@ -945,8 +912,8 @@ int msm_mctl_buf_done_pp(struct msm_cam_media_controller *pmctl,
 		__func__, pcam_inst, frame->ch_paddr[0], ret_frame->dirty);
 	cam_ts.present = 1;
 	cam_ts.timestamp = ret_frame->timestamp;
-	cam_ts.frameid   = ret_frame->frameid;
-	if (ret_frame->dirty || (ret_frame->frameid < pcam_inst->sequence))
+	cam_ts.frameid = ret_frame->frameid;
+	if (ret_frame->dirty)
 		/* the frame is dirty, not going to disptach to app */
 		rc = msm_mctl_release_free_buf(pmctl, pcam_inst, frame);
 	else
@@ -1039,7 +1006,7 @@ static int __msm_mctl_map_user_frame(struct msm_cam_meta_frame *meta_frame,
 			meta_frame->map[i].handle);
 		if (ion_map_iommu(client, meta_frame->map[i].handle,
 				domain_num, 0, SZ_4K,
-				0, &paddr, &len, 0, 0) < 0) {
+				0, &paddr, &len, UNCACHED, 0) < 0) {
 			pr_err("%s: cannot map address plane %d", __func__, i);
 			ion_free(client, meta_frame->map[i].handle);
 			/* Roll back previous plane mappings, if any */
