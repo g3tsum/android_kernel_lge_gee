@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -215,6 +215,7 @@ static int msm_camera_v4l2_reqbufs(struct file *f, void *pctx,
 		pmctl = msm_cam_server_get_mctl(pcam->mctl_handle);
 		if (pmctl == NULL) {
 			pr_err("%s Invalid mctl ptr", __func__);
+			mutex_unlock(&pcam_inst->inst_lock);
 			return -EINVAL;
 		}
 		pmctl->mctl_vbqueue_init(pcam_inst, &pcam_inst->vid_bufq,
@@ -362,7 +363,11 @@ static int msm_camera_v4l2_dqbuf(struct file *f, void *pctx,
 		return -EACCES;
 	}
 	rc = vb2_dqbuf(&pcam_inst->vid_bufq, pb,  f->f_flags & O_NONBLOCK);
-	D("%s, videobuf_dqbuf returns %d\n", __func__, rc);
+	if (rc < 0) {
+		pr_err("%s, videobuf_dqbuf returns %d\n", __func__, rc);
+		mutex_unlock(&pcam_inst->inst_lock);
+		return rc;
+	}
 
 	if (pb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
 		/* Reject the buffer if planes array was not allocated */
@@ -458,7 +463,7 @@ static int msm_camera_v4l2_streamoff(struct file *f, void *pctx,
 		pr_err("%s: hw failed to stop streaming\n", __func__);
 
 	/* stop buffer streaming */
-	rc = vb2_streamoff(&pcam_inst->vid_bufq, buf_type);
+	vb2_streamoff(&pcam_inst->vid_bufq, buf_type);
 	D("%s, videobuf_streamoff returns %d\n", __func__, rc);
 
 	mutex_unlock(&pcam_inst->inst_lock);
@@ -761,7 +766,7 @@ static int msm_camera_v4l2_subscribe_event(struct v4l2_fh *fh,
 		return -EINVAL;
 	if (sub->type == V4L2_EVENT_ALL)
 		sub->type = V4L2_EVENT_PRIVATE_START+MSM_CAM_APP_NOTIFY_EVENT;
-	rc = v4l2_event_subscribe(fh, sub, 30);
+	rc = v4l2_event_subscribe(fh, sub, 100);
 	if (rc < 0)
 		D("%s: failed for evtType = 0x%x, rc = %d\n",
 						__func__, sub->type, rc);
@@ -944,8 +949,10 @@ static int msm_open(struct file *f)
 	D("%s Inst %p use_count %d\n", __func__, pcam_inst, pcam->use_count);
 	if (pcam->use_count == 1) {
 		server_q_idx = msm_find_free_queue();
-		if (server_q_idx < 0)
-			return server_q_idx;
+		if (server_q_idx < 0) {
+			pr_err("%s No free queue available ", __func__);
+			goto msm_cam_server_begin_session_failed;
+		}
 		rc = msm_server_begin_session(pcam, server_q_idx);
 		if (rc < 0) {
 			pr_err("%s error starting server session ", __func__);
@@ -954,11 +961,13 @@ static int msm_open(struct file *f)
 		pmctl = msm_cam_server_get_mctl(pcam->mctl_handle);
 		if (!pmctl) {
 			pr_err("%s mctl ptr is null ", __func__);
-			goto msm_cam_server_begin_session_failed;
+			goto msm_cam_server_get_mctl_failed;
 		}
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
-		pmctl->client = msm_ion_client_create(-1, "camera");
-		kref_init(&pmctl->refcount);
+		if (!pmctl->client) {
+			pmctl->client = msm_ion_client_create(-1, "camera");
+			kref_init(&pmctl->refcount);
+		}
 		ion_client_created = 1;
 #endif
 
@@ -977,28 +986,15 @@ static int msm_open(struct file *f)
 			goto mctl_open_failed;
 		}
 		pmctl->pcam_ptr = pcam;
-    
-/* LGE_CHANGE_S, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */    
-#if defined(CONFIG_MACH_APQ8064_GKKT) || defined(CONFIG_MACH_APQ8064_GKSK) || defined(CONFIG_MACH_APQ8064_GKU) || defined(CONFIG_MACH_APQ8064_GKATT) || defined (CONFIG_MACH_APQ8064_GVDCM)
-#else
+
 		msm_setup_v4l2_event_queue(&pcam_inst->eventHandle,
 			pcam->pvdev);
-#endif
-/* LGE_CHANGE_E, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */    
 		mutex_init(&pcam->event_lock);
 		msm_queue_init(&pcam->eventData_q, "eventData");
 	}
-  
-/* LGE_CHANGE_S, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */     
-#if defined(CONFIG_MACH_APQ8064_GKKT) || defined(CONFIG_MACH_APQ8064_GKSK) || defined(CONFIG_MACH_APQ8064_GKU) || defined(CONFIG_MACH_APQ8064_GKATT) || defined (CONFIG_MACH_APQ8064_GVDCM)
-   if (pcam_inst->my_index == 0) {
-       msm_setup_v4l2_event_queue(&pcam_inst->eventHandle,
-       pcam->pvdev);
-    }
-#endif
-/* LGE_CHANGE_E, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */    
-
 	pcam_inst->vbqueue_initialized = 0;
+	pcam_inst->sequence = 0;
+	pcam_inst->avtimerOn = 0;
 	rc = 0;
 
 	f->private_data = &pcam_inst->eventHandle;
@@ -1022,20 +1018,21 @@ msm_send_open_server_failed:
 	msm_drain_eventq(&pcam->eventData_q);
 	msm_destroy_v4l2_event_queue(&pcam_inst->eventHandle);
 
-	if (pmctl->mctl_release)
+	if (pmctl->mctl_release) {
 		pmctl->mctl_release(pmctl);
-mctl_open_failed:
-	if (pcam->use_count == 1) {
-#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
-		if (ion_client_created) {
-			D("%s: destroy ion client", __func__);
-			kref_put(&pmctl->refcount, msm_release_ion_client);
-		}
-#endif
-		if (msm_server_end_session(pcam) < 0)
-			pr_err("%s: msm_server_end_session failed\n",
-				__func__);
+		pmctl->mctl_release = NULL;
 	}
+mctl_open_failed:
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+	if (ion_client_created) {
+		D("%s: destroy ion client", __func__);
+		kref_put(&pmctl->refcount, msm_release_ion_client);
+	}
+#endif
+msm_cam_server_get_mctl_failed:
+	if (msm_server_end_session(pcam) < 0)
+		pr_err("%s: msm_server_end_session failed\n",
+			__func__);
 msm_cam_server_begin_session_failed:
 	if (pcam->use_count == 1) {
 		pcam->dev_inst[i] = NULL;
@@ -1119,6 +1116,7 @@ void msm_release_ion_client(struct kref *ref)
 		struct msm_cam_media_controller, refcount);
 	pr_err("%s Calling ion_client_destroy\n", __func__);
 	ion_client_destroy(mctl->client);
+	mctl->client = NULL;
 }
 
 static int msm_close(struct file *f)
@@ -1147,44 +1145,26 @@ static int msm_close(struct file *f)
 	if (pcam_inst->streamon) {
 		/*something went wrong since instance
 		is closing without streamoff*/
-//LGE_UPDATE_S 0828 add messages to debug timeout error yt.jeon@lge.com
-		printk("%s OO pcam_inst->streamon \n",__func__);
-//LGE_UPDATE_E 0828 add messages to debug timeout error yt.jeon@lge.com
-		// Start LGE_BSP_CAMERA::seongjo.kim@lge.com 2012-08-10 handle server daemon crash elegantly
-/* LGE_CHANGE_S, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */    
-#if defined(CONFIG_MACH_APQ8064_GKKT) || defined(CONFIG_MACH_APQ8064_GKSK) || defined(CONFIG_MACH_APQ8064_GKU) || defined(CONFIG_MACH_APQ8064_GKATT) || defined (CONFIG_MACH_APQ8064_GVDCM)
-#else
-		msm_cam_stop_hardware(pcam);
-#endif
-/* LGE_CHANGE_E, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */    
-		// End LGE_BSP_CAMERA::seongjo.kim@lge.com 2012-08-10 handle server daemon crash elegantly
-//LGE_UPDATE_S 0828 add messages to debug timeout error yt.jeon@lge.com
-	}
-	else
-	{
-		printk("%s XX pcam_inst->streamon \n",__func__);
-//LGE_UPDATE_E 0828 add messages to debug timeout error yt.jeon@lge.com
+		if (pmctl->mctl_release)
+			pmctl->mctl_release(pmctl);
+		pmctl->mctl_release = NULL;/*so that it isn't closed again*/
 	}
 
 	pcam_inst->streamon = 0;
+	pcam_inst->avtimerOn = 0;
 	pcam->use_count--;
 	pcam->dev_inst_map[pcam_inst->image_mode] = NULL;
 	if (pcam_inst->vbqueue_initialized)
 		vb2_queue_release(&pcam_inst->vid_bufq);
-	pr_err("%s Closing down instance %p ", __func__, pcam_inst);
-	pr_err("%s index %d nodeid %d count %d\n", __func__, pcam_inst->my_index,
+	D("%s Closing down instance %p ", __func__, pcam_inst);
+	D("%s index %d nodeid %d count %d\n", __func__, pcam_inst->my_index,
 		pcam->vnode_id, pcam->use_count);
 	pcam->dev_inst[pcam_inst->my_index] = NULL;
 	if (pcam_inst->my_index == 0) {
 		mutex_lock(&pcam->event_lock);
 		msm_drain_eventq(&pcam->eventData_q);
-		mutex_unlock(&pcam->event_lock);    
-/* LGE_CHANGE_S, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */    
-#if defined(CONFIG_MACH_APQ8064_GKKT) || defined(CONFIG_MACH_APQ8064_GKSK) || defined(CONFIG_MACH_APQ8064_GKU) || defined(CONFIG_MACH_APQ8064_GKATT) || defined (CONFIG_MACH_APQ8064_GVDCM)
-#else
+		mutex_unlock(&pcam->event_lock);
 		mutex_destroy(&pcam->event_lock);
-#endif
-/* LGE_CHANGE_E, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */    
 		msm_destroy_v4l2_event_queue(&pcam_inst->eventHandle);
 	}
 
@@ -1203,8 +1183,10 @@ static int msm_close(struct file *f)
 				pr_err("msm_send_close_server failed %d\n", rc);
 		}
 
-		if (pmctl->mctl_release)
+		if (pmctl->mctl_release) {
 			pmctl->mctl_release(pmctl);
+			pmctl->mctl_release = NULL;
+		}
 
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 		kref_put(&pmctl->refcount, msm_release_ion_client);
@@ -1212,11 +1194,6 @@ static int msm_close(struct file *f)
 		rc = msm_server_end_session(pcam);
 		if (rc < 0)
 			pr_err("msm_server_end_session fails %d\n", rc);
- /* LGE_CHANGE_S, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */    
-#if defined(CONFIG_MACH_APQ8064_GKKT) || defined(CONFIG_MACH_APQ8064_GKSK) || defined(CONFIG_MACH_APQ8064_GKU) || defined(CONFIG_MACH_APQ8064_GKATT) || defined (CONFIG_MACH_APQ8064_GVDCM)
-          mutex_destroy(&pcam->event_lock);
-#endif
-/* LGE_CHANGE_E, To block kernel crash on GK/GV camera, 2012.12.16, elin.lee@lge.com */    
 	}
 	mutex_unlock(&pcam->vid_lock);
 	return rc;
@@ -1274,28 +1251,23 @@ long msm_v4l2_evt_notify(struct msm_cam_media_controller *mctl,
 	v4l2_ev = evt_payload.evt;
 	v4l2_ev.id = 0;
 	pcam = mctl->pcam_ptr;
+	if(!pcam) {
+		pr_err("%s: pcam is NULL\n", __func__);
+		return -EINVAL;
+	}
 	ktime_get_ts(&v4l2_ev.timestamp);
 	if (evt_payload.payload_length > 0 && evt_payload.payload != NULL) {
-//Start LGE_BSP_CAMERA : Dont use G model - jonghwan.ko@lge.com
-		pr_err(" %s : payload_length %d \n",__func__,evt_payload.payload_length);
-//End  LGE_BSP_CAMERA : Dont use G model - jonghwan.ko@lge.com
 		mutex_lock(&pcam->event_lock);
 		event_qcmd = kzalloc(sizeof(struct msm_queue_cmd), GFP_KERNEL);
 		if (!event_qcmd) {
-			pr_err("%s Insufficient event_qcmd memory. return", __func__);
+			pr_err("%s Insufficient memory. return", __func__);
 			rc = -ENOMEM;
-//Start LGE_BSP_CAMERA : sync mutex_unlock - jonghwan.ko@lge.com
-			mutex_unlock(&pcam->event_lock);
-//End  LGE_BSP_CAMERA : sync mutex_unlock - jonghwan.ko@lge.com
 			goto event_qcmd_alloc_fail;
 		}
 		payload = kzalloc(evt_payload.payload_length, GFP_KERNEL);
 		if (!payload) {
-			pr_err("%s Insufficient payload memory. return", __func__);
+			pr_err("%s Insufficient memory. return", __func__);
 			rc = -ENOMEM;
-//Start LGE_BSP_CAMERA : sync mutex_unlock - jonghwan.ko@lge.com
-			mutex_unlock(&pcam->event_lock);
-//End  LGE_BSP_CAMERA : sync mutex_unlock - jonghwan.ko@lge.com
 			goto payload_alloc_fail;
 		}
 		if (copy_from_user(payload,
@@ -1303,9 +1275,6 @@ long msm_v4l2_evt_notify(struct msm_cam_media_controller *mctl,
 				evt_payload.payload_length)) {
 			ERR_COPY_FROM_USER();
 			rc = -EFAULT;
-//Start LGE_BSP_CAMERA : sync mutex_unlock - jonghwan.ko@lge.com
-			mutex_unlock(&pcam->event_lock);
-//End  LGE_BSP_CAMERA : sync mutex_unlock - jonghwan.ko@lge.com
 			goto copy_from_user_failed;
 		}
 		event_qcmd->command = payload;
@@ -1320,6 +1289,7 @@ copy_from_user_failed:
 payload_alloc_fail:
 	kfree(event_qcmd);
 event_qcmd_alloc_fail:
+	mutex_unlock(&pcam->event_lock);
 	return rc;
 }
 

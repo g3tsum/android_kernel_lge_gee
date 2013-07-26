@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -21,7 +21,7 @@
 #include "msm_csiphy.h"
 #include "msm.h"
 #include "msm_csiphy_hwreg.h"
-#define DBG_CSIPHY 1
+#define DBG_CSIPHY 0
 
 #define V4L2_IDENT_CSIPHY                        50003
 #define CSIPHY_VERSION_V3                        0x10
@@ -50,7 +50,7 @@ int msm_csiphy_lane_config(struct csiphy_device *csiphy_dev,
 		return rc;
 	}
 
-	pr_err("%s csiphy_params, mask = %x, cnt = %d, settle cnt = %x\n",
+	CDBG("%s csiphy_params, mask = %x, cnt = %d, settle cnt = %x\n",
 		__func__,
 		csiphy_params->lane_mask,
 		csiphy_params->lane_cnt,
@@ -105,7 +105,8 @@ static irqreturn_t msm_csiphy_irq(int irq_num, void *data)
 	uint32_t irq;
 	int i;
 	struct csiphy_device *csiphy_dev = data;
-
+	if(!csiphy_dev || !csiphy_dev->base)
+		return IRQ_HANDLED;
 	for (i = 0; i < 8; i++) {
 		irq = msm_camera_io_r(
 			csiphy_dev->base +
@@ -430,7 +431,7 @@ static int __devinit csiphy_probe(struct platform_device *pdev)
 csiphy_no_resource:
 	mutex_destroy(&new_csiphy_dev->mutex);
 	kfree(new_csiphy_dev);
-	return 0;
+	return rc;
 }
 
 static const struct of_device_id msm_csiphy_dt_match[] = {
