@@ -980,8 +980,6 @@ static void __init dcvs_freq_init(void)
 				drv.acpu_freq_tbl[i].vdd_core / 1000);
 }
 
-static int __cpuinit acpuclk_cpu_callback(struct notifier_block *nfb,
-
 static int acpuclk_cpu_callback(struct notifier_block *nfb,
 					    unsigned long action, void *hcpu)
 {
