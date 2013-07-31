@@ -1048,8 +1048,6 @@ static int __devinit tsens_tm_probe(struct platform_device *pdev)
 	}
 	tsens8960_sensor_mode_init();
 
-	tsens8960_sensor_mode_init();
-
 	rc = request_irq(TSENS_UPPER_LOWER_INT, tsens_isr,
 		IRQF_TRIGGER_RISING, "tsens_interrupt", tmdev);
 	if (rc < 0) {
