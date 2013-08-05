@@ -193,6 +193,7 @@ struct camera_vreg_t {
 	int min_voltage;
 	int max_voltage;
 	int op_mode;
+	uint32_t delay;
 };
 
 struct msm_gpio_set_tbl {

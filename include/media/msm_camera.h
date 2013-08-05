@@ -16,6 +16,7 @@
 #ifdef MSM_CAMERA_BIONIC
 #include <sys/types.h>
 #endif
+#include <linux/videodev2.h>
 #include <linux/types.h>
 #include <linux/ioctl.h>
 #ifdef __KERNEL__
@@ -32,6 +33,8 @@
 #define BIT(nr)   (1UL << (nr))
 
 #define MSM_CAM_IOCTL_MAGIC 'm'
+
+#define MAX_SERVER_PAYLOAD_LENGTH 8192
 
 #define MSM_CAM_IOCTL_GET_SENSOR_INFO \
 	_IOR(MSM_CAM_IOCTL_MAGIC, 1, struct msm_camsensor_info *)
@@ -151,7 +154,7 @@
 	_IOW(MSM_CAM_IOCTL_MAGIC, 39, struct msm_camera_st_frame *)
 
 #define MSM_CAM_IOCTL_V4L2_EVT_NOTIFY \
-	_IOR(MSM_CAM_IOCTL_MAGIC, 40, struct v4l2_event *)
+	_IOW(MSM_CAM_IOCTL_MAGIC, 40, struct v4l2_event_and_payload)
 
 #define MSM_CAM_IOCTL_SET_MEM_MAP_INFO \
 	_IOR(MSM_CAM_IOCTL_MAGIC, 41, struct msm_mem_map_info *)
@@ -215,6 +218,31 @@
 
 #define MSM_CAM_IOCTL_STATS_UNREG_BUF \
 	_IOR(MSM_CAM_IOCTL_MAGIC, 61, struct msm_stats_flush_bufq *)
+
+#define MSM_CAM_IOCTL_CSIC_IO_CFG \
+	_IOWR(MSM_CAM_IOCTL_MAGIC, 62, struct csic_cfg_data *)
+
+#define MSM_CAM_IOCTL_CSID_IO_CFG \
+	_IOWR(MSM_CAM_IOCTL_MAGIC, 63, struct csid_cfg_data *)
+
+#define MSM_CAM_IOCTL_CSIPHY_IO_CFG \
+	_IOR(MSM_CAM_IOCTL_MAGIC, 64, struct csiphy_cfg_data *)
+
+#define MSM_CAM_IOCTL_OEM \
+	_IOW(MSM_CAM_IOCTL_MAGIC, 65, struct sensor_cfg_data *)
+
+#define MSM_CAM_IOCTL_AXI_INIT \
+	_IOWR(MSM_CAM_IOCTL_MAGIC, 66, uint8_t *)
+
+#define MSM_CAM_IOCTL_AXI_RELEASE \
+	_IO(MSM_CAM_IOCTL_MAGIC, 67)
+
+struct v4l2_event_and_payload {
+	struct v4l2_event evt;
+	uint32_t payload_length;
+	uint32_t transaction_id;
+	void *payload;
+};
 
 struct msm_stats_reqbuf {
 	int num_buf;		/* how many buffers requested */
@@ -569,18 +597,19 @@ struct camera_enable_cmd {
 #define FRAME_MAX			5
 
 enum msm_stats_enum_type {
-	MSM_STATS_TYPE_AEC,	/* legacy based AEC */
-	MSM_STATS_TYPE_AF,	/* legacy based AF */
-	MSM_STATS_TYPE_AWB,	/* legacy based AWB */
-	MSM_STATS_TYPE_RS,	/* legacy based RS */
-	MSM_STATS_TYPE_CS,	/* legacy based CS */
-	MSM_STATS_TYPE_IHIST,	/* legacy based HIST */
-	MSM_STATS_TYPE_SKIN,	/* legacy based SKIN */
-	MSM_STATS_TYPE_BG,	/* Bayer Grids */
-	MSM_STATS_TYPE_BF,	/* Bayer Focus */
-	MSM_STATS_TYPE_BHIST,	/* Bayer Hist */
-	MSM_STATS_TYPE_AE_AW,	/* legacy stats for vfe 2.x */
-	MSM_STATS_TYPE_MAX	/* MAX */
+	MSM_STATS_TYPE_AEC, /* legacy based AEC */
+	MSM_STATS_TYPE_AF,  /* legacy based AF */
+	MSM_STATS_TYPE_AWB, /* legacy based AWB */
+	MSM_STATS_TYPE_RS,  /* legacy based RS */
+	MSM_STATS_TYPE_CS,  /* legacy based CS */
+	MSM_STATS_TYPE_IHIST,   /* legacy based HIST */
+	MSM_STATS_TYPE_SKIN,    /* legacy based SKIN */
+	MSM_STATS_TYPE_BG,  /* Bayer Grids */
+	MSM_STATS_TYPE_BF,  /* Bayer Focus */
+	MSM_STATS_TYPE_BHIST,   /* Bayer Hist */
+	MSM_STATS_TYPE_AE_AW,   /* legacy stats for vfe 2.x*/
+	MSM_STATS_TYPE_COMP, /* Composite stats */
+	MSM_STATS_TYPE_MAX  /* MAX */
 };
 
 struct msm_stats_buf_info {
@@ -844,7 +873,8 @@ struct msm_stats_buf {
 #define MSM_V4L2_CLOSE			11
 #define MSM_V4L2_SET_CTRL_CMD	12
 #define MSM_V4L2_EVT_SUB_MASK	13
-#define MSM_V4L2_MAX			14
+#define MSM_V4L2_PRIVATE_CMD    14
+#define MSM_V4L2_MAX			15
 #define V4L2_CAMERA_EXIT		43
 
 struct crop_info {
@@ -1111,12 +1141,13 @@ enum msm_v4l2_power_line_frequency {
 };
 
 #define CAMERA_ISO_TYPE_AUTO           0
-#define CAMEAR_ISO_TYPE_HJR            1
-#define CAMEAR_ISO_TYPE_100            2
+#define CAMERA_ISO_TYPE_HJR            1
+#define CAMERA_ISO_TYPE_100            2
 #define CAMERA_ISO_TYPE_200            3
 #define CAMERA_ISO_TYPE_400            4
-#define CAMEAR_ISO_TYPE_800            5
+#define CAMERA_ISO_TYPE_800            5
 #define CAMERA_ISO_TYPE_1600           6
+#define CAMERA_ISO_TYPE_DEFAULT     7
 
 struct sensor_pict_fps {
 	uint16_t prevfps;
@@ -1455,6 +1486,9 @@ struct msm_actuator_move_params_t {
 	int8_t sign_dir;
 	int16_t dest_step_pos;
 	int32_t num_steps;
+/* LGE_CHANGE_S, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
+	int32_t af_status;
+/* LGE_CHANGE_E, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
 	struct damping_params_t *ringing_params;
 };
 
@@ -1534,6 +1568,9 @@ struct msm_calib_wb {
 	uint16_t gr_over_gb;
 };
 
+struct msm_calib_ver {
+	uint16_t cal_ver; // rafal47 0813
+};
 struct msm_calib_af {
 	uint16_t macro_dac;
 	uint16_t inf_dac;
@@ -1559,11 +1596,20 @@ struct msm_calib_dpc {
 	struct pixel_t video_coord[128];
 };
 
+struct msm_calib_raw {
+	uint8_t *data;
+	uint32_t size;
+};
+
 struct msm_camera_eeprom_info_t {
 	struct msm_eeprom_support af;
-	struct msm_eeprom_support wb;
-	struct msm_eeprom_support lsc;
+	struct msm_eeprom_support wb50;
+	struct msm_eeprom_support wb30;
+	struct msm_eeprom_support lsc50;
+	struct msm_eeprom_support lsc40;
 	struct msm_eeprom_support dpc;
+	struct msm_eeprom_support cal_ver; // Start LGE_BSP_CAMERA::kyounghoon.noh@lge.com 2012-08-14
+	struct msm_eeprom_support raw;
 };
 
 struct msm_eeprom_cfg_data {
@@ -1736,6 +1782,9 @@ struct msm_mctl_set_sdev_data {
 #define MSM_CAM_V4L2_IOCTL_PRIVATE_G_CTRL \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 9, struct msm_camera_v4l2_ioctl_t)
 
+#define MSM_CAM_V4L2_IOCTL_PRIVATE_GENERAL \
+	_IOW('V', BASE_VIDIOC_PRIVATE + 10, struct msm_camera_v4l2_ioctl_t)
+
 #define VIDIOC_MSM_VPE_INIT \
 	_IO('V', BASE_VIDIOC_PRIVATE + 15)
 
@@ -1746,7 +1795,7 @@ struct msm_mctl_set_sdev_data {
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 17, struct msm_mctl_pp_params *)
 
 #define VIDIOC_MSM_AXI_INIT \
-	_IO('V', BASE_VIDIOC_PRIVATE + 18)
+	_IOWR('V', BASE_VIDIOC_PRIVATE + 18, uint8_t *)
 
 #define VIDIOC_MSM_AXI_RELEASE \
 	_IO('V', BASE_VIDIOC_PRIVATE + 19)
@@ -1760,16 +1809,20 @@ struct msm_mctl_set_sdev_data {
 #define VIDIOC_MSM_AXI_BUF_CFG \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 22, void *)
 
+#define VIDIOC_MSM_AXI_RDI_COUNT_UPDATE \
+	_IOWR('V', BASE_VIDIOC_PRIVATE + 23, struct rdi_count_msg)
+
 #define VIDIOC_MSM_VFE_INIT \
-	_IO('V', BASE_VIDIOC_PRIVATE + 22)
+	_IO('V', BASE_VIDIOC_PRIVATE + 24)
 
 #define VIDIOC_MSM_VFE_RELEASE \
-	_IO('V', BASE_VIDIOC_PRIVATE + 23)
+	_IO('V', BASE_VIDIOC_PRIVATE + 25)
 
 struct msm_camera_v4l2_ioctl_t {
 	uint32_t id;
-	void __user *ioctl_ptr;
 	uint32_t len;
+	uint32_t trans_code;
+	void __user *ioctl_ptr;
 };
 
 struct msm_camera_vfe_params_t {
@@ -1947,6 +2000,12 @@ struct msm_ver_num_info {
  *      7       :  is Video inst idx valid?
  *      6 - 0   :  Video inst idx.
  */
+#define CLR_DEVID_MODE(handle)	(handle &= 0x00FFFFFF)
+#define SET_DEVID_MODE(handle, data)	\
+	(handle |= ((0x1 << 31) | ((data & 0x7F) << 24)))
+#define GET_DEVID_MODE(handle)	\
+	((handle & 0x80000000) ? ((handle & 0x7F000000) >> 24) : 0xFF)
+
 #define CLR_IMG_MODE(handle)	(handle &= 0xFF00FFFF)
 #define SET_IMG_MODE(handle, data)	\
 	(handle |= ((0x1 << 23) | ((data & 0x7F) << 16)))

@@ -89,7 +89,20 @@ void apq8064_init_gpiomux(void);
 void apq8064_init_pmic(void);
 
 extern struct msm_camera_board_info apq8064_camera_board_info;
+
+#if defined(CONFIG_MACH_LGE)
+/* Enabling flash LED for camera */
+extern struct msm_camera_board_info apq8064_lge_camera_board_info;
+#endif
+
 void apq8064_init_cam(void);
+
+
+/* Tabla slave address for I2C */
+#define APQ_8064_TABLA_I2C_SLAVE_ADDR		0x0d
+#define APQ_8064_TABLA_ANALOG_I2C_SLAVE_ADDR	0x77
+#define APQ_8064_TABLA_DIGITAL1_I2C_SLAVE_ADDR	0x66
+#define APQ_8064_TABLA_DIGITAL2_I2C_SLAVE_ADDR	0x55
 
 #define APQ_8064_GSBI1_QUP_I2C_BUS_ID 0
 #define APQ_8064_GSBI2_QUP_I2C_BUS_ID 2
@@ -111,14 +124,12 @@ void apq8064_init_cam(void);
 #define GPIO_CAM_FLASH_I2C_SDA  (20)
 #define GPIO_CAM_FLASH_I2C_SCL  (21)
 
-#define I2C_SLAVE_ADDR_IMX111				(0x0D)
-#define I2C_SLAVE_ADDR_IMX111_ACT		(0x18)
-#define I2C_SLAVE_ADDR_IMX091				(0x0D)
-#define I2C_SLAVE_ADDR_IMX091_ACT			(0x18)
-#define I2C_SLAVE_ADDR_IMX119				(0x6E)
-#define I2C_SLAVE_ADDR_FLASH				(0xA6 >> 1)
-
-//unsigned char apq8064_mhl_display_enabled(void);
+#define I2C_SLAVE_ADDR_IMX111       (0x0D)
+#define I2C_SLAVE_ADDR_IMX111_ACT   (0x18)
+#define I2C_SLAVE_ADDR_IMX091       (0x0D)
+#define I2C_SLAVE_ADDR_IMX091_ACT   (0x18)
+#define I2C_SLAVE_ADDR_IMX119       (0x6E)
+#define I2C_SLAVE_ADDR_FLASH        (0xA6 >> 1)
 
 unsigned char apq8064_hdmi_as_primary_selected(void);
 unsigned char apq8064_mhl_display_enabled(void);

@@ -146,6 +146,11 @@ struct isp_msg_output {
 	uint32_t  frameCounter;
 };
 
+struct rdi_count_msg {
+	uint32_t rdi_interface;
+	uint32_t count;
+};
+
 /* message id for v4l2_subdev_notify*/
 enum msm_camera_v4l2_subdev_notify {
 	NOTIFY_CID_CHANGE, /* arg = msm_camera_csid_params */
@@ -154,6 +159,9 @@ enum msm_camera_v4l2_subdev_notify {
 	NOTIFY_VFE_MSG_STATS,  /* arg = struct isp_msg_stats */
 	NOTIFY_VFE_MSG_COMP_STATS, /* arg = struct msm_stats_buf */
 	NOTIFY_VFE_BUF_EVT, /* arg = struct msm_vfe_resp */
+	NOTIFY_VFE_ERROR,
+	NOTIFY_VFE_PIX_SOF_COUNT, /*arg = int*/
+	NOTIFY_AXI_RDI_SOF_COUNT, /*arg = struct rdi_count_msg*/
 	NOTIFY_ISPIF_STREAM, /* arg = enable parameter for s_stream */
 	NOTIFY_VPE_MSG_EVT,
 	NOTIFY_VFE_CAMIF_ERROR,
@@ -251,6 +259,10 @@ struct msm_cam_media_controller {
 	int (*mctl_vbqueue_init)(struct msm_cam_v4l2_dev_inst *pcam,
 				struct vb2_queue *q, enum v4l2_buf_type type);
 	int (*mctl_ufmt_init)(struct msm_cam_media_controller *p_mctl);
+	int (*isp_config)(struct msm_cam_media_controller *pmctl,
+		 unsigned int cmd, unsigned long arg);
+	int (*isp_notify)(struct msm_cam_media_controller *pmctl,
+		struct v4l2_subdev *sd, unsigned int notification, void *arg);
 
 	/* the following reflect the HW topology information*/
 	struct v4l2_subdev *sensor_sdev; /* sensor sub device */
@@ -262,6 +274,7 @@ struct msm_cam_media_controller {
 	struct v4l2_subdev *gemini_sdev; /* gemini sub device */
 	struct v4l2_subdev *vpe_sdev; /* vpe sub device */
 	struct v4l2_subdev *axi_sdev; /* axi sub device */
+	struct v4l2_subdev *vfe_sdev; /* vfe sub device */
 	struct v4l2_subdev *eeprom_sdev; /* eeprom sub device */
 	struct v4l2_subdev *cpp_sdev;/*cpp sub device*/
 
@@ -506,12 +519,14 @@ struct irqmgr_intr_lkup_table {
 };
 
 struct interface_map {
-	/* The interafce a particular stream belongs to.
+	/* The interface a particular stream belongs to.
 	 * PIX0, RDI0, RDI1, or RDI2
 	 */
 	int interface;
-	/* The handle of the mctl intstance interface runs on */
+	/* The handle of the mctl instance, interface runs on */
 	uint32_t mctl_handle;
+	int vnode_id;
+	int is_bayer_sensor;
 };
 
 /* abstract camera server device for all sensor successfully probed*/
@@ -530,6 +545,8 @@ struct msm_cam_server_dev {
 	struct msm_cam_config_dev_info config_info;
 	/* active working camera device - only one allowed at this time*/
 	struct msm_cam_v4l2_device *pcam_active[MAX_NUM_ACTIVE_CAMERA];
+	/* save the opened pcam for finding the mctl when doing buf lookup */
+	struct msm_cam_v4l2_device *opened_pcam[MAX_NUM_ACTIVE_CAMERA];
 	/* number of camera devices opened*/
 	atomic_t number_pcam_active;
 	struct v4l2_queue_util server_command_queue;

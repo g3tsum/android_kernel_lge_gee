@@ -1816,9 +1816,12 @@ static struct platform_device *common_not_mpq_devices[] __initdata = {
 	&apq8064_device_qup_i2c_gsbi4,
 };
 
-static struct platform_device *common_devices[] __initdata = {
+static struct platform_device *early_common_devices[] __initdata = {
 	&apq8064_device_acpuclk,
 	&apq8064_device_dmov,
+};
+
+static struct platform_device *common_devices[] __initdata = {
 	&apq8064_device_ssbi_pmic2,
 	&apq8064_device_ext_dsv_load_vreg,
 	&msm_device_smd_apq8064,
@@ -1981,7 +1984,7 @@ static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi3_pdata = {
 };
 
 static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi4_pdata = {
-	.clk_freq = 100000,
+	.clk_freq = 200000,
 	.src_clk_rate = 24000000,
 };
 
@@ -2005,16 +2008,18 @@ static void __init apq8064_i2c_init(void)
 	apq8064_device_qup_i2c_gsbi4.dev.platform_data =
 					&apq8064_i2c_qup_gsbi4_pdata;
 
-	/* Setting protocol code to 0x60 for dual UART/I2C in GSBI4 */
-	gsbi_mem = ioremap_nocache(MSM_GSBI4_PHYS, 4);
-	if (lge_get_uart_mode()) {
-		writel_relaxed(GSBI_DUAL_MODE_CODE, gsbi_mem);
-		apq8064_i2c_qup_gsbi4_pdata.use_gsbi_shared_mode = 1;
-	} else {
-		writel_relaxed(GSBI_I2C_MODE_CODE, gsbi_mem);
+	{
+		/* Setting protocol code to 0x60 for dual UART/I2C in GSBI4 */
+		void __iomem *gsbi_mem = ioremap_nocache(MSM_GSBI4_PHYS, 4);
+		if (lge_get_uart_mode()) {
+			writel_relaxed(GSBI_DUAL_MODE_CODE, gsbi_mem);
+			apq8064_i2c_qup_gsbi4_pdata.use_gsbi_shared_mode = 1;
+		} else {
+			writel_relaxed(GSBI_I2C_MODE_CODE, gsbi_mem);
+		}
+		wmb();
+		iounmap(gsbi_mem);
 	}
-	wmb();
-	iounmap(gsbi_mem);
 }
 
 /* Sensors DSPS platform data */
@@ -2034,10 +2039,19 @@ static void __init register_i2c_devices(void)
 {
 #ifdef CONFIG_MSM_CAMERA
 	struct i2c_registry apq8064_camera_i2c_devices = {
-		I2C_FFA,
+		I2C_SURF | I2C_FFA | I2C_LIQUID | I2C_RUMI,
 		APQ_8064_GSBI4_QUP_I2C_BUS_ID,
 		apq8064_camera_board_info.board_info,
 		apq8064_camera_board_info.num_i2c_board_info,
+	};
+/* [patch for Enabling flash LED for camera]
+  * 2012-03-14, jinsool.lee@lge.com
+  */
+	struct i2c_registry apq8064_lge_camera_i2c_devices = {
+		I2C_SURF | I2C_FFA | I2C_RUMI | I2C_SIM | I2C_LIQUID | I2C_MPQ_CDP,
+		APQ_8064_GSBI1_QUP_I2C_BUS_ID,
+		apq8064_lge_camera_board_info.board_info,
+		apq8064_lge_camera_board_info.num_i2c_board_info,
 	};
 #endif
 
@@ -2046,6 +2060,13 @@ static void __init register_i2c_devices(void)
 	i2c_register_board_info(apq8064_camera_i2c_devices.bus,
 		apq8064_camera_i2c_devices.info,
 		apq8064_camera_i2c_devices.len);
+/* [patch for Enabling flash LED for camera]
+  * 2012-03-14, jinsool.lee@lge.com
+  */
+
+		i2c_register_board_info(apq8064_lge_camera_i2c_devices.bus,
+			apq8064_lge_camera_i2c_devices.info,
+			apq8064_lge_camera_i2c_devices.len);
 #endif
 }
 
@@ -2075,6 +2096,8 @@ static void __init apq8064_common_init(void)
 	apq8064_ehci_host_init();
 	apq8064_init_buses();
 
+	platform_add_devices(early_common_devices,
+				ARRAY_SIZE(early_common_devices));
 	platform_device_register(&apq8064_device_ssbi_pmic1);
 	if (mako_charger_mode)
 		platform_device_register(&mako_keyreset_device);
