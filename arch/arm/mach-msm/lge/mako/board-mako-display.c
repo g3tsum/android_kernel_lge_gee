@@ -38,6 +38,10 @@
 #include "devices.h"
 #include "board-mako.h"
 
+#ifndef LGE_DSDR_SUPPORT
+#define LGE_DSDR_SUPPORT
+#endif
+
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 /* prim = 1366 x 768 x 3(bpp) x 3(pages) */
 #if defined(CONFIG_FB_MSM_MIPI_LGIT_VIDEO_WXGA_PT)
@@ -54,6 +58,11 @@
 #endif
 #endif /*CONFIG_FB_MSM_TRIPLE_BUFFER */
 
+#ifdef LGE_DSDR_SUPPORT
+#define MSM_FB_EXT_BUF_SIZE \
+        (roundup((1920 * 1088 * 4), 4096) * 3) /* 4 bpp x 3 page */
+#else  /* LGE_DSDR_SUPPORT */
+
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
 #define MSM_FB_EXT_BUF_SIZE \
 		(roundup((1920 * 1088 * 2), 4096) * 1) /* 2 bpp x 1 page */
@@ -63,6 +72,7 @@
 #else
 #define MSM_FB_EXT_BUF_SIZE	0
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
+#endif /* LGE_DSDR_SUPPORT */
 
 #ifdef CONFIG_FB_MSM_WRITEBACK_MSM_PANEL
 #define MSM_FB_WFD_BUF_SIZE \
@@ -249,9 +259,9 @@ static struct msm_bus_scale_pdata mdp_bus_scale_pdata = {
 static struct msm_panel_common_pdata mdp_pdata = {
 	.gpio = MDP_VSYNC_GPIO,
 	.mdp_max_clk = 266667000,
-	.mdp_max_bw = 3000000000u,
-	.mdp_bw_ab_factor = 115,
-	.mdp_bw_ib_factor = 125,
+	.mdp_max_bw = 3080000000UL,
+	.mdp_bw_ab_factor = 230,
+	.mdp_bw_ib_factor = 250,
 	.mdp_bus_scale_table = &mdp_bus_scale_pdata,
 	.mdp_rev = MDP_REV_44,
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION

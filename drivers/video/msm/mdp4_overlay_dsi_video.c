@@ -312,7 +312,7 @@ static void mdp4_video_vsync_irq_ctrl(int cndx, int enable)
 			if (vsync_irq_cnt == 0)
 				vsync_irq_disable(INTR_PRIMARY_VSYNC,
 						MDP_PRIM_VSYNC_TERM);
-		wake_up_interruptible_all(&vctrl->wait_queue);
+			wake_up_interruptible_all(&vctrl->wait_queue);
 		}
 	}
 	pr_debug("%s: enable=%d cnt=%d\n", __func__, enable, vsync_irq_cnt);
@@ -341,7 +341,6 @@ void mdp4_dsi_video_wait4vsync(int cndx)
 	struct vsycn_ctrl *vctrl;
 	struct mdp4_overlay_pipe *pipe;
 	int ret;
-	ktime_t timestamp;
 
 	if (cndx >= MAX_CONTROLLER) {
 		pr_err("%s: out or range: cndx=%d\n", __func__, cndx);
@@ -356,11 +355,8 @@ void mdp4_dsi_video_wait4vsync(int cndx)
 
 	mdp4_video_vsync_irq_ctrl(cndx, 1);
 
-  timestamp = vctrl->vsync_time;
-  ret = wait_event_interruptible_timeout(vctrl->wait_queue,
-      !ktime_equal(timestamp, vctrl->vsync_time) &&
-      vctrl->vsync_irq_enabled,
-      msecs_to_jiffies(VSYNC_PERIOD * 8));
+	ret = wait_event_interruptible_timeout(vctrl->wait_queue, 1,
+			msecs_to_jiffies(VSYNC_PERIOD * 8));
 
 	if (ret <= 0)
 		pr_err("%s timeout ret=%d", __func__, ret);
@@ -436,11 +432,11 @@ ssize_t mdp4_dsi_video_show_event(struct device *dev,
 	vctrl = &vsync_ctrl_db[0];
 	timestamp = vctrl->vsync_time;
 
-  ret = wait_event_interruptible(vctrl->wait_queue,
-      !ktime_equal(timestamp, vctrl->vsync_time) &&
-      vctrl->vsync_irq_enabled);
-  if (ret == -ERESTARTSYS)
-    return ret;
+	ret = wait_event_interruptible(vctrl->wait_queue,
+			!ktime_equal(timestamp, vctrl->vsync_time) &&
+			vctrl->vsync_irq_enabled);
+	if (ret == -ERESTARTSYS)
+		return ret;
 
 	vsync_tick = ktime_to_ns(vctrl->vsync_time);
 	ret = scnprintf(buf, PAGE_SIZE, "VSYNC=%llu", vsync_tick);
@@ -468,7 +464,7 @@ void mdp4_dsi_vsync_init(int cndx)
 	mutex_init(&vctrl->update_lock);
 	init_completion(&vctrl->dmap_comp);
 	init_completion(&vctrl->ov_comp);
-	atomic_set(&vctrl->suspend, dsi_video_enabled ? 0 : 1);
+	atomic_set(&vctrl->suspend, 1);
 	spin_lock_init(&vctrl->spin_lock);
 	init_waitqueue_head(&vctrl->wait_queue);
 }

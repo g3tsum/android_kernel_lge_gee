@@ -2052,6 +2052,14 @@ int hdd_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
                                pAdapter->macAddressCurrent.bytes);
            }
        }
+       else if (strncmp(command, "SCAN-ACTIVE", 11) == 0)
+       {
+          pHddCtx->scan_info.scan_mode = eSIR_ACTIVE_SCAN;
+       }
+       else if (strncmp(command, "SCAN-PASSIVE", 12) == 0)
+       {
+          pHddCtx->scan_info.scan_mode = eSIR_PASSIVE_SCAN;
+       }
        else {
            hddLog( VOS_TRACE_LEVEL_WARN, "%s: Unsupported GUI command %s",
                    __func__, command);
@@ -5400,7 +5408,7 @@ static boolean hdd_is_5g_supported(hdd_context_t * pHddCtx)
    /* If wcnss_wlan_iris_xo_mode() returns WCNSS_XO_48MHZ(1);
     * then hardware support 5Ghz.
    */
-   if(1) /*(WCNSS_XO_48MHZ == wcnss_wlan_iris_xo_mode())*/
+   if (WCNSS_XO_48MHZ == wcnss_wlan_iris_xo_mode())
    {
       hddLog(VOS_TRACE_LEVEL_INFO, "%s: Hardware supports 5Ghz", __func__);
       return true;
