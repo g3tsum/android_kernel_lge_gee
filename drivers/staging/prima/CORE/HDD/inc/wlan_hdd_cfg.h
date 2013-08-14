@@ -1698,7 +1698,7 @@ typedef enum
 #define CFG_ENABLE_MCC_ADATIVE_SCHEDULER_ENABLED_NAME             "gEnableMCCAdaptiveScheduler"      
 #define CFG_ENABLE_MCC_ADATIVE_SCHEDULER_ENABLED_MIN              ( 0 )
 #define CFG_ENABLE_MCC_ADATIVE_SCHEDULER_ENABLED_MAX              ( 1 )
-#define CFG_ENABLE_MCC_ADATIVE_SCHEDULER_ENABLED_DEFAULT          ( 0 ) 
+#define CFG_ENABLE_MCC_ADATIVE_SCHEDULER_ENABLED_DEFAULT          ( 1 )
 
 #ifdef WLAN_FEATURE_11AC
 #define CFG_VHT_SU_BEAMFORMEE_CAP_FEATURE         "gTxBFEnable"
@@ -1791,6 +1791,23 @@ typedef enum
 #define CFG_ENABLE_FAST_ROAM_IN_CONCURRENCY_MAX      ( 1 )
 #define CFG_ENABLE_FAST_ROAM_IN_CONCURRENCY_DEFAULT  ( 1 )
 #endif
+
+/*
+ * FlexConnectPowerFactor parameter
+ * Default: Disable (0)
+ */
+#define CFG_FLEX_CONNECT_POWER_FACTOR_NAME          "gFlexConnectPowerFactor"
+#define CFG_FLEX_CONNECT_POWER_FACTOR_MIN           ( 0 )
+#define CFG_FLEX_CONNECT_POWER_FACTOR_MAX           ( 9 )
+#define CFG_FLEX_CONNECT_POWER_FACTOR_DEFAULT       ( 0 )
+
+/*
+ * Enable heart beat monitoring offload to FW
+ */
+#define CFG_ENABLE_HEART_BEAT_OFFLOAD          "gEnableIbssHeartBeatOffload"
+#define CFG_ENABLE_HEART_BEAT_OFFLOAD_MIN      ( 0 )
+#define CFG_ENABLE_HEART_BEAT_OFFLOAD_MAX      ( 1 )
+#define CFG_ENABLE_HEART_BEAT_OFFLOAD_DEFAULT  ( 1 )
 
 /*--------------------------------------------------------------------------- 
   Type declarations
@@ -2173,6 +2190,8 @@ typedef struct
 #endif
    v_BOOL_t                    fEnableAdaptRxDrain;
    v_BOOL_t                    enableOxygenNwk;
+   v_U8_t                      flexConnectPowerFactor;
+   v_BOOL_t                    enableIbssHeartBeatOffload;
 } hdd_config_t;
 /*--------------------------------------------------------------------------- 
   Function declarations and documenation
