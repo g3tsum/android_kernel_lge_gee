@@ -302,10 +302,10 @@ static int32_t msm_actuator_move_focus(
 	uint16_t curr_lens_pos = 0;
 	int dir = move_params->dir;
 	int32_t num_steps = 0;
-	num_steps = move_params->num_steps;
 
     // Start LGE_BSP_CAMERA::seongjo.kim@lge.com 2012-08-10 Add log for debug AF issue & WorkAround
 	int count_actuator_write = 0;
+	num_steps = move_params->num_steps;
 	 // Start LGE_BSP_CAMERA::seongjo.kim@lge.com 2013-01-05 Rearrange too many log & unused code
 	//printk("%s: a_ctrl->curr_region_index = %d\n",__func__,a_ctrl->curr_region_index);
 	// End LGE_BSP_CAMERA::seongjo.kim@lge.com 2012-08-10 Add log for debug AF issue & WorkAround
