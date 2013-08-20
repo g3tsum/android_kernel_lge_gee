@@ -123,6 +123,7 @@ int wlan_hdd_ftm_start(hdd_context_t *pAdapter);
 #ifdef FEATURE_WLAN_TDLS
 #include "wlan_hdd_tdls.h"
 #endif
+#include "wlan_hdd_debugfs.h"
 
 #ifdef MODULE
 #define WLAN_MODULE_NAME  module_name(THIS_MODULE)
@@ -2059,6 +2060,41 @@ int hdd_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
        else if (strncmp(command, "SCAN-PASSIVE", 12) == 0)
        {
           pHddCtx->scan_info.scan_mode = eSIR_PASSIVE_SCAN;
+       }
+       else if (strncmp(command, "GETDWELLTIME", 12) == 0)
+       {
+           hdd_config_t *pCfg = (WLAN_HDD_GET_CTX(pAdapter))->cfg_ini;
+           char extra[32];
+           tANI_U8 len = 0;
+
+           len = snprintf(extra, sizeof(extra), "GETDWELLTIME %u\n",
+                  (int)pCfg->nActiveMaxChnTime);
+           if (copy_to_user(priv_data.buf, &extra, len + 1))
+           {
+               VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_ERROR,
+                  "%s: failed to copy data to user buffer", __func__);
+               ret = -EFAULT;
+               goto exit;
+           }
+           ret = len;
+       }
+       else if (strncmp(command, "SETDWELLTIME", 12) == 0)
+       {
+           tANI_U8 *value = command;
+           hdd_config_t *pCfg = (WLAN_HDD_GET_CTX(pAdapter))->cfg_ini;
+           int val = 0, temp;
+
+           value = value + 13;
+           temp = kstrtou32(value, 10, &val);
+           if ( temp != 0 || val < CFG_ACTIVE_MAX_CHANNEL_TIME_MIN ||
+                             val > CFG_ACTIVE_MAX_CHANNEL_TIME_MAX )
+           {
+               VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_ERROR,
+                "%s: argument passed for SETDWELLTIME is incorrect", __func__);
+               ret = -EFAULT;
+               goto exit;
+           }
+           pCfg->nActiveMaxChnTime = val;
        }
        else {
            hddLog( VOS_TRACE_LEVEL_WARN, "%s: Unsupported GUI command %s",
@@ -5013,6 +5049,8 @@ void hdd_wlan_exit(hdd_context_t *pHddCtx)
       }
    }
 
+   hdd_debugfs_exit(pHddCtx);
+
    // Unregister the Net Device Notifier
    unregister_netdevice_notifier(&hdd_netdev_notifier);
    
@@ -5414,7 +5452,7 @@ static boolean hdd_is_5g_supported(hdd_context_t * pHddCtx)
    /* If wcnss_wlan_iris_xo_mode() returns WCNSS_XO_48MHZ(1);
     * then hardware support 5Ghz.
    */
-   if(1) /*(WCNSS_XO_48MHZ == wcnss_wlan_iris_xo_mode())*/
+   if (WCNSS_XO_48MHZ == wcnss_wlan_iris_xo_mode())
    {
       hddLog(VOS_TRACE_LEVEL_INFO, "%s: Hardware supports 5Ghz", __func__);
       return true;
@@ -5876,6 +5914,14 @@ int hdd_wlan_startup(struct device *dev )
 #endif //WLAN_BTAMP_FEATURE
    }
 
+   /* Open debugfs interface */
+   if (VOS_STATUS_SUCCESS != hdd_debugfs_init(pAdapter))
+   {
+      VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
+                 "%s: hdd_debugfs_init failed!", __func__);
+      goto err_close_debugfs;
+   }
+
    /* Register TM level change handler function to the platform */
    status = hddDevTmRegisterNotifyCallback(pHddCtx);
    if ( !VOS_IS_STATUS_SUCCESS( status ) )
@@ -5982,6 +6028,9 @@ err_free_power_on_lock:
 err_unregister_pmops:
    hddDevTmUnregisterNotifyCallback(pHddCtx);
    hddDeregisterPmOps(pHddCtx);
+
+err_close_debugfs:
+   hdd_debugfs_exit(pHddCtx);
 
 #ifdef WLAN_BTAMP_FEATURE
 err_bap_stop:
