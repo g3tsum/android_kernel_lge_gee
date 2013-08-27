@@ -38,13 +38,12 @@ struct snd_msm {
 	struct snd_card *card;
 	struct snd_pcm *pcm;
 };
-
-#define PLAYBACK_NUM_PERIODS	8
-#define PLAYBACK_PERIOD_SIZE	2048
-#define CAPTURE_MIN_NUM_PERIODS 2
-#define CAPTURE_MAX_NUM_PERIODS 16
-#define CAPTURE_MAX_PERIOD_SIZE 4096
-#define CAPTURE_MIN_PERIOD_SIZE 320
+#define PLAYBACK_NUM_PERIODS		8
+#define PLAYBACK_MAX_PERIOD_SIZE	4096
+#define PLAYBACK_MIN_PERIOD_SIZE	2048
+#define CAPTURE_NUM_PERIODS		2
+#define CAPTURE_MAX_PERIOD_SIZE		4096
+#define CAPTURE_MIN_PERIOD_SIZE		320
 
 static struct snd_pcm_hardware msm_pcm_hardware_capture = {
 	.info =                 (SNDRV_PCM_INFO_MMAP |
