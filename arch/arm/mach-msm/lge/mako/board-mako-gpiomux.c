@@ -762,12 +762,6 @@ void __init apq8064_init_gpiomux(void)
                 machine_is_mpq8064_dtv())
 
 	if (machine_is_apq8064_mtp())
-		msm_gpiomux_install(mdm_configs,
-			ARRAY_SIZE(mdm_configs));
-#endif
-
-#ifdef CONFIG_USB_EHCI_MSM_HSIC
-	if (machine_is_apq8064_mtp())
 		msm_gpiomux_install(apq8064_hsic_configs,
 				ARRAY_SIZE(apq8064_hsic_configs));
 #endif
