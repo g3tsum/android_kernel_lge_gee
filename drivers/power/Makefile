@@ -75,4 +75,5 @@ obj-$(CONFIG_LTC4088_CHARGER)	+= ltc4088-charger.o
 obj-$(CONFIG_CHARGER_SMB347)	+= smb347-charger.o
 obj-$(CONFIG_CHARGER_TPS65090)	+= tps65090-charger.o
 obj-$(CONFIG_BATTERY_BCL)	+= battery_current_limit.o
-obj-$(CONFIG_POWER_RESET)	+= reset/
+obj-$(CONFIG_POWER_RESET)	+= reset/=
+obj-$(CONFIG_BATTERY_TEMP_CONTROL) += battery_temp_ctrl.o

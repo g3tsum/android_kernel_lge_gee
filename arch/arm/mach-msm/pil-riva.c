@@ -123,6 +123,7 @@ static int pil_riva_make_proxy_vote(struct pil_desc *pil)
 		ret = wcnss_wlan_power(&pdev->dev, pwlanconfig,
 					WCNSS_WLAN_SWITCH_ON, &drv->xo_mode);
 		wcnss_set_iris_xo_mode(drv->xo_mode);
+		/* wcnss_set_iris_xo_mode(drv->xo_mode); */
 		if (ret)
 			pr_err("Failed to execute wcnss_wlan_power\n");
 	}

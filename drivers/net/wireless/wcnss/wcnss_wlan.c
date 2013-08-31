@@ -941,12 +941,15 @@ EXPORT_SYMBOL(wcnss_set_iris_xo_mode);
 
 int wcnss_wlan_iris_xo_mode(void)
 {
-	if (penv && penv->pdev && penv->smd_channel_ready)
-		return penv->iris_xo_mode_set;
-	return -ENODEV;
+	if (!penv || !penv->pdev || !penv->smd_channel_ready)
+		return -ENODEV;
+
+	if (penv->wlan_config.use_48mhz_xo)
+		return WCNSS_XO_48MHZ;
+	else
+		return WCNSS_XO_19MHZ;
 }
 EXPORT_SYMBOL(wcnss_wlan_iris_xo_mode);
-
 
 void wcnss_suspend_notify(void)
 {

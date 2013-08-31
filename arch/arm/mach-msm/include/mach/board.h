@@ -1,7 +1,7 @@
 /* arch/arm/mach-msm/include/mach/board.h
  *
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2008-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2008-2012, Code Aurora Forum. All rights reserved.
  * Author: Brian Swetland <swetland@google.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -26,6 +26,7 @@
 #include <linux/of_platform.h>
 #include <linux/msm_ssbi.h>
 #include <mach/msm_bus.h>
+#include <media/msm_camera.h>
 
 struct msm_camera_io_ext {
 	uint32_t mdcphy;
@@ -269,6 +270,7 @@ struct msm_camera_sensor_info {
 	uint8_t num_resources;
 	struct msm_camera_sensor_flash_data *flash_data;
 	int csi_if;
+	struct msm_camera_csi_params csi_params;
 	struct msm_camera_sensor_strobe_flash_data *strobe_flash_data;
 	char *eeprom_data;
 	enum msm_camera_type camera_type;
@@ -294,17 +296,6 @@ struct snd_endpoint {
 
 struct msm_snd_endpoints {
 	struct snd_endpoint *endpoints;
-	unsigned num;
-};
-
-struct cad_endpoint {
-	int id;
-	const char *name;
-	uint32_t capability;
-};
-
-struct msm_cad_endpoints {
-	struct cad_endpoint *endpoints;
 	unsigned num;
 };
 
@@ -387,10 +378,27 @@ struct msm_panel_common_pdata {
 	int (*vga_switch)(int select_vga);
 	int *gpio_num;
 	u32 mdp_max_clk;
+  u64 mdp_max_bw;
+  u32 mdp_bw_ab_factor;
+  u32 mdp_bw_ib_factor;
 #ifdef CONFIG_MSM_BUS_SCALING
 	struct msm_bus_scale_pdata *mdp_bus_scale_table;
 #endif
 	int mdp_rev;
+#ifdef CONFIG_FB_MSM_MIPI_DSI_LGIT
+	void *power_on_set_1;
+	void *power_on_set_2;
+	void *power_on_set_3;
+	ssize_t power_on_set_size_1;
+	ssize_t power_on_set_size_2;
+	ssize_t power_on_set_size_3;
+	void *power_off_set_1;
+	void *power_off_set_2;
+	ssize_t power_off_set_size_1;
+	ssize_t power_off_set_size_2;
+	void (*bl_pwm_disable)(void);
+	int (*bl_on_status)(void);
+#endif
 	u32 ov0_wb_size;  /* overlay0 writeback size */
 	u32 ov1_wb_size;  /* overlay1 writeback size */
 	u32 mem_hid;
@@ -400,7 +408,6 @@ struct msm_panel_common_pdata {
 	char mdp_iommu_split_domain;
 	u32 avtimer_phy;
 };
-
 
 
 struct lcdc_platform_data {
@@ -458,7 +465,6 @@ struct mipi_dsi_panel_platform_data {
 	char dlane_swap;
 	void (*dsi_pwm_cfg)(void);
 	char enable_wled_bl_ctrl;
-	void (*gpio_set_backlight)(int bl_level);
 };
 
 struct lvds_panel_platform_data {
@@ -477,6 +483,7 @@ struct msm_fb_platform_data {
 	int (*allow_set_offset)(void);
 	char prim_panel_name[PANEL_NAME_MAX_LEN];
 	char ext_panel_name[PANEL_NAME_MAX_LEN];
+	int (*update_lcdc_lut)(void);
 };
 
 struct msm_hdmi_platform_data {

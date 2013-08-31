@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -17,10 +17,6 @@
 #include <linux/mfd/pm8xxx/pwm.h>
 
 #define PM8XXX_LEDS_DEV_NAME	"pm8xxx-led"
-
-#define WLED_FIRST_STRING (1 << 2)
-#define WLED_SECOND_STRING (1 << 1)
-#define WLED_THIRD_STRING (1 << 0)
 
 /**
  * enum pm8xxx_leds - PMIC8XXX supported led ids
@@ -79,9 +75,16 @@ enum wled_ovp_threshold {
 	WLED_OVP_37V,
 };
 
+/*debug_mask*/
+enum{
+	DEBUG_LED_NONE			= 0,
+	DEBUG_LED_TRACE			= (1U << 0),	// 1
+	DEBUG_LED_REG			= (1U << 1),	// 2
+};
+
 /**
  *  wled_config_data - wled configuration data
- *  @strings - strings supported
+ *  @num_strings - number of wled strings supported
  *  @ovp_val - over voltage protection threshold
  *  @boost_curr_lim - boot current limit
  *  @cp_select - high pole capacitance
@@ -90,10 +93,9 @@ enum wled_ovp_threshold {
  *  @cs_out_en - current sink output enable
  *  @op_fdbck - selection of output as feedback for the boost
  *  @cabc_en - enable cabc for backlight pwm control
- *
  */
 struct wled_config_data {
-	u8	strings;
+	u8	num_strings;
 	u8	ovp_val;
 	u8	boost_curr_lim;
 	u8	cp_select;
@@ -102,11 +104,6 @@ struct wled_config_data {
 	bool	cs_out_en;
 	bool	op_fdbck;
 	bool	cabc_en;
-	bool	sstart_en;
-	bool	max_current_ind;
-	u8 max_three;
-	u8 max_two;
-	u8 max_one;
 };
 
 /**

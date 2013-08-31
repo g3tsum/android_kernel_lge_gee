@@ -207,7 +207,7 @@ static DEFINE_MUTEX(soc_invalidation_mutex);
 static int shutdown_soc_invalid;
 static struct pm8921_bms_chip *the_chip;
 
-#define DEFAULT_RBATT_MOHMS		128
+#define DEFAULT_RBATT_MOHMS		200
 #define DEFAULT_OCV_MICROVOLTS		3900000
 #define DEFAULT_CHARGE_CYCLES		0
 
@@ -2680,7 +2680,7 @@ EXPORT_SYMBOL(pm8921_bms_get_vsense_avg);
 
 int pm8921_bms_get_battery_current(int *result_ua)
 {
-	int vsense_uv;
+	int vsense_uv = 0;
 	int rc = 0;
 
 	*result_ua = 0;
@@ -3182,6 +3182,8 @@ static int set_battery_data(struct pm8921_bms_chip *chip)
 		goto desay;
 	else if (chip->batt_type == BATT_PALLADIUM)
 		goto palladium;
+	else if (chip->batt_type == BATT_LGE)
+		goto lge;
 
 	battery_id = read_battery_id(chip);
 	if (battery_id < 0) {
@@ -3224,6 +3226,17 @@ desay:
 		chip->rbatt_capacitive_mohm
 			= desay_5200_data.rbatt_capacitive_mohm;
 		return 0;
+lge:
+    chip->fcc = lge_2100_mako_data.fcc;
+    chip->fcc_temp_lut = lge_2100_mako_data.fcc_temp_lut;
+    chip->fcc_sf_lut = lge_2100_mako_data.fcc_sf_lut;
+    chip->pc_temp_ocv_lut = lge_2100_mako_data.pc_temp_ocv_lut;
+    chip->pc_sf_lut = lge_2100_mako_data.pc_sf_lut;
+    chip->rbatt_sf_lut = lge_2100_mako_data.rbatt_sf_lut;
+    chip->default_rbatt_mohm
+        = lge_2100_mako_data.default_rbatt_mohm;
+    chip->delta_rbatt_mohm = lge_2100_mako_data.delta_rbatt_mohm;
+    return 0;
 }
 
 enum bms_request_operation {

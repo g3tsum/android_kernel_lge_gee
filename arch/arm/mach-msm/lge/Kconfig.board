@@ -1,0 +1,5 @@
+#
+# Inlcude the specific Kconfig file for LGE board
+#
+# MAKO
+source "arch/arm/mach-msm/lge/mako/Kconfig"
