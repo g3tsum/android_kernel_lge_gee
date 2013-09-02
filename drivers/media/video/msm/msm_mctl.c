@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -21,7 +21,6 @@
 #include <linux/proc_fs.h>
 #include <linux/vmalloc.h>
 #include <linux/wakelock.h>
-#include <linux/avtimer.h>
 
 #include <media/v4l2-dev.h>
 #include <media/v4l2-ioctl.h>
@@ -447,18 +446,17 @@ static int msm_mctl_open(struct msm_cam_media_controller *p_mctl,
 				 const char *const apps_id)
 {
 	int rc = 0;
-	struct msm_sensor_ctrl_t *s_ctrl;
-	struct msm_camera_sensor_info *sinfo;
-	struct msm_camera_device_platform_data *camdev;
+	struct msm_sensor_ctrl_t *s_ctrl = get_sctrl(p_mctl->sensor_sdev);
+	struct msm_camera_sensor_info *sinfo =
+		(struct msm_camera_sensor_info *) s_ctrl->sensordata;
+	struct msm_camera_device_platform_data *camdev = sinfo->pdata;
 	uint8_t csid_core;
 	D("%s\n", __func__);
 	if (!p_mctl) {
 		pr_err("%s: param is NULL", __func__);
 		return -EINVAL;
 	}
-	s_ctrl = get_sctrl(p_mctl->sensor_sdev);
-	sinfo = (struct msm_camera_sensor_info *) s_ctrl->sensordata;
-	camdev = sinfo->pdata;
+
 	mutex_lock(&p_mctl->lock);
 	/* open sub devices - once only*/
 	if (!p_mctl->opencnt) {
@@ -580,7 +578,6 @@ static void msm_mctl_release(struct msm_cam_media_controller *p_mctl)
 	struct msm_sensor_ctrl_t *s_ctrl = get_sctrl(p_mctl->sensor_sdev);
 	struct msm_camera_sensor_info *sinfo =
 		(struct msm_camera_sensor_info *) s_ctrl->sensordata;
-	pr_err("%s called\n", __func__); /* LGE_CHANGE, patch for IOMMU page fault, 2012.09.06, jungryoul.choi@lge.com */
 
 	v4l2_subdev_call(p_mctl->sensor_sdev, core, ioctl,
 		VIDIOC_MSM_SENSOR_RELEASE, NULL);
@@ -600,15 +597,15 @@ static void msm_mctl_release(struct msm_cam_media_controller *p_mctl)
 			VIDIOC_MSM_AXI_RELEASE, NULL);
 	}
 
+	if (p_mctl->csid_sdev) {
+		v4l2_subdev_call(p_mctl->csid_sdev, core, ioctl,
+			VIDIOC_MSM_CSID_RELEASE, NULL);
+	}
+
 	if (p_mctl->csiphy_sdev) {
 		v4l2_subdev_call(p_mctl->csiphy_sdev, core, ioctl,
 			VIDIOC_MSM_CSIPHY_RELEASE,
 			sinfo->sensor_platform_info->csi_lane_params);
-	}
-
-	if (p_mctl->csid_sdev) {
-		v4l2_subdev_call(p_mctl->csid_sdev, core, ioctl,
-			VIDIOC_MSM_CSID_RELEASE, NULL);
 	}
 
 	if (p_mctl->act_sdev) {
@@ -726,10 +723,8 @@ int msm_mctl_init(struct msm_cam_v4l2_device *pcam)
 	v4l2_set_subdev_hostdata(pcam->sensor_sdev, pmctl);
 
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
-	if (!pmctl->client) {
-		pmctl->client = msm_ion_client_create(-1, "camera");
-		kref_init(&pmctl->refcount);
-	}
+	pmctl->client = msm_ion_client_create(-1, "camera");
+	kref_init(&pmctl->refcount);
 #endif
 
 	return 0;
@@ -799,10 +794,6 @@ static int msm_mctl_dev_open(struct file *f)
 	pcam_inst->my_index = i;
 	pcam_inst->pcam = pcam;
 	pcam->mctl_node.dev_inst[i] = pcam_inst;
-
-	pcam_inst->avtimerOn = 0;
-	pcam_inst->p_avtimer_msw = NULL;
-	pcam_inst->p_avtimer_lsw = NULL;
 
 	D("%s pcam_inst %p my_index = %d\n", __func__,
 		pcam_inst, pcam_inst->my_index);
@@ -914,22 +905,12 @@ static int msm_mctl_dev_close(struct file *f)
 	pcam_inst->streamon = 0;
 	pcam->mctl_node.use_count--;
 	pcam->mctl_node.dev_inst_map[pcam_inst->image_mode] = NULL;
-
-	if(pcam_inst->avtimerOn){
-	    iounmap(pcam_inst->p_avtimer_lsw);
-	    iounmap(pcam_inst->p_avtimer_msw);
-	    //Turn OFF DSP/Enable power collapse
-	    avcs_core_disable_power_collapse(0);
-	    pcam_inst->avtimerOn = 0;
-	}
-
 	if (pcam_inst->vbqueue_initialized)
 		vb2_queue_release(&pcam_inst->vid_bufq);
 	D("%s Closing down instance %p ", __func__, pcam_inst);
 	pcam->mctl_node.dev_inst[pcam_inst->my_index] = NULL;
 	msm_destroy_v4l2_event_queue(&pcam_inst->eventHandle);
 	CLR_MCTLPP_INST_IDX(pcam_inst->inst_handle);
-	CLR_DEVID_MODE(pcam_inst->inst_handle);
 	CLR_IMG_MODE(pcam_inst->inst_handle);
 	mutex_unlock(&pcam_inst->inst_lock);
 	mutex_destroy(&pcam_inst->inst_lock);
@@ -1032,16 +1013,6 @@ static int msm_mctl_v4l2_s_ctrl(struct file *f, void *pctx,
 				pcam_inst->plane_info.num_planes,
 				pcam_inst->plane_info.plane[0].size,
 				pcam_inst->plane_info.plane[1].size);
-	} else if (ctrl->id == MSM_V4L2_PID_AVTIMER){
-		pcam_inst->avtimerOn = ctrl->value;
-		D("%s: mmap_inst=(0x%p, %d) AVTimer=%d\n",
-			 __func__, pcam_inst, pcam_inst->my_index, ctrl->value);
-		/*Kernel drivers to access AVTimer*/
-		avcs_core_open();
-		/*Turn ON DSP/Disable power collapse*/
-		avcs_core_disable_power_collapse(1);
-		pcam_inst->p_avtimer_lsw = ioremap(AVTIMER_LSW_PHY_ADDR, 4);
-		pcam_inst->p_avtimer_msw = ioremap(AVTIMER_MSW_PHY_ADDR, 4);
 	} else
 		pr_err("%s Unsupported S_CTRL Value ", __func__);
 
@@ -1067,7 +1038,6 @@ static int msm_mctl_v4l2_reqbufs(struct file *f, void *pctx,
 		pmctl = msm_cam_server_get_mctl(pcam->mctl_handle);
 		if (pmctl == NULL) {
 			pr_err("%s Invalid mctl ptr", __func__);
-			mutex_unlock(&pcam_inst->inst_lock);
 			return -EINVAL;
 		}
 		pmctl->mctl_vbqueue_init(pcam_inst, &pcam_inst->vid_bufq,
@@ -1499,30 +1469,18 @@ static int msm_mctl_v4l2_s_parm(struct file *f, void *pctx,
 				struct v4l2_streamparm *a)
 {
 	int rc = 0;
-	int is_bayer_sensor = 0;
-	struct msm_cam_media_controller *pmctl = NULL;
 	struct msm_cam_v4l2_dev_inst *pcam_inst;
 	pcam_inst = container_of(f->private_data,
 		struct msm_cam_v4l2_dev_inst, eventHandle);
 	pcam_inst->image_mode = (a->parm.capture.extendedmode & 0x7F);
-
-	pmctl = msm_cam_server_get_mctl(pcam_inst->pcam->mctl_handle);
-	if (!pmctl) {
-		pr_err("%s: invalid mctl controller", __func__);
-		return -EINVAL;
-	}
-	/* save msm_dev node idx for subdev notify lookup */
-	SET_DEVID_MODE(pcam_inst->inst_handle, pmctl->pcam_ptr->vnode_id);
 	SET_IMG_MODE(pcam_inst->inst_handle, pcam_inst->image_mode);
 	SET_MCTLPP_INST_IDX(pcam_inst->inst_handle, pcam_inst->my_index);
 	pcam_inst->pcam->mctl_node.dev_inst_map[pcam_inst->image_mode] =
 		pcam_inst;
 	pcam_inst->path = msm_mctl_vidbuf_get_path(pcam_inst->image_mode);
-	if (pcam_inst->pcam->sdata->sensor_type == BAYER_SENSOR)
-		is_bayer_sensor = 1;
+
 	rc = msm_cam_server_config_interface_map(pcam_inst->image_mode,
-			pcam_inst->pcam->mctl_handle,
-			pcam_inst->pcam->vnode_id, is_bayer_sensor);
+			pcam_inst->pcam->mctl_handle);
 	D("%s path=%d, image mode = %d rc=%d\n", __func__,
 		pcam_inst->path, pcam_inst->image_mode, rc);
 	return rc;

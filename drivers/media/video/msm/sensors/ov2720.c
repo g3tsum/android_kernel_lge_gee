@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -705,7 +705,7 @@ static struct msm_sensor_exp_gain_info_t ov2720_exp_gain_info = {
 };
 
 static int32_t ov2720_write_exp_gain(struct msm_sensor_ctrl_t *s_ctrl,
-		uint16_t gain, uint32_t line, int32_t luma_avg, uint16_t fgain)
+		uint16_t gain, uint32_t line)
 {
 	uint32_t fl_lines, offset;
 	uint8_t int_time[3];

@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -63,21 +63,6 @@ enum msm_sensor_cam_mode_t {
 	MSM_SENSOR_MODE_INVALID
 };
 
-enum msm_camera_power_config_t {
-	REQUEST_GPIO,
-	ENABLE_GPIO,
-	REQUEST_VREG,
-	ENABLE_VREG,
-	CONFIG_CLK,
-	CONFIG_EXT_POWER_CTRL,
-	CONFIG_I2C_MUX,
-};
-
-struct msm_camera_power_seq_t {
-	enum msm_camera_power_config_t power_config;
-	uint32_t delay;
-};
-
 struct msm_sensor_output_reg_addr_t {
 	uint16_t x_output;
 	uint16_t y_output;
@@ -112,11 +97,6 @@ struct msm_sensor_reg_t {
 	struct msm_camera_i2c_conf_array *no_effect_settings;
 	struct msm_sensor_output_info_t *output_settings;
 	uint8_t num_conf;
-};
-
-enum msm_sensor_device_type_t {
-	MSM_SENSOR_I2C_DEVICE,
-	MSM_SENSOR_PLATFORM_DEVICE,
 };
 
 struct v4l2_subdev_info {
@@ -190,11 +170,6 @@ struct msm_sensor_ctrl_t {
 	struct msm_camera_i2c_client *sensor_i2c_client;
 	struct platform_device *pdev;
 	uint16_t sensor_i2c_addr;
-	enum msm_camera_vreg_name_t *vreg_seq;
-	int num_vreg_seq;
-	struct msm_camera_power_seq_t *power_seq;
-	int num_power_seq;
-	enum msm_sensor_device_type_t sensor_device_type;
 
 	struct msm_sensor_output_reg_addr_t *sensor_output_reg_addr;
 	struct msm_sensor_id_info_t *sensor_id_info;
@@ -229,12 +204,6 @@ struct msm_sensor_ctrl_t {
 	struct clk *cam_clk;
 	long clk_rate;
 	enum msm_sensor_state sensor_state;
-	/* Number of frames to delay after start / stop stream in Q10 format.
-	   Initialize to -1 for this value to be ignored */
-	int16_t wait_num_frames;
-
-	/* delay (in ms) after power up sequence */
-	uint16_t power_seq_delay;
 };
 
 void msm_sensor_start_stream(struct msm_sensor_ctrl_t *s_ctrl);

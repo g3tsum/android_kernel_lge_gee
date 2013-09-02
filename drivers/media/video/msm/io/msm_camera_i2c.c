@@ -34,13 +34,9 @@ int32_t msm_camera_i2c_rxdata(struct msm_camera_i2c_client *dev_client,
 			.buf   = rxdata,
 		},
 	};
-pr_info("XXXX: Entering %s\n",__func__);
 	rc = i2c_transfer(dev_client->client->adapter, msgs, 2);
 	if (rc < 0)
-{
-		pr_info("msm_camera_i2c_rxdata failed 0x%x\n", saddr);
 		S_I2C_DBG("msm_camera_i2c_rxdata failed 0x%x\n", saddr);
-}
 	return rc;
 }
 
@@ -430,14 +426,13 @@ int32_t msm_camera_i2c_read(struct msm_camera_i2c_client *client,
 {
 	int32_t rc = -EFAULT;
 	unsigned char buf[client->addr_type+data_type];
-pr_info("XXXX: Entering %s\n",__func__);
+
 	if ((client->addr_type != MSM_CAMERA_I2C_BYTE_ADDR
 		&& client->addr_type != MSM_CAMERA_I2C_WORD_ADDR)
 		|| (data_type != MSM_CAMERA_I2C_BYTE_DATA
 		&& data_type != MSM_CAMERA_I2C_WORD_DATA))
 		return rc;
 
-pr_info("XXXX: %s: %u\n",__func__,__LINE__);
 	if (client->cci_client) {
 		struct msm_camera_cci_ctrl cci_ctrl;
 		cci_ctrl.cmd = MSM_CCI_I2C_READ;
@@ -446,35 +441,29 @@ pr_info("XXXX: %s: %u\n",__func__,__LINE__);
 		cci_ctrl.cfg.cci_i2c_read_cfg.addr_type = client->addr_type;
 		cci_ctrl.cfg.cci_i2c_read_cfg.data = buf;
 		cci_ctrl.cfg.cci_i2c_read_cfg.num_byte = data_type;
-pr_info("XXXX: %s: %u\n",__func__,__LINE__);
 		rc = v4l2_subdev_call(client->cci_client->cci_subdev,
 				core, ioctl, VIDIOC_MSM_CCI_CFG, &cci_ctrl);
 		CDBG("%s line %d rc = %d\n", __func__, __LINE__, rc);
 		rc = cci_ctrl.status;
 	} else {
-pr_info("XXXX: %s: %u\n",__func__,__LINE__);
 		if (client->addr_type == MSM_CAMERA_I2C_BYTE_ADDR) {
 			buf[0] = addr;
 		} else if (client->addr_type == MSM_CAMERA_I2C_WORD_ADDR) {
-pr_info("XXXX: %s: %u\n",__func__,__LINE__);
 			buf[0] = addr >> BITS_PER_BYTE;
 			buf[1] = addr;
 		}
 		rc = msm_camera_i2c_rxdata(client, buf, data_type);
 		if (rc < 0) {
-pr_info("XXXX: %s: %u\n",__func__,__LINE__);
 			S_I2C_DBG("%s fail\n", __func__);
 			return rc;
 		}
 	}
-pr_info("XXXX: %s: %u\n",__func__,__LINE__);
 	if (data_type == MSM_CAMERA_I2C_BYTE_DATA)
 		*data = buf[0];
 	else
 		*data = buf[0] << 8 | buf[1];
 
 	S_I2C_DBG("%s addr = 0x%x data: 0x%x\n", __func__, addr, *data);
-pr_info("XXXX: %s: %u\n",__func__,__LINE__);
 	return rc;
 }
 

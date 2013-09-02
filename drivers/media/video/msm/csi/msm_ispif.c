@@ -323,7 +323,6 @@ static int msm_ispif_config(struct ispif_device *ispif,
 		msm_ispif_enable_intf_cids(ispif, intftype,
 			ispif_params[i].cid_mask, vfe_intf);
 	}
-	msm_camera_io_w(0x40, ispif->base + ISPIF_CTRL_ADDR);
 
 	msm_camera_io_w(ISPIF_IRQ_STATUS_MASK, ispif->base +
 					ISPIF_IRQ_MASK_ADDR);
@@ -743,14 +742,9 @@ static long msm_ispif_cmd(struct v4l2_subdev *sd, void *arg)
 static long msm_ispif_subdev_ioctl(struct v4l2_subdev *sd, unsigned int cmd,
 								void *arg)
 {
-	struct ispif_device *ispif;
 	switch (cmd) {
 	case VIDIOC_MSM_ISPIF_CFG:
 		return msm_ispif_cmd(sd, arg);
-	case VIDIOC_MSM_ISPIF_REL:
-		ispif =	(struct ispif_device *)v4l2_get_subdevdata(sd);
-		msm_ispif_release(ispif);
-		return 0;
 	default:
 		return -ENOIOCTLCMD;
 	}

@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -702,22 +702,17 @@ static int msm_camera_v4l2_s_parm(struct file *f, void *pctx,
 				struct v4l2_streamparm *a)
 {
 	int rc = 0;
-	int is_bayer_sensor = 0;
 	struct msm_cam_v4l2_dev_inst *pcam_inst;
 	pcam_inst = container_of(f->private_data,
 		struct msm_cam_v4l2_dev_inst, eventHandle);
 	pcam_inst->image_mode = (a->parm.capture.extendedmode & 0x7F);
-	SET_DEVID_MODE(pcam_inst->inst_handle, pcam_inst->pcam->vnode_id);
 	SET_IMG_MODE(pcam_inst->inst_handle, pcam_inst->image_mode);
 	SET_VIDEO_INST_IDX(pcam_inst->inst_handle, pcam_inst->my_index);
 	pcam_inst->pcam->dev_inst_map[pcam_inst->image_mode] = pcam_inst;
 	pcam_inst->path = msm_vidbuf_get_path(pcam_inst->image_mode);
-	if (pcam_inst->pcam->sdata->sensor_type == BAYER_SENSOR)
-		is_bayer_sensor = 1;
 	rc = msm_cam_server_config_interface_map(pcam_inst->image_mode,
-			pcam_inst->pcam->mctl_handle, pcam_inst->pcam->vnode_id,
-			is_bayer_sensor);
-	D("%s path=%d, rc=%d\n", __func__,
+			pcam_inst->pcam->mctl_handle);
+	D("%spath=%d,rc=%d\n", __func__,
 		pcam_inst->path, rc);
 	return rc;
 }
@@ -879,7 +874,6 @@ static int msm_open(struct file *f)
 		server_q_idx = msm_find_free_queue();
 		if (server_q_idx < 0)
 			return server_q_idx;
-
 		rc = msm_server_begin_session(pcam, server_q_idx);
 		if (rc < 0) {
 			pr_err("%s error starting server session ", __func__);
@@ -891,10 +885,8 @@ static int msm_open(struct file *f)
 			goto msm_cam_server_begin_session_failed;
 		}
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
-		if (!pmctl->client) {
-			pmctl->client = msm_ion_client_create(-1, "camera");
-			kref_init(&pmctl->refcount);
-		}
+		pmctl->client = msm_ion_client_create(-1, "camera");
+		kref_init(&pmctl->refcount);
 		ion_client_created = 1;
 #endif
 
