@@ -1649,7 +1649,7 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
   if (mfd->panel_info.type == MIPI_VIDEO_PANEL ||
       mfd->panel_info.type == MIPI_CMD_PANEL){
     msm_fb_open(mfd->fbi, 0);
-    if (load_888rle_image(INIT_IMAGE_FILE) < 0) /* Flip buffer */
+    if (load_888rle_image(INIT_IMAGE_FILE"888") < 0) /* Flip buffer */
       printk(KERN_WARNING "fail to load 888 rle image\n");
 
     msm_fb_set_backlight(mfd, 0);
