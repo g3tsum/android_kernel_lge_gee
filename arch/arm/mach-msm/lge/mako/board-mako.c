@@ -2086,16 +2086,14 @@ static void __init register_i2c_devices(void)
 {
 #ifdef CONFIG_MSM_CAMERA
 	struct i2c_registry apq8064_camera_i2c_devices = {
-		I2C_SURF | I2C_FFA | I2C_LIQUID | I2C_RUMI,
+		I2C_FFA,
 		APQ_8064_GSBI4_QUP_I2C_BUS_ID,
 		apq8064_camera_board_info.board_info,
 		apq8064_camera_board_info.num_i2c_board_info,
 	};
-/* [patch for Enabling flash LED for camera]
-  * 2012-03-14, jinsool.lee@lge.com
-  */
+	/* Enabling flash LED for camera */
 	struct i2c_registry apq8064_lge_camera_i2c_devices = {
-		I2C_SURF | I2C_FFA | I2C_RUMI | I2C_SIM | I2C_LIQUID | I2C_MPQ_CDP,
+		I2C_FFA,
 		APQ_8064_GSBI1_QUP_I2C_BUS_ID,
 		apq8064_lge_camera_board_info.board_info,
 		apq8064_lge_camera_board_info.num_i2c_board_info,
@@ -2107,20 +2105,18 @@ static void __init register_i2c_devices(void)
 	i2c_register_board_info(apq8064_camera_i2c_devices.bus,
 		apq8064_camera_i2c_devices.info,
 		apq8064_camera_i2c_devices.len);
-/* [patch for Enabling flash LED for camera]
-  * 2012-03-14, jinsool.lee@lge.com
-  */
 
-		i2c_register_board_info(apq8064_lge_camera_i2c_devices.bus,
-			apq8064_lge_camera_i2c_devices.info,
-			apq8064_lge_camera_i2c_devices.len);
+	/* Enabling flash LED for camera */
+	i2c_register_board_info(apq8064_lge_camera_i2c_devices.bus,
+		apq8064_lge_camera_i2c_devices.info,
+		apq8064_lge_camera_i2c_devices.len);
 #endif
 }
 
 static void __init apq8064_common_init(void)
 {
 	struct msm_rpmrs_level rpmrs_level;
-	
+
 	platform_device_register(&msm_gpio_device);
 	msm_tsens_early_init(&apq_tsens_pdata);
         msm_thermal_init(&msm_thermal_pdata);

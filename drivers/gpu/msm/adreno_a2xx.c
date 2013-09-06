@@ -1860,8 +1860,9 @@ static int a2xx_rb_init(struct adreno_device *adreno_dev,
 
 	/* ME_INIT */
 	cmds = adreno_ringbuffer_allocspace(rb, NULL, 19);
-	if (cmds == NULL)
-		return -ENOMEM;
+
+        /*  Prevent dereferencing NULL, KlocWork error */
+        BUG_ON(cmds == NULL);
 
 	cmds_gpu = rb->buffer_desc.gpuaddr + sizeof(uint)*(rb->wptr-19);
 

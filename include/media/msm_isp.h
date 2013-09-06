@@ -243,9 +243,9 @@
 #define VFE_CMD_RGB_ALL_UPDATE                          166
 
 struct msm_isp_cmd {
-	int32_t id;
+	int32_t  id;
 	uint16_t length;
-	void *value;
+	void     *value;
 };
 
 #define VPE_CMD_DUMMY_0                                 0
@@ -263,14 +263,14 @@ struct msm_isp_cmd {
 #define VPE_CMD_ZOOM                                    13
 #define VPE_CMD_MAX                                     14
 
-#define MSM_PP_CMD_TYPE_NOT_USED        0	/* not used */
-#define MSM_PP_CMD_TYPE_VPE             1	/* VPE cmd */
-#define MSM_PP_CMD_TYPE_MCTL            2	/* MCTL cmd */
+#define MSM_PP_CMD_TYPE_NOT_USED        0  /* not used */
+#define MSM_PP_CMD_TYPE_VPE             1  /* VPE cmd */
+#define MSM_PP_CMD_TYPE_MCTL            2  /* MCTL cmd */
 
-#define MCTL_CMD_DUMMY_0                0	/* not used */
-#define MCTL_CMD_GET_FRAME_BUFFER       1	/* reserve a free frame buffer */
-#define MCTL_CMD_PUT_FRAME_BUFFER       2	/* return the free frame buffer */
-#define MCTL_CMD_DIVERT_FRAME_PP_PATH   3	/* divert frame for pp */
+#define MCTL_CMD_DUMMY_0                0  /* not used */
+#define MCTL_CMD_GET_FRAME_BUFFER       1  /* reserve a free frame buffer */
+#define MCTL_CMD_PUT_FRAME_BUFFER       2  /* return the free frame buffer */
+#define MCTL_CMD_DIVERT_FRAME_PP_PATH   3  /* divert frame for pp */
 
 /* event typese sending to MCTL PP module */
 #define MCTL_PP_EVENT_NOTUSED           0
@@ -283,6 +283,7 @@ struct msm_isp_cmd {
 #define VPE_SCALER_CONFIG_LEN           260
 #define VPE_DIS_OFFSET_CFG_LEN          12
 
+
 #define CAPTURE_WIDTH          1280
 #define IMEM_Y_SIZE            (CAPTURE_WIDTH*16)
 #define IMEM_CBCR_SIZE         (CAPTURE_WIDTH*8)
@@ -292,6 +293,7 @@ struct msm_isp_cmd {
 
 #define IMEM_Y_PONG_OFFSET     (IMEM_CBCR_PING_OFFSET + IMEM_CBCR_SIZE)
 #define IMEM_CBCR_PONG_OFFSET  (IMEM_Y_PONG_OFFSET + IMEM_Y_SIZE)
+
 
 struct msm_vpe_op_mode_cfg {
 	uint8_t op_mode_cfg[VPE_OPERATION_MODE_CFG_LEN];
@@ -347,6 +349,7 @@ struct msm_vpe_clock_rate {
 #define VFE_OUTPUTS_THUMB_AND_JPEG      BIT(10)
 #define VFE_OUTPUTS_RDI0                BIT(11)
 #define VFE_OUTPUTS_RDI1                BIT(12)
+#define VFE_OUTPUTS_RDI2                BIT(13)
 
 #define	VFE_RDI_COMPOSITE				(1 << 0)
 #define	VFE_RDI_NON_COMPOSITE			(1 << 1)
@@ -360,3 +363,4 @@ struct msm_frame_info {
 };
 
 #endif /*__MSM_ISP_H__*/
+
