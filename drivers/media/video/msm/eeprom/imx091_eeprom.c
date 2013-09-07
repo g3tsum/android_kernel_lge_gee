@@ -48,22 +48,28 @@ static struct v4l2_subdev_ops imx091_eeprom_subdev_ops = {
 };
 
 uint8_t imx091_wbcalib_data[6];
-uint8_t imx091_afcalib_data[6];
+uint8_t imx091_afcalib_data[8]; //LGE
+/* LGE_CHANGE_S, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
+uint8_t imx091_af_defocus_data[11];
+/* LGE_CHANGE_E, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
 struct msm_calib_wb imx091_wb_data;
 struct msm_calib_af imx091_af_data;
 
 static struct msm_camera_eeprom_info_t imx091_calib_supp_info = {
-	{TRUE, 6, 1, 1},
+	{TRUE, 8, 4, 1}, //LGE af, need to change size, index, qvalue
 	{TRUE, 6, 0, 32768},
 	{FALSE, 0, 0, 1},
 	{FALSE, 0, 0, 1},
 };
 
 static struct msm_camera_eeprom_read_t imx091_eeprom_read_tbl[] = {
+	{0x703, &imx091_afcalib_data[0], 8, 1}, //LGE need to change addr, size
 	{0x05, &imx091_wbcalib_data[0], 6, 0},
-	{0x0B, &imx091_afcalib_data[0], 6, 0},
+/* LGE_CHANGE_S, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
+/* LGE_CHANGE_S, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
+	{0x850, &imx091_af_defocus_data[0], 11, 0}, //20120926, hyungmoo.huh@lge.com, for AF offset
+/* LGE_CHANGE_E, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
 };
-
 
 static struct msm_camera_eeprom_data_t imx091_eeprom_data_tbl[] = {
 	{&imx091_wb_data, sizeof(struct msm_calib_wb)},
@@ -97,11 +103,13 @@ void imx091_format_calibrationdata(void)
 }
 static struct msm_eeprom_ctrl_t imx091_eeprom_t = {
 	.i2c_driver = &imx091_eeprom_i2c_driver,
-	.i2c_addr = 0xA1,
+	.i2c_addr = 0xA6, //LGE_Update yt.jeon@lge.com eeprom i2c address 20120702
 	.eeprom_v4l2_subdev_ops = &imx091_eeprom_subdev_ops,
 
 	.i2c_client = {
-		.addr_type = MSM_CAMERA_I2C_BYTE_ADDR,
+	// Start LGE_BSP_CAMERA::seongjo.kim@lge.com 2012-07-20 Apply AF calibration data
+		.addr_type = MSM_CAMERA_I2C_WORD_ADDR,
+	// End LGE_BSP_CAMERA::seongjo.kim@lge.com 2012-07-20 Apply AF calibration data
 	},
 
 	.eeprom_mutex = &imx091_eeprom_mutex,

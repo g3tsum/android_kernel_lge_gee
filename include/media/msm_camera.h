@@ -1561,6 +1561,9 @@ struct msm_actuator_move_params_t
   int8_t sign_dir;
   int16_t dest_step_pos;
   int32_t num_steps;
+/* LGE_CHANGE_S, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
+	int32_t af_status;
+/* LGE_CHANGE_E, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
   struct damping_params_t *ringing_params;
 };
 
