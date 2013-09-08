@@ -14,18 +14,20 @@
 #include "msm_actuator.h"
 
 
+#ifdef CONFIG_SEKONIX_LENS_ACT
 #define CHECK_ACT_WRITE_COUNT
 #define ACT_STOP_POS            10
 #define ACT_MIN_MOVE_RANGE      200
 #define ACT_POSTURE_MARGIN      100
 extern uint8_t imx111_afcalib_data[4];
-
+#else
 /* modification qct's af calibration routines */
 #define ACTUATOR_EEPROM_SADDR                (0x50 >> 1)
 #define ACTUATOR_START_ADDR                  0x06
 #define ACTUATOR_MACRO_ADDR                  0x08
 #define ACTUATOR_MARGIN                      30
 #define ACTUATOR_MIN_MOVE_RANGE              200 // TBD
+#endif
 
 static struct msm_actuator_ctrl_t msm_actuator_t;
 static struct msm_actuator msm_vcm_actuator_table;
@@ -662,6 +664,7 @@ static int32_t msm_actuator_set_default_focus(
 static int32_t msm_actuator_power_down(struct msm_actuator_ctrl_t *a_ctrl)
 {
 	int32_t rc = 0;
+#ifdef CONFIG_SEKONIX_LENS_ACT
 	int cur_pos = a_ctrl->curr_step_pos;
 	struct msm_actuator_move_params_t move_params;
 
@@ -672,6 +675,7 @@ static int32_t msm_actuator_power_down(struct msm_actuator_ctrl_t *a_ctrl)
 				a_ctrl, &move_params);
 		msleep(300);
 	}
+#endif
 
 	if (a_ctrl->vcm_enable) {
 		rc = gpio_direction_output(a_ctrl->vcm_pwd, 0);
