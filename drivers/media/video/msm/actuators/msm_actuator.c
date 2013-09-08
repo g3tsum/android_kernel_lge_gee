@@ -18,14 +18,7 @@
 #define ACT_STOP_POS            10
 #define ACT_MIN_MOVE_RANGE      200
 #define ACT_POSTURE_MARGIN      100
-#ifdef CONFIG_SEKONIX_LENS_ACT
 extern uint8_t imx111_afcalib_data[4];
-#endif 
-
-#ifdef CONFIG_IMX091
-extern uint8_t imx091_afcalib_data[8];
-extern uint8_t imx091_af_defocus_data[11];
-#endif
 
 /* modification qct's af calibration routines */
 #define ACTUATOR_EEPROM_SADDR                (0x50 >> 1)
@@ -172,10 +165,6 @@ static int32_t msm_actuator_write_focus(
 	int16_t next_lens_pos = 0;
 	uint16_t damping_code_step = 0;
 	uint16_t wait_time = 0;
-/* LGE_CHANGE_S, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
-    uint16_t AF_offset_direction=0;
-	uint16_t AF_offset = 0;
-/* LGE_CHANGE_E, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
 
 	damping_code_step = damping_params->damping_step;
 	wait_time = damping_params->damping_delay;
@@ -217,36 +206,6 @@ static int32_t msm_actuator_write_focus(
 		}
 		curr_lens_pos = next_lens_pos;
 	}
-
-// Start LGE_BSP_CAMERA::seongjo.kim@lge.com 2013-01-05 Rearrange too many log & unused code
-/* LGE_CHANGE_S, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
-			//printk("#### code_boundary : %d, a_ctrl->af_status = %d ####\n", code_boundary, a_ctrl->af_status);
-			if((a_ctrl->af_status==6)  && (a_ctrl->AF_defocus_enable==1))  //af_status : 6 = Last AF
-			{
-				AF_offset_direction = 0x8000 & ( a_ctrl->AF_LG_defocus_offset);
-				AF_offset = 0x7FFF & ( a_ctrl->AF_LG_defocus_offset);
-
-				if (0x8000==AF_offset_direction)
-				{
-					AF_offset = ~(AF_offset |0x8000) + 1;
-
-					if (AF_offset > 30)
-						AF_offset =0;
-
-					code_boundary = code_boundary -AF_offset;
-				}
-				else
-				{
-					if (AF_offset > 30)
-						AF_offset =0;
-					code_boundary = code_boundary + AF_offset;
-
-				}
-
-				printk("#### Last AF 1, code : %d, offset : %d !!! ####\n", code_boundary, a_ctrl->AF_LG_defocus_offset);
-			}
-			//printk("#### %s : code_boundary = %d, state = %d ####\n",__func__, code_boundary, a_ctrl->af_status);
-/* LGE_CHANGE_E, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
 
 	if (curr_lens_pos != code_boundary) {
 		rc = a_ctrl->func_tbl->
@@ -316,8 +275,6 @@ static int32_t msm_actuator_move_focus(
 		return -EINVAL;
 	}
 
-a_ctrl->af_status = move_params->af_status;
-
 	if (dest_step_pos == a_ctrl->curr_step_pos)
 		return rc;
 
@@ -361,7 +318,6 @@ a_ctrl->af_status = move_params->af_status;
 				return rc;
 			}
 			curr_lens_pos = target_lens_pos;
-count_actuator_write ++;
 
 #ifdef CHECK_ACT_WRITE_COUNT
 			count_actuator_write ++;
@@ -403,11 +359,6 @@ count_actuator_write ++;
 #endif
 		}
 		a_ctrl->curr_step_pos = target_step_pos;
-		if (count_actuator_write > 2)
-		{
-		   printk("[ERROR][%s] count_actuator_write = %d ---> break\n",__func__,count_actuator_write);
-		   break;
-	    }
 	}
 
 	rc = msm_camera_i2c_write_table_w_microdelay(&a_ctrl->i2c_client,
@@ -481,15 +432,11 @@ static int32_t msm_actuator_init_default_step_table(struct msm_actuator_ctrl_t *
 			}
 		}
 	}
-	// Start LGE_BSP_CAMERA::seongjo.kim@lge.com 2012-07-20 Apply AF calibration data
-	printk("[AF] Actuator Calibration table: not apply calibration data ==============\n");
-	for (step_index = 0; step_index < set_info->af_tuning_params.total_steps; step_index++)
-		printk("[AF] step_position_table[%d]= %d\n",step_index,
-		a_ctrl->step_position_table[step_index]);
-	// End LGE_BSP_CAMERA::seongjo.kim@lge.com 2012-07-20 Apply AF calibration data
+
 	return rc;
 }
 
+#ifdef CONFIG_SEKONIX_LENS_ACT
 int32_t msm_actuator_init_step_table_use_eeprom(struct msm_actuator_ctrl_t *a_ctrl,
 	struct msm_actuator_set_info_t *set_info)
 {
@@ -516,46 +463,11 @@ int32_t msm_actuator_init_step_table_use_eeprom(struct msm_actuator_ctrl_t *a_ct
 		a_ctrl->step_position_table = NULL;
 	}
 
-	#if defined(CONFIG_IMX091)
-	act_start = (uint16_t)(imx091_afcalib_data[1] << 8) |
-			imx091_afcalib_data[0];
-	act_macro = (uint16_t)(imx091_afcalib_data[3] << 8) |
-			imx091_afcalib_data[2];
-	printk("[QCTK_EEPROM][IMX091] %s: act_start = %d\n",__func__,act_start);
-	printk("[QCTK_EEPROM][IMX091] %s: act_macro = %d\n",__func__,act_macro);
-/* LGE_CHANGE_S, AF offset enable, 2012-09-28, sungmin.woo@lge.com */
-    printk("####  imx091_af_defocus_data 0 = %x ####\n",imx091_af_defocus_data[0]);
-    printk("####  imx091_af_defocus_data 1 = %x ####\n",imx091_af_defocus_data[1]);
-    printk("####  imx091_af_defocus_data 2 = %x ####\n",imx091_af_defocus_data[2]);
-    printk("####  imx091_af_defocus_data 3 = %x ####\n",imx091_af_defocus_data[3]);
-    printk("####  imx091_af_defocus_data 4 = %x ####\n",imx091_af_defocus_data[4]);
-    printk("####  imx091_af_defocus_data 5 = %x ####\n",imx091_af_defocus_data[5]);
-    printk("####  imx091_af_defocus_data 6 = %x ####\n",imx091_af_defocus_data[6]);
-
-
-    a_ctrl->AF_defocus_enable = (uint8_t) imx091_af_defocus_data[0];
-    a_ctrl->AF_center_best_code = (uint16_t) (imx091_af_defocus_data[1] << 8) |imx091_af_defocus_data[2];
-    a_ctrl->AF_balance_best_code = (uint16_t) (imx091_af_defocus_data[3] << 8) |imx091_af_defocus_data[4];
-    a_ctrl->AF_defocus_offset = (uint16_t) (imx091_af_defocus_data[5] << 8) |imx091_af_defocus_data[6];
-	a_ctrl->AF_LG_center_best_code = (uint16_t) (imx091_af_defocus_data[7] << 8) |imx091_af_defocus_data[8];
-    a_ctrl->AF_LG_defocus_offset = (uint16_t) (imx091_af_defocus_data[9] << 8) |imx091_af_defocus_data[10];
-    printk("####  AF_defocus_enable = %d ####\n",a_ctrl->AF_defocus_enable);
-    printk("####  AF_center_best_code = %d ####\n",a_ctrl->AF_center_best_code);
-    printk("####  AF_balance_best_code = %d ####\n",a_ctrl->AF_balance_best_code);
-    printk("####  AF_defocus_offset = %d ####\n",a_ctrl->AF_defocus_offset);
-	printk("####  AF_LG_center_best_code = %d ####\n",a_ctrl->AF_LG_center_best_code);
-    printk("####  AF_LG_defocus_offset = %d ####\n",a_ctrl->AF_LG_defocus_offset);
-#endif
-
-#ifdef SEKONIX_LENS_ACT
 	// set act_start, act_macro
 	act_start = (uint16_t)(imx111_afcalib_data[1] << 8) |
 			imx111_afcalib_data[0];
 	act_macro = ((uint16_t)(imx111_afcalib_data[3] << 8) |
 			imx111_afcalib_data[2])+20;
-	printk("[QCTK_EEPROM][IMX111] %s: act_start = %d\n",__func__,act_start);
-	printk("[QCTK_EEPROM][IMX111] %s: act_macro = %d\n",__func__,act_macro);
-#endif
 	/* Fill step position table */
 	a_ctrl->step_position_table =
 		kmalloc(sizeof(uint16_t) *
@@ -590,22 +502,13 @@ int32_t msm_actuator_init_step_table_use_eeprom(struct msm_actuator_ctrl_t *a_ct
 		a_ctrl->step_position_table[step_index]);
 	return rc;
 
-/* LGE_CHANGE_S, revert to original, 2012-04-27, sungmin.woo@lge.com */
-	printk("Actuator Clibration table: start(%d),macro(%d) ==============\n",
-	act_start, act_macro);
-
-	for (step_index = 0; step_index < a_ctrl->total_steps; step_index++)
-		printk("step_position_table[%d]= %d\n",step_index,
-		a_ctrl->step_position_table[step_index]);
-/* LGE_CHANGE_E, revert to original, 2012-04-27, sungmin.woo@lge.com */
-	return rc;
-
 act_cal_fail:
 	pr_err("%s: calibration to default value not using eeprom data\n", __func__);
 	rc = msm_actuator_init_default_step_table(a_ctrl, set_info);
 	return rc;
 }
 
+#else
 /* add AF calibration parameters */
 int32_t msm_actuator_i2c_read_b_eeprom(struct msm_camera_i2c_client *dev_client,
             unsigned char saddr, unsigned char *rxdata)
@@ -631,6 +534,116 @@ int32_t msm_actuator_i2c_read_b_eeprom(struct msm_camera_i2c_client *dev_client,
 		CDBG("msm_actuator_i2c_read_b_eeprom failed 0x%x\n", saddr);
 	return rc;
 }
+
+static int32_t msm_actuator_init_step_table(struct msm_actuator_ctrl_t *a_ctrl,
+            struct msm_actuator_set_info_t *set_info)
+{
+	int32_t rc = 0;
+	int16_t cur_code = 0;
+	int16_t step_index = 0;
+	uint32_t max_code_size = 1;
+	uint16_t data_size = set_info->actuator_params.data_size;
+
+	uint16_t act_start = 0, act_macro = 0, move_range = 0;
+	unsigned char buf;
+
+	CDBG("%s called\n", __func__);
+
+	if (set_info->af_tuning_params.total_steps < 1) {
+		pr_err("%s: total_steps is too small (%d)\n", __func__,
+				set_info->af_tuning_params.total_steps);
+		return -EINVAL;
+	}
+
+	// read from eeprom
+	buf = ACTUATOR_START_ADDR;
+	rc = msm_actuator_i2c_read_b_eeprom(&a_ctrl->i2c_client,
+		ACTUATOR_EEPROM_SADDR, &buf);
+	if (rc < 0)
+		goto act_cal_fail;
+
+	act_start = (buf << 8) & 0xFF00;
+
+	buf = ACTUATOR_START_ADDR + 1;
+	rc = msm_actuator_i2c_read_b_eeprom(&a_ctrl->i2c_client,
+		ACTUATOR_EEPROM_SADDR, &buf);
+
+	if (rc < 0)
+		goto act_cal_fail;
+
+	act_start |= buf & 0xFF;
+	CDBG("%s: act_start = 0x%4x\n", __func__, act_start);
+
+	buf = ACTUATOR_MACRO_ADDR;
+	rc = msm_actuator_i2c_read_b_eeprom(&a_ctrl->i2c_client,
+		ACTUATOR_EEPROM_SADDR, &buf);
+
+	if (rc < 0)
+		goto act_cal_fail;
+
+	act_macro = (buf << 8) & 0xFF00;
+
+	buf = ACTUATOR_MACRO_ADDR + 1;
+	rc = msm_actuator_i2c_read_b_eeprom(&a_ctrl->i2c_client,
+		ACTUATOR_EEPROM_SADDR, &buf);
+
+	if (rc < 0)
+		goto act_cal_fail;
+
+	act_macro |= buf & 0xFF;
+	CDBG("%s: act_macro = 0x%4x\n", __func__, act_macro);
+
+
+	for (; data_size > 0; data_size--)
+		max_code_size *= 2;
+
+	if (a_ctrl->step_position_table) {
+		kfree(a_ctrl->step_position_table);
+		a_ctrl->step_position_table = NULL;
+	}
+
+	/* Fill step position table */
+	a_ctrl->step_position_table =
+		kmalloc(sizeof(uint16_t) *
+		(set_info->af_tuning_params.total_steps + 1), GFP_KERNEL);
+
+	if (a_ctrl->step_position_table == NULL)
+		return -EFAULT;
+
+	//intial code
+	cur_code = set_info->af_tuning_params.initial_code;
+	a_ctrl->step_position_table[0] = a_ctrl->initial_code;
+
+	// start code - by calibration data
+	if (act_start > ACTUATOR_MARGIN)
+		a_ctrl->step_position_table[1] = act_start - ACTUATOR_MARGIN;
+	else
+		a_ctrl->step_position_table[1] = act_start;
+
+	move_range = act_macro - a_ctrl->step_position_table[1];
+	CDBG("%s: move_range = %d\n", __func__, move_range);
+
+	if (move_range < ACTUATOR_MIN_MOVE_RANGE)
+		goto act_cal_fail;
+
+	for (step_index = 2;step_index < set_info->af_tuning_params.total_steps;step_index++) {
+		a_ctrl->step_position_table[step_index]
+			= ((step_index - 1) * move_range + ((set_info->af_tuning_params.total_steps - 1) >> 1))
+			/ (set_info->af_tuning_params.total_steps - 1) + a_ctrl->step_position_table[1];
+	}
+
+	a_ctrl->curr_step_pos = 0;
+	a_ctrl->curr_region_index = 0;
+
+	return rc;
+
+act_cal_fail:
+	pr_err("%s:  act_cal_fail, call default_step_table\n", __func__);
+	rc = msm_actuator_init_default_step_table(a_ctrl, set_info);
+	return rc;
+}
+
+#endif
 
 static int32_t msm_actuator_set_default_focus(
 	struct msm_actuator_ctrl_t *a_ctrl,
@@ -948,7 +961,11 @@ static struct msm_actuator_ctrl_t msm_actuator_t = {
 static struct msm_actuator msm_vcm_actuator_table = {
 	.act_type = ACTUATOR_VCM,
 	.func_tbl = {
+#ifdef CONFIG_SEKONIX_LENS_ACT
 	.actuator_init_step_table = msm_actuator_init_step_table_use_eeprom,
+#else
+	.actuator_init_step_table = msm_actuator_init_step_table,
+#endif
 	.actuator_move_focus = msm_actuator_move_focus,
 	.actuator_write_focus = msm_actuator_write_focus,
 	.actuator_set_default_focus = msm_actuator_set_default_focus,
