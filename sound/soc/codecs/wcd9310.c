@@ -1167,7 +1167,7 @@ static const struct soc_enum cf_rxmix6_enum =
 static const struct soc_enum cf_rxmix7_enum =
 	SOC_ENUM_SINGLE(TABLA_A_CDC_RX7_B4_CTL, 1, 3, cf_text);
 
-static const struct snd_kcontrol_new tabla_snd_controls[] = {
+static struct snd_kcontrol_new tabla_snd_controls[] = {
 
 	SOC_ENUM_EXT("EAR PA Gain", tabla_ear_pa_gain_enum[0],
 		tabla_pa_gain_get, tabla_pa_gain_put),
@@ -2364,31 +2364,17 @@ static int tabla_codec_enable_dmic(struct snd_soc_dapm_widget *w,
 	case SND_SOC_DAPM_PRE_PMU:
 
 		(*dmic_clk_cnt)++;
-		if (*dmic_clk_cnt == 1) {
-			snd_soc_update_bits(codec,
-					TABLA_A_CDC_DMIC_CLK0_MODE, 0x7, 0x0);
-			snd_soc_update_bits(codec,
-					TABLA_A_CDC_DMIC_CLK1_MODE, 0x7, 0x0);
-			snd_soc_update_bits(codec,
-					TABLA_A_CDC_DMIC_CLK2_MODE, 0x7, 0x0);
+		if (*dmic_clk_cnt == 1)
 			snd_soc_update_bits(codec, TABLA_A_CDC_CLK_DMIC_CTL,
 					dmic_clk_en, dmic_clk_en);
-		}
 
 		break;
 	case SND_SOC_DAPM_POST_PMD:
 
 		(*dmic_clk_cnt)--;
-		if (*dmic_clk_cnt  == 0) {
+		if (*dmic_clk_cnt  == 0)
 			snd_soc_update_bits(codec, TABLA_A_CDC_CLK_DMIC_CTL,
 					dmic_clk_en, 0);
-			snd_soc_update_bits(codec,
-					TABLA_A_CDC_DMIC_CLK0_MODE, 0x7, 0x4);
-			snd_soc_update_bits(codec,
-					TABLA_A_CDC_DMIC_CLK1_MODE, 0x7, 0x4);
-			snd_soc_update_bits(codec,
-					TABLA_A_CDC_DMIC_CLK2_MODE, 0x7, 0x4);
-		}
 		break;
 	}
 	return 0;
@@ -2945,7 +2931,6 @@ static int tabla_codec_enable_dec(struct snd_soc_dapm_widget *w,
 				  snd_soc_read(codec,
 				  tx_digital_gain_reg[w->shift + offset])
 				  );
-
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
@@ -3963,6 +3948,7 @@ static int tabla_readable(struct snd_soc_codec *ssc, unsigned int reg)
 
 	return tabla_reg_readable[reg];
 }
+
 static bool tabla_is_digital_gain_register(unsigned int reg)
 {
 	bool rtn = false;
@@ -4031,7 +4017,10 @@ static int tabla_volatile(struct snd_soc_codec *ssc, unsigned int reg)
 }
 
 #define TABLA_FORMATS (SNDRV_PCM_FMTBIT_S16_LE)
-static int tabla_write(struct snd_soc_codec *codec, unsigned int reg,
+#ifndef CONFIG_SOUND_CONTROL_HAX_GPL
+static
+#endif
+int tabla_write(struct snd_soc_codec *codec, unsigned int reg,
 	unsigned int value)
 {
 	int ret;
@@ -4046,7 +4035,14 @@ static int tabla_write(struct snd_soc_codec *codec, unsigned int reg,
 
 	return wcd9xxx_reg_write(codec->control_data, reg, value);
 }
-static unsigned int tabla_read(struct snd_soc_codec *codec,
+#ifdef CONFIG_SOUND_CONTROL_HAX_GPL
+EXPORT_SYMBOL(tabla_write);
+#endif
+
+#ifndef CONFIG_SOUND_CONTROL_HAX_GPL
+static
+#endif
+unsigned int tabla_read(struct snd_soc_codec *codec,
 				unsigned int reg)
 {
 	unsigned int val;
@@ -4067,6 +4063,9 @@ static unsigned int tabla_read(struct snd_soc_codec *codec,
 	val = wcd9xxx_reg_read(codec->control_data, reg);
 	return val;
 }
+#ifdef CONFIG_SOUND_CONTROL_HAX_GPL
+EXPORT_SYMBOL(tabla_read);
+#endif
 
 static s16 tabla_get_current_v_ins(struct tabla_priv *tabla, bool hu)
 {
@@ -8363,13 +8362,6 @@ static void tabla_codec_init_reg(struct snd_soc_codec *codec)
 				      tabla_2_higher_codec_reg_init_val[i].mask,
 				      tabla_2_higher_codec_reg_init_val[i].val);
 	}
-	snd_soc_update_bits(codec, TABLA_A_CDC_DMIC_CLK0_MODE, 0x7, 0x4);
-	snd_soc_update_bits(codec, TABLA_A_CDC_DMIC_CLK1_MODE, 0x7, 0x4);
-	snd_soc_update_bits(codec, TABLA_A_CDC_DMIC_CLK2_MODE, 0x7, 0x4);
-	snd_soc_update_bits(codec, TABLA_A_PIN_CTL_OE0, 0x90, 0x90);
-	snd_soc_update_bits(codec, TABLA_A_PIN_CTL_OE1, 0x8, 0x8);
-	snd_soc_update_bits(codec, TABLA_A_PIN_CTL_DATA0, 0x90, 0x0);
-	snd_soc_update_bits(codec, TABLA_A_PIN_CTL_DATA1, 0x8, 0x0);
 }
 
 static void tabla_update_reg_address(struct tabla_priv *priv)
@@ -8502,6 +8494,57 @@ static const struct file_operations codec_mbhc_debug_ops = {
 };
 #endif
 
+#ifdef CONFIG_SOUND_CONTROL_HAX_GPL
+struct snd_kcontrol_new *gpl_faux_snd_controls_ptr =
+		(struct snd_kcontrol_new *)tabla_snd_controls;
+struct snd_soc_codec *fauxsound_codec_ptr;
+EXPORT_SYMBOL(fauxsound_codec_ptr);
+#endif
+
+#ifdef CONFIG_SOUND_CONTROL
+
+#define HEADSET_MAX_DEFAULT 12
+#define HEADSET_MIN_DEFAULT 0
+#define HEADPHONES_MAX_DEFAULT 40
+#define HEADPHONES_MIN_DEFAULT -84
+
+struct snd_kcontrol_new *kcontrol = (struct snd_kcontrol_new *) tabla_snd_controls;
+struct soc_mixer_control *left_mixer, *right_mixer, *left_headset_mixer, *right_headset_mixer;
+
+void update_headphones_volume_boost(int vol_boost)
+{
+	left_mixer = (struct soc_mixer_control *) kcontrol[8].private_value;
+	right_mixer = (struct soc_mixer_control *) kcontrol[9].private_value;
+
+	left_mixer->platform_max = HEADPHONES_MAX_DEFAULT + vol_boost;
+	left_mixer->max = HEADPHONES_MAX_DEFAULT + vol_boost;
+	left_mixer->min = HEADPHONES_MIN_DEFAULT + vol_boost;
+	pr_info("Left headphone max: %d - Left headphone min: %d\n", left_mixer->max, left_mixer->min);
+
+	right_mixer->platform_max = HEADPHONES_MAX_DEFAULT + vol_boost;
+	right_mixer->max = HEADPHONES_MAX_DEFAULT  + vol_boost;
+	right_mixer->min = HEADPHONES_MIN_DEFAULT + vol_boost;
+	pr_info("Right headphone max: %d - Right headphone min: %d\n", right_mixer->max, right_mixer->min);
+}
+
+void update_headset_volume_boost(int vol_boost)
+{
+	left_headset_mixer = (struct soc_mixer_control *) kcontrol[6].private_value;
+	right_headset_mixer = (struct soc_mixer_control *) kcontrol[7].private_value;
+
+	right_headset_mixer->platform_max = HEADSET_MAX_DEFAULT + vol_boost;
+	right_headset_mixer->max = HEADSET_MAX_DEFAULT + vol_boost;
+	right_headset_mixer->min = HEADSET_MIN_DEFAULT + vol_boost;
+	pr_info("Right headset max: %d - Right headset min: %d\n", right_headset_mixer->max, right_headset_mixer->min);
+
+	left_headset_mixer->platform_max = HEADSET_MAX_DEFAULT + vol_boost;
+	left_headset_mixer->max = HEADSET_MAX_DEFAULT + vol_boost;
+	left_headset_mixer->min = HEADSET_MIN_DEFAULT + vol_boost;
+	pr_info("Left headset max: %d - Left headset min: %d\n", left_headset_mixer->max, left_headset_mixer->min);
+}
+#endif
+
+
 static int tabla_codec_probe(struct snd_soc_codec *codec)
 {
 	struct wcd9xxx *control;
@@ -8511,10 +8554,16 @@ static int tabla_codec_probe(struct snd_soc_codec *codec)
 	int i;
 	int ch_cnt;
 
+#ifdef CONFIG_SOUND_CONTROL_HAX_GPL
+	pr_info("tabla codec probe...\n");
+	fauxsound_codec_ptr = codec;
+#endif
+
 	codec->control_data = dev_get_drvdata(codec->dev->parent);
 	control = codec->control_data;
 
 	tabla = kzalloc(sizeof(struct tabla_priv), GFP_KERNEL);
+
 	if (!tabla) {
 		dev_err(codec->dev, "Failed to allocate private data\n");
 		return -ENOMEM;

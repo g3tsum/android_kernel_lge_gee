@@ -1,0 +1,2452 @@
+./board-8064.c:		.desc           = "cam_focus_key",
+./board-8064.c:		.desc           = "cam_snap_key",
+./board-8064.c:	struct i2c_registry apq8064_camera_i2c_devices = {
+./board-8064.c:		apq8064_camera_board_info.board_info,
+./board-8064.c:		apq8064_camera_board_info.num_i2c_board_info,
+./board-8064.c:	if (apq8064_camera_i2c_devices.machs & mach_mask)
+./board-8064.c:		i2c_register_board_info(apq8064_camera_i2c_devices.bus,
+./board-8064.c:			apq8064_camera_i2c_devices.info,
+./board-8064.c:			apq8064_camera_i2c_devices.len);
+./board-8064.c:	apq8064_init_cam();
+./devices-msm7x01a.c:static struct platform_device msm_camera_device = {
+./devices-msm7x01a.c:	.name	= "msm_camera",
+./devices-msm7x01a.c:void __init msm_camera_register_device(void *res, uint32_t num,
+./devices-msm7x01a.c:	msm_camera_device.num_resources = num;
+./devices-msm7x01a.c:	msm_camera_device.resource = res;
+./devices-msm7x01a.c:	msm_register_device(&msm_camera_device, data);
+./bam_dmux.c:	 * chances are it already came in and this will just fall through
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-001a"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0010"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0048"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-006c"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0034"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0020"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-001a"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0010"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0048"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-006c"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0034"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0020"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-001a"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0010"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0048"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-006c"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0034"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0020"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-001a"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-0010"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-0048"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-006c"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-0034"),
+./board-8064-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-0020"),
+./board-8930.h:extern struct msm_camera_board_info msm8930_camera_board_info;
+./board-8930.h:void msm8930_init_cam(void);
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",		"4-001a"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",		"4-006c"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",		"4-0048"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",		"4-001a"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",		"4-006c"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0048"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",            "4-0020"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",             "4-0020"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",		"8-001a"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",		"8-006c"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",		"8-0048"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",		"8-0020"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",		"8-0036"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vana",		"8-0010"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",		"8-001a"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",		"8-006c"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",		"8-0048"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",		"8-0020"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",		"8-0036"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vaf",		"8-0010"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"4-001a"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"4-006c"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0048"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0020"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"8-001a"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"8-006c"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"8-0048"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"8-0020"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"8-0036"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vdig",		"8-0010"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"4-001a"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"4-006c"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"4-0048"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"4-0020"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"8-001a"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"8-006c"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"8-0048"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"8-0020"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"8-0036"),
+./board-8930-regulator-pm8038.c:	REGULATOR_SUPPLY("cam_vio",		"8-0010"),
+./clock-8974.c:static struct clk_freq_tbl ftbl_camss_csi0_3_clk[] = {
+./clock-8974.c:	.freq_tbl = ftbl_camss_csi0_3_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_csi0_3_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_csi0_3_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_csi0_3_clk,
+./clock-8974.c:static struct clk_freq_tbl ftbl_camss_vfe_vfe0_1_clk[] = {
+./clock-8974.c:	.freq_tbl = ftbl_camss_vfe_vfe0_1_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_vfe_vfe0_1_clk,
+./clock-8974.c:static struct clk_freq_tbl ftbl_camss_cci_cci_clk[] = {
+./clock-8974.c:	.freq_tbl = ftbl_camss_cci_cci_clk,
+./clock-8974.c:static struct clk_freq_tbl ftbl_camss_gp0_1_clk[] = {
+./clock-8974.c:	.freq_tbl = ftbl_camss_gp0_1_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_gp0_1_clk,
+./clock-8974.c:static struct clk_freq_tbl ftbl_camss_jpeg_jpeg0_2_clk[] = {
+./clock-8974.c:	.freq_tbl = ftbl_camss_jpeg_jpeg0_2_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_jpeg_jpeg0_2_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_jpeg_jpeg0_2_clk,
+./clock-8974.c:static struct clk_freq_tbl ftbl_camss_mclk0_3_clk[] = {
+./clock-8974.c:	.freq_tbl = ftbl_camss_mclk0_3_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_mclk0_3_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_mclk0_3_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_mclk0_3_clk,
+./clock-8974.c:static struct clk_freq_tbl ftbl_camss_phy0_2_csi0_2phytimer_clk[] = {
+./clock-8974.c:	.freq_tbl = ftbl_camss_phy0_2_csi0_2phytimer_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_phy0_2_csi0_2phytimer_clk,
+./clock-8974.c:	.freq_tbl = ftbl_camss_phy0_2_csi0_2phytimer_clk,
+./clock-8974.c:static struct clk_freq_tbl ftbl_camss_vfe_cpp_clk[] = {
+./clock-8974.c:	.freq_tbl = ftbl_camss_vfe_cpp_clk,
+./clock-8974.c:static struct branch_clk camss_cci_cci_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_cci_cci_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_cci_cci_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_cci_cci_clk = {
+./clock-8974.c:		.dbg_name = "camss_cci_cci_clk",
+./clock-8974.c:		CLK_INIT(camss_cci_cci_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi0_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi0_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_csi0_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi0_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi0_clk",
+./clock-8974.c:		CLK_INIT(camss_csi0_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi0phy_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi0phy_clk",
+./clock-8974.c:		CLK_INIT(camss_csi0phy_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi0pix_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi0pix_clk",
+./clock-8974.c:		CLK_INIT(camss_csi0pix_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi0rdi_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi0rdi_clk",
+./clock-8974.c:		CLK_INIT(camss_csi0rdi_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi1_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi1_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_csi1_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi1_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi1_clk",
+./clock-8974.c:		CLK_INIT(camss_csi1_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi1phy_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi1phy_clk",
+./clock-8974.c:		CLK_INIT(camss_csi1phy_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi1pix_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi1pix_clk",
+./clock-8974.c:		CLK_INIT(camss_csi1pix_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi1rdi_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi1rdi_clk",
+./clock-8974.c:		CLK_INIT(camss_csi1rdi_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi2_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi2_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_csi2_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi2_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi2_clk",
+./clock-8974.c:		CLK_INIT(camss_csi2_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi2phy_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi2phy_clk",
+./clock-8974.c:		CLK_INIT(camss_csi2phy_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi2pix_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi2pix_clk",
+./clock-8974.c:		CLK_INIT(camss_csi2pix_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi2rdi_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi2rdi_clk",
+./clock-8974.c:		CLK_INIT(camss_csi2rdi_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi3_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi3_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_csi3_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi3_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi3_clk",
+./clock-8974.c:		CLK_INIT(camss_csi3_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi3phy_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi3phy_clk",
+./clock-8974.c:		CLK_INIT(camss_csi3phy_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi3pix_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi3pix_clk",
+./clock-8974.c:		CLK_INIT(camss_csi3pix_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi3rdi_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi3rdi_clk",
+./clock-8974.c:		CLK_INIT(camss_csi3rdi_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi_vfe0_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi_vfe0_clk",
+./clock-8974.c:		CLK_INIT(camss_csi_vfe0_clk.c),
+./clock-8974.c:static struct branch_clk camss_csi_vfe1_clk = {
+./clock-8974.c:		.dbg_name = "camss_csi_vfe1_clk",
+./clock-8974.c:		CLK_INIT(camss_csi_vfe1_clk.c),
+./clock-8974.c:static struct branch_clk camss_gp0_clk = {
+./clock-8974.c:		.dbg_name = "camss_gp0_clk",
+./clock-8974.c:		CLK_INIT(camss_gp0_clk.c),
+./clock-8974.c:static struct branch_clk camss_gp1_clk = {
+./clock-8974.c:		.dbg_name = "camss_gp1_clk",
+./clock-8974.c:		CLK_INIT(camss_gp1_clk.c),
+./clock-8974.c:static struct branch_clk camss_ispif_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_ispif_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_ispif_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_jpeg_jpeg0_clk = {
+./clock-8974.c:		.dbg_name = "camss_jpeg_jpeg0_clk",
+./clock-8974.c:		CLK_INIT(camss_jpeg_jpeg0_clk.c),
+./clock-8974.c:static struct branch_clk camss_jpeg_jpeg1_clk = {
+./clock-8974.c:		.dbg_name = "camss_jpeg_jpeg1_clk",
+./clock-8974.c:		CLK_INIT(camss_jpeg_jpeg1_clk.c),
+./clock-8974.c:static struct branch_clk camss_jpeg_jpeg2_clk = {
+./clock-8974.c:		.dbg_name = "camss_jpeg_jpeg2_clk",
+./clock-8974.c:		CLK_INIT(camss_jpeg_jpeg2_clk.c),
+./clock-8974.c:static struct branch_clk camss_jpeg_jpeg_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_jpeg_jpeg_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_jpeg_jpeg_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_jpeg_jpeg_axi_clk = {
+./clock-8974.c:		.dbg_name = "camss_jpeg_jpeg_axi_clk",
+./clock-8974.c:		CLK_INIT(camss_jpeg_jpeg_axi_clk.c),
+./clock-8974.c:static struct branch_clk camss_jpeg_jpeg_ocmemnoc_clk = {
+./clock-8974.c:		.dbg_name = "camss_jpeg_jpeg_ocmemnoc_clk",
+./clock-8974.c:		CLK_INIT(camss_jpeg_jpeg_ocmemnoc_clk.c),
+./clock-8974.c:static struct branch_clk camss_mclk0_clk = {
+./clock-8974.c:		.dbg_name = "camss_mclk0_clk",
+./clock-8974.c:		CLK_INIT(camss_mclk0_clk.c),
+./clock-8974.c:static struct branch_clk camss_mclk1_clk = {
+./clock-8974.c:		.dbg_name = "camss_mclk1_clk",
+./clock-8974.c:		CLK_INIT(camss_mclk1_clk.c),
+./clock-8974.c:static struct branch_clk camss_mclk2_clk = {
+./clock-8974.c:		.dbg_name = "camss_mclk2_clk",
+./clock-8974.c:		CLK_INIT(camss_mclk2_clk.c),
+./clock-8974.c:static struct branch_clk camss_mclk3_clk = {
+./clock-8974.c:		.dbg_name = "camss_mclk3_clk",
+./clock-8974.c:		CLK_INIT(camss_mclk3_clk.c),
+./clock-8974.c:static struct branch_clk camss_micro_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_micro_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_micro_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_phy0_csi0phytimer_clk = {
+./clock-8974.c:		.dbg_name = "camss_phy0_csi0phytimer_clk",
+./clock-8974.c:		CLK_INIT(camss_phy0_csi0phytimer_clk.c),
+./clock-8974.c:static struct branch_clk camss_phy1_csi1phytimer_clk = {
+./clock-8974.c:		.dbg_name = "camss_phy1_csi1phytimer_clk",
+./clock-8974.c:		CLK_INIT(camss_phy1_csi1phytimer_clk.c),
+./clock-8974.c:static struct branch_clk camss_phy2_csi2phytimer_clk = {
+./clock-8974.c:		.dbg_name = "camss_phy2_csi2phytimer_clk",
+./clock-8974.c:		CLK_INIT(camss_phy2_csi2phytimer_clk.c),
+./clock-8974.c:static struct branch_clk camss_top_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_top_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_top_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_vfe_cpp_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_vfe_cpp_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_vfe_cpp_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_vfe_cpp_clk = {
+./clock-8974.c:		.dbg_name = "camss_vfe_cpp_clk",
+./clock-8974.c:		CLK_INIT(camss_vfe_cpp_clk.c),
+./clock-8974.c:static struct branch_clk camss_vfe_vfe0_clk = {
+./clock-8974.c:		.dbg_name = "camss_vfe_vfe0_clk",
+./clock-8974.c:		CLK_INIT(camss_vfe_vfe0_clk.c),
+./clock-8974.c:static struct branch_clk camss_vfe_vfe1_clk = {
+./clock-8974.c:		.dbg_name = "camss_vfe_vfe1_clk",
+./clock-8974.c:		CLK_INIT(camss_vfe_vfe1_clk.c),
+./clock-8974.c:static struct branch_clk camss_vfe_vfe_ahb_clk = {
+./clock-8974.c:		.dbg_name = "camss_vfe_vfe_ahb_clk",
+./clock-8974.c:		CLK_INIT(camss_vfe_vfe_ahb_clk.c),
+./clock-8974.c:static struct branch_clk camss_vfe_vfe_axi_clk = {
+./clock-8974.c:		.dbg_name = "camss_vfe_vfe_axi_clk",
+./clock-8974.c:		CLK_INIT(camss_vfe_vfe_axi_clk.c),
+./clock-8974.c:static struct branch_clk camss_vfe_vfe_ocmemnoc_clk = {
+./clock-8974.c:		.dbg_name = "camss_vfe_vfe_ocmemnoc_clk",
+./clock-8974.c:		CLK_INIT(camss_vfe_vfe_ocmemnoc_clk.c),
+./clock-8974.c:	{&camss_cci_cci_ahb_clk.c,		MMSS_BASE, 0x002e},
+./clock-8974.c:	{&camss_cci_cci_clk.c,			MMSS_BASE, 0x002d},
+./clock-8974.c:	{&camss_csi0_ahb_clk.c,			MMSS_BASE, 0x0042},
+./clock-8974.c:	{&camss_csi0_clk.c,			MMSS_BASE, 0x0041},
+./clock-8974.c:	{&camss_csi0phy_clk.c,			MMSS_BASE, 0x0043},
+./clock-8974.c:	{&camss_csi0pix_clk.c,			MMSS_BASE, 0x0045},
+./clock-8974.c:	{&camss_csi0rdi_clk.c,			MMSS_BASE, 0x0044},
+./clock-8974.c:	{&camss_csi1_ahb_clk.c,			MMSS_BASE, 0x0047},
+./clock-8974.c:	{&camss_csi1_clk.c,			MMSS_BASE, 0x0046},
+./clock-8974.c:	{&camss_csi1phy_clk.c,			MMSS_BASE, 0x0048},
+./clock-8974.c:	{&camss_csi1pix_clk.c,			MMSS_BASE, 0x004a},
+./clock-8974.c:	{&camss_csi1rdi_clk.c,			MMSS_BASE, 0x0049},
+./clock-8974.c:	{&camss_csi2_ahb_clk.c,			MMSS_BASE, 0x004c},
+./clock-8974.c:	{&camss_csi2_clk.c,			MMSS_BASE, 0x004b},
+./clock-8974.c:	{&camss_csi2phy_clk.c,			MMSS_BASE, 0x004d},
+./clock-8974.c:	{&camss_csi2pix_clk.c,			MMSS_BASE, 0x004f},
+./clock-8974.c:	{&camss_csi2rdi_clk.c,			MMSS_BASE, 0x004e},
+./clock-8974.c:	{&camss_csi3_ahb_clk.c,			MMSS_BASE, 0x0051},
+./clock-8974.c:	{&camss_csi3_clk.c,			MMSS_BASE, 0x0050},
+./clock-8974.c:	{&camss_csi3phy_clk.c,			MMSS_BASE, 0x0052},
+./clock-8974.c:	{&camss_csi3pix_clk.c,			MMSS_BASE, 0x0054},
+./clock-8974.c:	{&camss_csi3rdi_clk.c,			MMSS_BASE, 0x0053},
+./clock-8974.c:	{&camss_csi_vfe0_clk.c,			MMSS_BASE, 0x003f},
+./clock-8974.c:	{&camss_csi_vfe1_clk.c,			MMSS_BASE, 0x0040},
+./clock-8974.c:	{&camss_gp0_clk.c,			MMSS_BASE, 0x0027},
+./clock-8974.c:	{&camss_gp1_clk.c,			MMSS_BASE, 0x0028},
+./clock-8974.c:	{&camss_ispif_ahb_clk.c,		MMSS_BASE, 0x0055},
+./clock-8974.c:	{&camss_jpeg_jpeg0_clk.c,		MMSS_BASE, 0x0032},
+./clock-8974.c:	{&camss_jpeg_jpeg1_clk.c,		MMSS_BASE, 0x0033},
+./clock-8974.c:	{&camss_jpeg_jpeg2_clk.c,		MMSS_BASE, 0x0034},
+./clock-8974.c:	{&camss_jpeg_jpeg_ahb_clk.c,		MMSS_BASE, 0x0035},
+./clock-8974.c:	{&camss_jpeg_jpeg_axi_clk.c,		MMSS_BASE, 0x0036},
+./clock-8974.c:	{&camss_jpeg_jpeg_ocmemnoc_clk.c,	MMSS_BASE, 0x0037},
+./clock-8974.c:	{&camss_mclk0_clk.c,			MMSS_BASE, 0x0029},
+./clock-8974.c:	{&camss_mclk1_clk.c,			MMSS_BASE, 0x002a},
+./clock-8974.c:	{&camss_mclk2_clk.c,			MMSS_BASE, 0x002b},
+./clock-8974.c:	{&camss_mclk3_clk.c,			MMSS_BASE, 0x002c},
+./clock-8974.c:	{&camss_micro_ahb_clk.c,		MMSS_BASE, 0x0026},
+./clock-8974.c:	{&camss_phy0_csi0phytimer_clk.c,	MMSS_BASE, 0x002f},
+./clock-8974.c:	{&camss_phy1_csi1phytimer_clk.c,	MMSS_BASE, 0x0030},
+./clock-8974.c:	{&camss_phy2_csi2phytimer_clk.c,	MMSS_BASE, 0x0031},
+./clock-8974.c:	{&camss_top_ahb_clk.c,			MMSS_BASE, 0x0025},
+./clock-8974.c:	{&camss_vfe_cpp_ahb_clk.c,		MMSS_BASE, 0x003b},
+./clock-8974.c:	{&camss_vfe_cpp_clk.c,			MMSS_BASE, 0x003a},
+./clock-8974.c:	{&camss_vfe_vfe0_clk.c,			MMSS_BASE, 0x0038},
+./clock-8974.c:	{&camss_vfe_vfe1_clk.c,			MMSS_BASE, 0x0039},
+./clock-8974.c:	{&camss_vfe_vfe_ahb_clk.c,		MMSS_BASE, 0x003c},
+./clock-8974.c:	{&camss_vfe_vfe_axi_clk.c,		MMSS_BASE, 0x003d},
+./clock-8974.c:	{&camss_vfe_vfe_ocmemnoc_clk.c,		MMSS_BASE, 0x003e},
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_cci_cci_ahb_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_cci_cci_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_csi0_ahb_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi0_clk", camss_csi0_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi0phy_clk", camss_csi0phy_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi0pix_clk", camss_csi0pix_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi0rdi_clk", camss_csi0rdi_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_csi1_ahb_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi1_clk", camss_csi1_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi1phy_clk", camss_csi1phy_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi1pix_clk", camss_csi1pix_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi1rdi_clk", camss_csi1rdi_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_csi2_ahb_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi2_clk", camss_csi2_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi2phy_clk", camss_csi2phy_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi2pix_clk", camss_csi2pix_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi2rdi_clk", camss_csi2rdi_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_csi3_ahb_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi3_clk", camss_csi3_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi3phy_clk", camss_csi3phy_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi3pix_clk", camss_csi3pix_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi3rdi_clk", camss_csi3rdi_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi0_clk_src", csi0_clk_src.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi1_clk_src", csi1_clk_src.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi2_clk_src", csi2_clk_src.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi3_clk_src", csi3_clk_src.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi_vfe0_clk", camss_csi_vfe0_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_csi_vfe1_clk", camss_csi_vfe1_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_gp0_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_gp1_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_ispif_ahb_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_jpeg_jpeg0_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_jpeg_jpeg1_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_jpeg_jpeg2_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_jpeg_jpeg_ahb_clk.c,
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_jpeg_jpeg_axi_clk.c,
+./clock-8974.c:	CLK_LOOKUP("bus_clk", camss_jpeg_jpeg_axi_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("bus_clk", camss_jpeg_jpeg_ocmemnoc_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_mclk0_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_mclk1_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_mclk2_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_mclk3_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_micro_ahb_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_phy0_csi0phytimer_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_phy1_csi1phytimer_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_phy2_csi2phytimer_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_top_ahb_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_vfe_cpp_ahb_clk.c, "fda44000.qcom,iommu"),
+./clock-8974.c:	CLK_LOOKUP("core_clk", camss_vfe_cpp_clk.c, "fda44000.qcom,iommu"),
+./clock-8974.c:	CLK_LOOKUP("camss_vfe_vfe0_clk", camss_vfe_vfe0_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("camss_vfe_vfe1_clk", camss_vfe_vfe1_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("iface_clk", camss_vfe_vfe_ahb_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("bus_clk", camss_vfe_vfe_axi_clk.c, ""),
+./clock-8974.c:	CLK_LOOKUP("bus_clk", camss_vfe_vfe_ocmemnoc_clk.c, ""),
+./clock-7x30.c:static struct branch_clk camif_pad_p_clk = {
+./clock-7x30.c:		.dbg_name = "camif_pad_p_clk",
+./clock-7x30.c:		CLK_INIT(camif_pad_p_clk.c),
+./clock-7x30.c:static struct branch_clk vfe_camif_clk = {
+./clock-7x30.c:		.dbg_name = "vfe_camif_clk",
+./clock-7x30.c:		CLK_INIT(vfe_camif_clk.c),
+./clock-7x30.c:static struct clk_freq_tbl clk_tbl_cam[] = {
+./clock-7x30.c:static struct rcg_clk cam_m_clk = {
+./clock-7x30.c:	.freq_tbl = clk_tbl_cam,
+./clock-7x30.c:		.dbg_name = "cam_m_clk",
+./clock-7x30.c:		CLK_INIT(cam_m_clk.c),
+./clock-7x30.c:static DEFINE_CLK_PCOM(p_vfe_camif_clk, VFE_CAMIF_CLK, 0);
+./clock-7x30.c:static DEFINE_CLK_PCOM(p_cam_m_clk, CAM_M_CLK, 0);
+./clock-7x30.c:static DEFINE_CLK_PCOM(p_camif_pad_p_clk, CAMIF_PAD_P_CLK, 0);
+./clock-7x30.c:	{ CLK_TEST_2(0x1A), &camif_pad_p_clk.c },
+./clock-7x30.c:	{ CLK_TEST_HS(0x30), &vfe_camif_clk.c },
+./clock-7x30.c:	{ CLK_TEST_LS(0x04), &cam_m_clk.c },
+./clock-7x30.c:	OWN(APPS1,  8, "vfe_camif_clk", vfe_camif_clk,	NULL),
+./clock-7x30.c:	OWN(APPS3,  6, "cam_m_clk",	cam_m_clk,	NULL),
+./clock-7x30.c:	OWN(APPS3,  6, "cam_clk",	cam_m_clk,	"4-0020"),
+./clock-7x30.c:	OWN(APPS3,  6, "camif_pad_pclk", camif_pad_p_clk, NULL),
+./clock-7x30.c:	OWN(APPS3,  6, "iface_clk",	camif_pad_p_clk, "qup_i2c.4"),
+./board-sapphire.h:void config_sapphire_camera_on_gpios(void);
+./board-sapphire.h:void config_sapphire_camera_off_gpios(void);
+./board-sapphire.h:unsigned int is_12pin_camera(void);
+./board-sapphire.h:int sapphire_is_5M_camera(void);
+./gpiomux-8x60.c:static struct gpiomux_setting cam_suspend_cfg = {
+./gpiomux-8x60.c:static struct gpiomux_setting cam_active_1_cfg = {
+./gpiomux-8x60.c:static struct gpiomux_setting cam_active_2_cfg = {
+./gpiomux-8x60.c:static struct gpiomux_setting cam_active_3_cfg = {
+./gpiomux-8x60.c:static struct gpiomux_setting cam_active_4_cfg = {
+./gpiomux-8x60.c:static struct gpiomux_setting cam_active_5_cfg = {
+./gpiomux-8x60.c:static struct msm_gpiomux_config msm8x60_cam_configs[] __initdata = {
+./gpiomux-8x60.c:			[GPIOMUX_ACTIVE]    = &cam_active_2_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_SUSPENDED] = &cam_suspend_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_ACTIVE]    = &cam_active_1_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_SUSPENDED] = &cam_suspend_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_ACTIVE]    = &cam_active_2_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_SUSPENDED] = &cam_suspend_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_ACTIVE]    = &cam_active_5_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_SUSPENDED] = &cam_suspend_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_ACTIVE]    = &cam_active_2_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_SUSPENDED] = &cam_suspend_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_ACTIVE]    = &cam_active_3_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_SUSPENDED] = &cam_suspend_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_ACTIVE]    = &cam_active_3_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_SUSPENDED] = &cam_suspend_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_ACTIVE]    = &cam_active_4_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_SUSPENDED] = &cam_suspend_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_ACTIVE]    = &cam_active_4_cfg,
+./gpiomux-8x60.c:			[GPIOMUX_SUSPENDED] = &cam_suspend_cfg,
+./gpiomux-8x60.c:	{msm8x60_cam_configs, ARRAY_SIZE(msm8x60_cam_configs)},
+./gpiomux-8x60.c:	{msm8x60_cam_configs, ARRAY_SIZE(msm8x60_cam_configs)},
+./gpiomux-8x60.c:	{msm8x60_cam_configs, ARRAY_SIZE(msm8x60_cam_configs)},
+./gpiomux-8x60.c:	{msm8x60_cam_configs, ARRAY_SIZE(msm8x60_cam_configs)},
+./include/mach/board-msm8660.h:extern struct msm_camera_board_info msm8x60_camera_board_info;
+./include/mach/board-msm8660.h:void msm8x60_init_cam(void);
+./include/mach/board.h:struct msm_camera_io_ext {
+./include/mach/board.h:	uint32_t camifpadphy;
+./include/mach/board.h:	uint32_t camifpadsz;
+./include/mach/board.h:struct msm_camera_io_clk {
+./include/mach/board.h:struct msm_cam_expander_info {
+./include/mach/board.h:struct msm_camera_device_platform_data {
+./include/mach/board.h:	int (*camera_gpio_on) (void);
+./include/mach/board.h:	void (*camera_gpio_off)(void);
+./include/mach/board.h:	struct msm_camera_io_ext ioext;
+./include/mach/board.h:	struct msm_camera_io_clk ioclk;
+./include/mach/board.h:	struct msm_bus_scale_pdata *cam_bus_scale_table;
+./include/mach/board.h:enum msm_camera_csi_data_format {
+./include/mach/board.h:struct msm_camera_csi_params {
+./include/mach/board.h:	enum msm_camera_csi_data_format data_format;
+./include/mach/board.h:struct msm_camera_legacy_device_platform_data {
+./include/mach/board.h:struct msm_camera_sensor_flash_pmic {
+./include/mach/board.h:struct msm_camera_sensor_flash_pwm {
+./include/mach/board.h:struct msm_camera_sensor_flash_current_driver {
+./include/mach/board.h:enum msm_camera_ext_led_flash_id {
+./include/mach/board.h:struct msm_camera_sensor_flash_external {
+./include/mach/board.h:	enum msm_camera_ext_led_flash_id flash_id;
+./include/mach/board.h:	struct msm_cam_expander_info *expander_info;
+./include/mach/board.h:struct msm_camera_sensor_flash_led {
+./include/mach/board.h:struct msm_camera_sensor_flash_src {
+./include/mach/board.h:		struct msm_camera_sensor_flash_pmic pmic_src;
+./include/mach/board.h:		struct msm_camera_sensor_flash_pwm pwm_src;
+./include/mach/board.h:		struct msm_camera_sensor_flash_current_driver
+./include/mach/board.h:		struct msm_camera_sensor_flash_external
+./include/mach/board.h:		struct msm_camera_sensor_flash_led led_src;
+./include/mach/board.h:struct msm_camera_sensor_flash_data {
+./include/mach/board.h:	struct msm_camera_sensor_flash_src *flash_src;
+./include/mach/board.h:struct msm_camera_sensor_strobe_flash_data {
+./include/mach/board.h:enum msm_camera_type {
+./include/mach/board.h:enum camera_vreg_type {
+./include/mach/board.h:struct camera_vreg_t {
+./include/mach/board.h:	enum camera_vreg_type type;
+./include/mach/board.h:struct msm_camera_csi_lane_params {
+./include/mach/board.h:struct msm_camera_gpio_conf {
+./include/mach/board.h:	void *cam_gpiomux_conf_tbl;
+./include/mach/board.h:	uint8_t cam_gpiomux_conf_tbl_size;
+./include/mach/board.h:	struct gpio *cam_gpio_common_tbl;
+./include/mach/board.h:	uint8_t cam_gpio_common_tbl_size;
+./include/mach/board.h:	struct gpio *cam_gpio_req_tbl;
+./include/mach/board.h:	uint8_t cam_gpio_req_tbl_size;
+./include/mach/board.h:	struct msm_gpio_set_tbl *cam_gpio_set_tbl;
+./include/mach/board.h:	uint8_t cam_gpio_set_tbl_size;
+./include/mach/board.h:	uint32_t *camera_off_table;
+./include/mach/board.h:	uint8_t camera_off_table_size;
+./include/mach/board.h:	uint32_t *camera_on_table;
+./include/mach/board.h:	uint8_t camera_on_table_size;
+./include/mach/board.h:enum msm_camera_vreg_name_t {
+./include/mach/board.h:enum msm_camera_i2c_mux_mode {
+./include/mach/board.h:struct msm_camera_i2c_conf {
+./include/mach/board.h:	enum msm_camera_i2c_mux_mode i2c_mux_mode;
+./include/mach/board.h:struct msm_camera_sensor_platform_info {
+./include/mach/board.h:	struct camera_vreg_t *cam_vreg;
+./include/mach/board.h:	struct msm_camera_gpio_conf *gpio_conf;
+./include/mach/board.h:	struct msm_camera_i2c_conf *i2c_conf;
+./include/mach/board.h:	struct msm_camera_csi_lane_params *csi_lane_params;
+./include/mach/board.h:enum msm_camera_actuator_name {
+./include/mach/board.h:	enum msm_camera_actuator_name cam_name;
+./include/mach/board.h:struct msm_camera_sensor_info {
+./include/mach/board.h:	struct msm_camera_sensor_platform_info *sensor_platform_info;
+./include/mach/board.h:	struct msm_camera_device_platform_data *pdata;
+./include/mach/board.h:	struct msm_camera_sensor_flash_data *flash_data;
+./include/mach/board.h:	struct msm_camera_csi_params csi_params;
+./include/mach/board.h:	struct msm_camera_sensor_strobe_flash_data *strobe_flash_data;
+./include/mach/board.h:	enum msm_camera_type camera_type;
+./include/mach/board.h:struct msm_camera_board_info {
+./include/mach/board.h:int msm_get_cam_resources(struct msm_camera_sensor_info *);
+./include/mach/board_htc.h:	resource_size_t pmem_camera_start;
+./include/mach/board_htc.h:	resource_size_t pmem_camera_size;
+./include/mach/qdsp5/qdsp5vfemsg.h:	unsigned int	camif_sts;
+./include/mach/qdsp5/qdsp5vfecmdi.h:#define	VFE_CMD_CAMIF_CFG_LEN	sizeof(vfe_cmd_camif_cfg)
+./include/mach/qdsp5/qdsp5vfecmdi.h:} __attribute__((packed)) vfe_cmd_camif_cfg;
+./include/mach/qdsp5/qdsp5vfecmdi.h:	sizeof(vfe_cmd_update_camif_frame_cfg)
+./include/mach/qdsp5/qdsp5vfecmdi.h:	unsigned int	camif_frame_cfg;
+./include/mach/qdsp5/qdsp5vfecmdi.h:} __attribute__((packed)) vfe_cmd_update_camif_frame_cfg;
+./include/mach/camera.h:#include <media/msm_camera.h>
+./include/mach/camera.h:struct msm_camera_csid_lut_params {
+./include/mach/camera.h:	struct msm_camera_csid_vc_cfg *vc_cfg;
+./include/mach/camera.h:struct msm_camera_csid_params {
+./include/mach/camera.h:	struct msm_camera_csid_lut_params lut_params;
+./include/mach/camera.h:struct msm_camera_csiphy_params {
+./include/mach/camera.h:struct msm_camera_csi2_params {
+./include/mach/camera.h:	struct msm_camera_csid_params csid_params;
+./include/mach/camera.h:	struct msm_camera_csiphy_params csiphy_params;
+./include/mach/camera.h:	struct msm_cam_evt_msg evt_msg;
+./include/mach/camera.h:	struct msm_cam_evt_msg evt_msg;
+./include/mach/camera.h:struct msm_camvfe_fn {
+./include/mach/camera.h:	int (*vfe_enable)(struct camera_enable_cmd *);
+./include/mach/camera.h:	int (*vfe_disable)(struct camera_enable_cmd *,
+./include/mach/camera.h:struct msm_camvfe_params {
+./include/mach/camera.h:struct msm_camvpe_fn {
+./include/mach/camera.h:	int (*s_init)(const struct msm_camera_sensor_info *);
+./include/mach/camera.h:	enum msm_camera_type s_camera_type;
+./include/mach/camera.h:		(struct msm_camera_sensor_strobe_flash_data *);
+./include/mach/camera.h:		(struct msm_camera_sensor_strobe_flash_data *, int32_t);
+./include/mach/camera.h:struct msm_camera_cci_client {
+./include/mach/camera.h:struct msm_camera_cci_wait_sync_cfg {
+./include/mach/camera.h:struct msm_camera_cci_gpio_cfg {
+./include/mach/camera.h:enum msm_camera_i2c_reg_addr_type {
+./include/mach/camera.h:enum msm_camera_i2c_data_type {
+./include/mach/camera.h:enum msm_camera_i2c_cmd_type {
+./include/mach/camera.h:struct msm_camera_i2c_reg_conf {
+./include/mach/camera.h:	enum msm_camera_i2c_data_type dt;
+./include/mach/camera.h:	enum msm_camera_i2c_cmd_type cmd_type;
+./include/mach/camera.h:struct msm_camera_cci_i2c_write_cfg {
+./include/mach/camera.h:	struct msm_camera_i2c_reg_conf *reg_conf_tbl;
+./include/mach/camera.h:	enum msm_camera_i2c_reg_addr_type addr_type;
+./include/mach/camera.h:	enum msm_camera_i2c_data_type data_type;
+./include/mach/camera.h:struct msm_camera_cci_i2c_read_cfg {
+./include/mach/camera.h:	enum msm_camera_i2c_reg_addr_type addr_type;
+./include/mach/camera.h:struct msm_camera_cci_i2c_queue_info {
+./include/mach/camera.h:struct msm_camera_cci_ctrl {
+./include/mach/camera.h:	struct msm_camera_cci_client *cci_info;
+./include/mach/camera.h:		struct msm_camera_cci_i2c_write_cfg cci_i2c_write_cfg;
+./include/mach/camera.h:		struct msm_camera_cci_i2c_read_cfg cci_i2c_read_cfg;
+./include/mach/camera.h:		struct msm_camera_cci_wait_sync_cfg cci_wait_sync_cfg;
+./include/mach/camera.h:		struct msm_camera_cci_gpio_cfg gpio_cfg;
+./include/mach/camera.h:	 * coming from the camera sensor.
+./include/mach/camera.h:	struct msm_camera_sensor_info *sdata;
+./include/mach/camera.h:	struct msm_camvfe_fn vfefn;
+./include/mach/camera.h:	struct msm_camvpe_fn vpefn;
+./include/mach/camera.h:	struct msm_cam_v4l2_device *pcam_sync;
+./include/mach/camera.h:	uint8_t stereocam_enabled;
+./include/mach/camera.h:	struct msm_queue_cmd *pp_stereocam;
+./include/mach/camera.h:	struct msm_queue_cmd *pp_stereocam2;
+./include/mach/camera.h:	int stcam_quality_ind;
+./include/mach/camera.h:	uint32_t stcam_conv_value;
+./include/mach/camera.h:struct msm_cam_device {
+./include/mach/camera.h:	struct msm_cam_device *pmsm;
+./include/mach/camera.h:int msm_camera_flash_set_led_state(
+./include/mach/camera.h:	struct msm_camera_sensor_flash_data *fdata,
+./include/mach/camera.h:int msm_flash_ctrl(struct msm_camera_sensor_info *sdata,
+./include/mach/camera.h:static inline int msm_camera_flash_set_led_state(
+./include/mach/camera.h:	struct msm_camera_sensor_flash_data *fdata,
+./include/mach/camera.h:		struct msm_camera_sensor_info *sdata,
+./include/mach/camera.h:void msm_camvfe_init(void);
+./include/mach/camera.h:int msm_camvfe_check(void *);
+./include/mach/camera.h:void msm_camvfe_fn_init(struct msm_camvfe_fn *, void *);
+./include/mach/camera.h:void msm_camvpe_fn_init(struct msm_camvpe_fn *, void *);
+./include/mach/camera.h:int msm_camera_drv_start(struct platform_device *dev,
+./include/mach/camera.h:		int (*sensor_probe)(const struct msm_camera_sensor_info *,
+./include/mach/camera.h:enum msm_camio_clk_type {
+./include/mach/camera.h:enum msm_camio_clk_src_type {
+./include/mach/camera.h:struct msm_cam_clk_info {
+./include/mach/camera.h:int msm_camio_enable(struct platform_device *dev);
+./include/mach/camera.h:int msm_camio_vpe_clk_enable(uint32_t);
+./include/mach/camera.h:int msm_camio_vpe_clk_disable(void);
+./include/mach/camera.h:void msm_camio_mode_config(enum msm_camera_i2c_mux_mode mode);
+./include/mach/camera.h:int  msm_camio_clk_enable(enum msm_camio_clk_type clk);
+./include/mach/camera.h:int  msm_camio_clk_disable(enum msm_camio_clk_type clk);
+./include/mach/camera.h:int  msm_camio_clk_config(uint32_t freq);
+./include/mach/camera.h:void msm_camio_clk_rate_set(int rate);
+./include/mach/camera.h:int msm_camio_vfe_clk_rate_set(int rate);
+./include/mach/camera.h:void msm_camio_clk_rate_set_2(struct clk *clk, int rate);
+./include/mach/camera.h:void msm_camio_clk_axi_rate_set(int rate);
+./include/mach/camera.h:void msm_camio_camif_pad_reg_reset(void);
+./include/mach/camera.h:void msm_camio_camif_pad_reg_reset_2(void);
+./include/mach/camera.h:void msm_camio_vfe_blk_reset(void);
+./include/mach/camera.h:void msm_camio_vfe_blk_reset_2(void);
+./include/mach/camera.h:void msm_camio_vfe_blk_reset_3(void);
+./include/mach/camera.h:int32_t msm_camio_3d_enable(const struct msm_camera_sensor_info *sinfo);
+./include/mach/camera.h:void msm_camio_3d_disable(void);
+./include/mach/camera.h:void msm_camio_clk_sel(enum msm_camio_clk_src_type);
+./include/mach/camera.h:void msm_camio_disable(struct platform_device *);
+./include/mach/camera.h:int msm_camio_probe_on(struct platform_device *);
+./include/mach/camera.h:int msm_camio_probe_off(struct platform_device *);
+./include/mach/camera.h:int msm_camio_sensor_clk_off(struct platform_device *);
+./include/mach/camera.h:int msm_camio_sensor_clk_on(struct platform_device *);
+./include/mach/camera.h:int msm_camio_csi_config(struct msm_camera_csi_params *csi_params);
+./include/mach/camera.h:int msm_camio_csiphy_config(struct msm_camera_csiphy_params *csiphy_params);
+./include/mach/camera.h:int msm_camio_csid_config(struct msm_camera_csid_params *csid_params);
+./include/mach/camera.h:void msm_camera_io_w(u32 data, void __iomem *addr);
+./include/mach/camera.h:void msm_camera_io_w_mb(u32 data, void __iomem *addr);
+./include/mach/camera.h:u32 msm_camera_io_r(void __iomem *addr);
+./include/mach/camera.h:u32 msm_camera_io_r_mb(void __iomem *addr);
+./include/mach/camera.h:void msm_camera_io_dump(void __iomem *addr, int size);
+./include/mach/camera.h:void msm_camera_io_dump2(void __iomem *addr, int size);
+./include/mach/camera.h:void msm_camera_io_memcpy(void __iomem *dest_addr,
+./include/mach/camera.h:void msm_camio_set_perf_lvl(enum msm_bus_perf_setting);
+./include/mach/camera.h:void msm_camio_bus_scale_cfg(
+./include/mach/camera.h:int msm_cam_clk_enable(struct device *dev, struct msm_cam_clk_info *clk_info,
+./include/mach/camera.h:int msm_cam_core_reset(void);
+./include/mach/camera.h:int msm_camera_config_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
+./include/mach/camera.h:int msm_camera_enable_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
+./include/mach/camera.h:int msm_camera_config_gpio_table
+./include/mach/camera.h:	(struct msm_camera_sensor_info *sinfo, int gpio_en);
+./include/mach/camera.h:int msm_camera_request_gpio_table
+./include/mach/camera.h:	(struct msm_camera_sensor_info *sinfo, int gpio_en);
+./devices-msm8x60.c:static struct mem_pool msm8660_camera_pools[] =  {
+./devices-msm8x60.c:	/* One address space for camera */
+./devices-msm8x60.c:			.iova_pools = msm8660_camera_pools,
+./devices-msm8x60.c:			.npools = ARRAY_SIZE(msm8660_camera_pools),
+./msm_rtb.c: * 3) 4 bytes of where the caller came from
+./board-8064-camera.c:static struct gpiomux_setting cam_settings[] = {
+./board-8064-camera.c:static struct msm_gpiomux_config apq8064_cam_common_configs[] = {
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[12],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[1],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[9],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[10],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[11],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8064-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[11],
+./board-8064-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8064-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src = {
+./board-8064-camera.c:static struct msm_gpiomux_config apq8064_cam_2d_configs[] = {
+./board-8064-camera.c:static struct msm_bus_vectors cam_init_vectors[] = {
+./board-8064-camera.c:static struct msm_bus_vectors cam_preview_vectors[] = {
+./board-8064-camera.c:static struct msm_bus_vectors cam_video_vectors[] = {
+./board-8064-camera.c:static struct msm_bus_vectors cam_snapshot_vectors[] = {
+./board-8064-camera.c:static struct msm_bus_vectors cam_zsl_vectors[] = {
+./board-8064-camera.c:static struct msm_bus_vectors cam_video_ls_vectors[] = {
+./board-8064-camera.c:static struct msm_bus_paths cam_bus_client_config[] = {
+./board-8064-camera.c:		ARRAY_SIZE(cam_init_vectors),
+./board-8064-camera.c:		cam_init_vectors,
+./board-8064-camera.c:		ARRAY_SIZE(cam_preview_vectors),
+./board-8064-camera.c:		cam_preview_vectors,
+./board-8064-camera.c:		ARRAY_SIZE(cam_video_vectors),
+./board-8064-camera.c:		cam_video_vectors,
+./board-8064-camera.c:		ARRAY_SIZE(cam_snapshot_vectors),
+./board-8064-camera.c:		cam_snapshot_vectors,
+./board-8064-camera.c:		ARRAY_SIZE(cam_zsl_vectors),
+./board-8064-camera.c:		cam_zsl_vectors,
+./board-8064-camera.c:		ARRAY_SIZE(cam_video_ls_vectors),
+./board-8064-camera.c:		cam_video_ls_vectors,
+./board-8064-camera.c:static struct msm_bus_scale_pdata cam_bus_client_pdata = {
+./board-8064-camera.c:		cam_bus_client_config,
+./board-8064-camera.c:		ARRAY_SIZE(cam_bus_client_config),
+./board-8064-camera.c:		.name = "msm_camera",
+./board-8064-camera.c:static struct msm_camera_device_platform_data msm_camera_csi_device_data[] = {
+./board-8064-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-8064-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-8064-camera.c:static struct camera_vreg_t apq_8064_back_cam_vreg[] = {
+./board-8064-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8064-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8064-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8064-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
+./board-8064-camera.c:static struct camera_vreg_t apq_8064_front_cam_vreg[] = {
+./board-8064-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8064-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8064-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8064-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
+./board-8064-camera.c:static struct gpio apq8064_common_cam_gpio[] = {
+./board-8064-camera.c:static struct gpio apq8064_back_cam_gpio[] = {
+./board-8064-camera.c:static struct msm_gpio_set_tbl apq8064_back_cam_gpio_set_tbl[] = {
+./board-8064-camera.c:static struct msm_camera_gpio_conf apq8064_back_cam_gpio_conf = {
+./board-8064-camera.c:	.cam_gpiomux_conf_tbl = apq8064_cam_2d_configs,
+./board-8064-camera.c:	.cam_gpiomux_conf_tbl_size = ARRAY_SIZE(apq8064_cam_2d_configs),
+./board-8064-camera.c:	.cam_gpio_common_tbl = apq8064_common_cam_gpio,
+./board-8064-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(apq8064_common_cam_gpio),
+./board-8064-camera.c:	.cam_gpio_req_tbl = apq8064_back_cam_gpio,
+./board-8064-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(apq8064_back_cam_gpio),
+./board-8064-camera.c:	.cam_gpio_set_tbl = apq8064_back_cam_gpio_set_tbl,
+./board-8064-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(apq8064_back_cam_gpio_set_tbl),
+./board-8064-camera.c:static struct gpio apq8064_front_cam_gpio[] = {
+./board-8064-camera.c:static struct msm_gpio_set_tbl apq8064_front_cam_gpio_set_tbl[] = {
+./board-8064-camera.c:static struct msm_camera_gpio_conf apq8064_front_cam_gpio_conf = {
+./board-8064-camera.c:	.cam_gpiomux_conf_tbl = apq8064_cam_2d_configs,
+./board-8064-camera.c:	.cam_gpiomux_conf_tbl_size = ARRAY_SIZE(apq8064_cam_2d_configs),
+./board-8064-camera.c:	.cam_gpio_common_tbl = apq8064_common_cam_gpio,
+./board-8064-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(apq8064_common_cam_gpio),
+./board-8064-camera.c:	.cam_gpio_req_tbl = apq8064_front_cam_gpio,
+./board-8064-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(apq8064_front_cam_gpio),
+./board-8064-camera.c:	.cam_gpio_set_tbl = apq8064_front_cam_gpio_set_tbl,
+./board-8064-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(apq8064_front_cam_gpio_set_tbl),
+./board-8064-camera.c:static struct msm_camera_i2c_conf apq8064_back_cam_i2c_conf = {
+./board-8064-camera.c:static struct i2c_board_info msm_act_main_cam_i2c_info = {
+./board-8064-camera.c:static struct msm_actuator_info msm_act_main_cam_0_info = {
+./board-8064-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./board-8064-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_0,
+./board-8064-camera.c:static struct i2c_board_info msm_act_main_cam1_i2c_info = {
+./board-8064-camera.c:static struct msm_actuator_info msm_act_main_cam_1_info = {
+./board-8064-camera.c:	.board_info     = &msm_act_main_cam1_i2c_info,
+./board-8064-camera.c:	.cam_name       = MSM_ACTUATOR_MAIN_CAM_1,
+./board-8064-camera.c:static struct msm_camera_i2c_conf apq8064_front_cam_i2c_conf = {
+./board-8064-camera.c:static struct msm_camera_sensor_flash_data flash_imx074 = {
+./board-8064-camera.c:static struct msm_camera_csi_lane_params imx074_csi_lane_params = {
+./board-8064-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_imx074 = {
+./board-8064-camera.c:	.cam_vreg = apq_8064_back_cam_vreg,
+./board-8064-camera.c:	.num_vreg = ARRAY_SIZE(apq_8064_back_cam_vreg),
+./board-8064-camera.c:	.gpio_conf = &apq8064_back_cam_gpio_conf,
+./board-8064-camera.c:	.i2c_conf = &apq8064_back_cam_i2c_conf,
+./board-8064-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx074_data = {
+./board-8064-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./board-8064-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-8064-camera.c:	.actuator_info = &msm_act_main_cam_0_info,
+./board-8064-camera.c:static struct msm_camera_csi_lane_params imx091_csi_lane_params = {
+./board-8064-camera.c:static struct camera_vreg_t apq_8064_imx091_vreg[] = {
+./board-8064-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8064-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
+./board-8064-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8064-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8064-camera.c:static struct msm_camera_sensor_flash_data flash_imx091 = {
+./board-8064-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_imx091 = {
+./board-8064-camera.c:	.cam_vreg = apq_8064_imx091_vreg,
+./board-8064-camera.c:	.gpio_conf = &apq8064_back_cam_gpio_conf,
+./board-8064-camera.c:	.i2c_conf = &apq8064_back_cam_i2c_conf,
+./board-8064-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx091_data = {
+./board-8064-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./board-8064-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-8064-camera.c:	.actuator_info = &msm_act_main_cam_1_info,
+./board-8064-camera.c:static struct camera_vreg_t apq_8064_s5k3l1yx_vreg[] = {
+./board-8064-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8064-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8064-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8064-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
+./board-8064-camera.c:static struct msm_camera_sensor_flash_data flash_s5k3l1yx = {
+./board-8064-camera.c:static struct msm_camera_csi_lane_params s5k3l1yx_csi_lane_params = {
+./board-8064-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_s5k3l1yx = {
+./board-8064-camera.c:	.cam_vreg = apq_8064_s5k3l1yx_vreg,
+./board-8064-camera.c:	.gpio_conf = &apq8064_back_cam_gpio_conf,
+./board-8064-camera.c:	.i2c_conf = &apq8064_back_cam_i2c_conf,
+./board-8064-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_s5k3l1yx_data = {
+./board-8064-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./board-8064-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-8064-camera.c:static struct camera_vreg_t apq_8064_mt9m114_vreg[] = {
+./board-8064-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8064-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8064-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8064-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
+./board-8064-camera.c:static struct msm_camera_sensor_flash_data flash_mt9m114 = {
+./board-8064-camera.c:static struct msm_camera_csi_lane_params mt9m114_csi_lane_params = {
+./board-8064-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_mt9m114 = {
+./board-8064-camera.c:	.cam_vreg = apq_8064_mt9m114_vreg,
+./board-8064-camera.c:	.gpio_conf = &apq8064_front_cam_gpio_conf,
+./board-8064-camera.c:	.i2c_conf = &apq8064_front_cam_i2c_conf,
+./board-8064-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9m114_data = {
+./board-8064-camera.c:	.pdata = &msm_camera_csi_device_data[1],
+./board-8064-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-8064-camera.c:static struct msm_camera_sensor_flash_data flash_ov2720 = {
+./board-8064-camera.c:static struct msm_camera_csi_lane_params ov2720_csi_lane_params = {
+./board-8064-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov2720 = {
+./board-8064-camera.c:	.cam_vreg = apq_8064_front_cam_vreg,
+./board-8064-camera.c:	.num_vreg = ARRAY_SIZE(apq_8064_front_cam_vreg),
+./board-8064-camera.c:	.gpio_conf = &apq8064_front_cam_gpio_conf,
+./board-8064-camera.c:	.i2c_conf = &apq8064_front_cam_i2c_conf,
+./board-8064-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov2720_data = {
+./board-8064-camera.c:	.pdata	= &msm_camera_csi_device_data[1],
+./board-8064-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-8064-camera.c:static struct platform_device msm_camera_server = {
+./board-8064-camera.c:	.name = "msm_cam_server",
+./board-8064-camera.c:void __init apq8064_init_cam(void)
+./board-8064-camera.c:	msm_gpiomux_install(apq8064_cam_common_configs,
+./board-8064-camera.c:			ARRAY_SIZE(apq8064_cam_common_configs));
+./board-8064-camera.c:	platform_device_register(&msm_camera_server);
+./board-8064-camera.c:static struct i2c_board_info apq8064_camera_i2c_boardinfo[] = {
+./board-8064-camera.c:	.platform_data = &msm_camera_sensor_imx074_data,
+./board-8064-camera.c:	.platform_data = &msm_camera_sensor_mt9m114_data,
+./board-8064-camera.c:	.platform_data = &msm_camera_sensor_ov2720_data,
+./board-8064-camera.c:	.platform_data = &msm_camera_sensor_imx091_data,
+./board-8064-camera.c:	.platform_data = &msm_camera_sensor_s5k3l1yx_data,
+./board-8064-camera.c:struct msm_camera_board_info apq8064_camera_board_info = {
+./board-8064-camera.c:	.board_info = apq8064_camera_i2c_boardinfo,
+./board-8064-camera.c:	.num_i2c_board_info = ARRAY_SIZE(apq8064_camera_i2c_boardinfo),
+./devices-msm7x27.c:static struct platform_device msm_camera_device = {
+./devices-msm7x27.c:	.name	= "msm_camera",
+./devices-msm7x27.c:void __init msm_camera_register_device(void *res, uint32_t num,
+./devices-msm7x27.c:	msm_camera_device.num_resources = num;
+./devices-msm7x27.c:	msm_camera_device.resource = res;
+./devices-msm7x27.c:	msm_register_device(&msm_camera_device, data);
+./board-8930-camera.c:#include <mach/camera.h>
+./board-8930-camera.c:static struct i2c_board_info cam_expander_i2c_info[] = {
+./board-8930-camera.c:static struct msm_cam_expander_info cam_expander_info[] = {
+./board-8930-camera.c:		cam_expander_i2c_info,
+./board-8930-camera.c:static struct gpiomux_setting cam_settings[] = {
+./board-8930-camera.c:static struct msm_gpiomux_config msm8930_cam_common_configs[] = {
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[1],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[9],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[1],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8930-camera.c:static struct msm_gpiomux_config msm8930_evt_cam_configs[] = {
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8930-camera.c:static struct msm_gpiomux_config msm8930_cam_2d_configs[] = {
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8930-camera.c:static struct msm_gpiomux_config msm8930_evt_cam_2d_configs[] = {
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8930-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8930-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8930-camera.c:static struct msm_camera_sensor_strobe_flash_data strobe_flash_xenon = {
+./board-8930-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src = {
+./board-8930-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src_led = {
+./board-8930-camera.c:static struct msm_bus_vectors cam_init_vectors[] = {
+./board-8930-camera.c:static struct msm_bus_vectors cam_preview_vectors[] = {
+./board-8930-camera.c:static struct msm_bus_vectors cam_video_vectors[] = {
+./board-8930-camera.c:static struct msm_bus_vectors cam_snapshot_vectors[] = {
+./board-8930-camera.c:static struct msm_bus_vectors cam_zsl_vectors[] = {
+./board-8930-camera.c:static struct msm_bus_vectors cam_video_ls_vectors[] = {
+./board-8930-camera.c:static struct msm_bus_vectors cam_dual_vectors[] = {
+./board-8930-camera.c:static struct msm_bus_paths cam_bus_client_config[] = {
+./board-8930-camera.c:		ARRAY_SIZE(cam_init_vectors),
+./board-8930-camera.c:		cam_init_vectors,
+./board-8930-camera.c:		ARRAY_SIZE(cam_preview_vectors),
+./board-8930-camera.c:		cam_preview_vectors,
+./board-8930-camera.c:		ARRAY_SIZE(cam_video_vectors),
+./board-8930-camera.c:		cam_video_vectors,
+./board-8930-camera.c:		ARRAY_SIZE(cam_snapshot_vectors),
+./board-8930-camera.c:		cam_snapshot_vectors,
+./board-8930-camera.c:		ARRAY_SIZE(cam_zsl_vectors),
+./board-8930-camera.c:		cam_zsl_vectors,
+./board-8930-camera.c:		ARRAY_SIZE(cam_video_ls_vectors),
+./board-8930-camera.c:		cam_video_ls_vectors,
+./board-8930-camera.c:		ARRAY_SIZE(cam_dual_vectors),
+./board-8930-camera.c:		cam_dual_vectors,
+./board-8930-camera.c:static struct msm_bus_scale_pdata cam_bus_client_pdata = {
+./board-8930-camera.c:		cam_bus_client_config,
+./board-8930-camera.c:		ARRAY_SIZE(cam_bus_client_config),
+./board-8930-camera.c:		.name = "msm_camera",
+./board-8930-camera.c:static struct msm_camera_device_platform_data msm_camera_csi_device_data[] = {
+./board-8930-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-8930-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-8930-camera.c:static struct camera_vreg_t msm_8930_cam_vreg[] = {
+./board-8930-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8930-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8930-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8930-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
+./board-8930-camera.c:static struct camera_vreg_t msm_8930_evt_cam_vreg[] = {
+./board-8930-camera.c:	{"cam_vdig", REG_LDO, 1500000, 1500000, 105000},
+./board-8930-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8930-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8930-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
+./board-8930-camera.c:static struct gpio msm8930_common_cam_gpio[] = {
+./board-8930-camera.c:static struct gpio msm8930_evt_common_cam_gpio[] = {
+./board-8930-camera.c:static struct gpio msm8930_front_cam_gpio[] = {
+./board-8930-camera.c:static struct gpio msm8930_evt_front_cam_gpio[] = {
+./board-8930-camera.c:static struct gpio msm8930_back_cam_gpio[] = {
+./board-8930-camera.c:static struct msm_gpio_set_tbl msm8930_front_cam_gpio_set_tbl[] = {
+./board-8930-camera.c:static struct msm_gpio_set_tbl msm8930_evt_front_cam_gpio_set_tbl[] = {
+./board-8930-camera.c:static struct msm_gpio_set_tbl msm8930_back_cam_gpio_set_tbl[] = {
+./board-8930-camera.c:static struct msm_camera_gpio_conf msm_8930_front_cam_gpio_conf = {
+./board-8930-camera.c:	.cam_gpiomux_conf_tbl = msm8930_cam_2d_configs,
+./board-8930-camera.c:	.cam_gpiomux_conf_tbl_size = ARRAY_SIZE(msm8930_cam_2d_configs),
+./board-8930-camera.c:	.cam_gpio_common_tbl = msm8930_common_cam_gpio,
+./board-8930-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(msm8930_common_cam_gpio),
+./board-8930-camera.c:	.cam_gpio_req_tbl = msm8930_front_cam_gpio,
+./board-8930-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(msm8930_front_cam_gpio),
+./board-8930-camera.c:	.cam_gpio_set_tbl = msm8930_front_cam_gpio_set_tbl,
+./board-8930-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(msm8930_front_cam_gpio_set_tbl),
+./board-8930-camera.c:static struct msm_camera_gpio_conf msm_8930_evt__front_cam_gpio_conf = {
+./board-8930-camera.c:	.cam_gpiomux_conf_tbl = msm8930_evt_cam_2d_configs,
+./board-8930-camera.c:	.cam_gpiomux_conf_tbl_size = ARRAY_SIZE(msm8930_evt_cam_2d_configs),
+./board-8930-camera.c:	.cam_gpio_common_tbl = msm8930_evt_common_cam_gpio,
+./board-8930-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(msm8930_evt_common_cam_gpio),
+./board-8930-camera.c:	.cam_gpio_req_tbl = msm8930_evt_front_cam_gpio,
+./board-8930-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(msm8930_evt_front_cam_gpio),
+./board-8930-camera.c:	.cam_gpio_set_tbl = msm8930_evt_front_cam_gpio_set_tbl,
+./board-8930-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(msm8930_evt_front_cam_gpio_set_tbl),
+./board-8930-camera.c:static struct msm_camera_gpio_conf msm_8930_back_cam_gpio_conf = {
+./board-8930-camera.c:	.cam_gpiomux_conf_tbl = msm8930_cam_2d_configs,
+./board-8930-camera.c:	.cam_gpiomux_conf_tbl_size = ARRAY_SIZE(msm8930_cam_2d_configs),
+./board-8930-camera.c:	.cam_gpio_common_tbl = msm8930_common_cam_gpio,
+./board-8930-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(msm8930_common_cam_gpio),
+./board-8930-camera.c:	.cam_gpio_req_tbl = msm8930_back_cam_gpio,
+./board-8930-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(msm8930_back_cam_gpio),
+./board-8930-camera.c:	.cam_gpio_set_tbl = msm8930_back_cam_gpio_set_tbl,
+./board-8930-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(msm8930_back_cam_gpio_set_tbl),
+./board-8930-camera.c:static struct msm_camera_gpio_conf msm_8930_evt_back_cam_gpio_conf = {
+./board-8930-camera.c:	.cam_gpiomux_conf_tbl = msm8930_evt_cam_2d_configs,
+./board-8930-camera.c:	.cam_gpiomux_conf_tbl_size = ARRAY_SIZE(msm8930_evt_cam_2d_configs),
+./board-8930-camera.c:	.cam_gpio_common_tbl = msm8930_evt_common_cam_gpio,
+./board-8930-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(msm8930_evt_common_cam_gpio),
+./board-8930-camera.c:	.cam_gpio_req_tbl = msm8930_back_cam_gpio,
+./board-8930-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(msm8930_back_cam_gpio),
+./board-8930-camera.c:	.cam_gpio_set_tbl = msm8930_back_cam_gpio_set_tbl,
+./board-8930-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(msm8930_back_cam_gpio_set_tbl),
+./board-8930-camera.c:static struct i2c_board_info msm_act_main_cam_i2c_info = {
+./board-8930-camera.c:static struct msm_actuator_info msm_act_main_cam_3_info = {
+./board-8930-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./board-8930-camera.c:	.cam_name       = MSM_ACTUATOR_MAIN_CAM_3,
+./board-8930-camera.c:static struct msm_camera_sensor_flash_data flash_ov8825 = {
+./board-8930-camera.c:static struct msm_camera_csi_lane_params ov8825_csi_lane_params = {
+./board-8930-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov8825 = {
+./board-8930-camera.c:	.cam_vreg = msm_8930_evt_cam_vreg,
+./board-8930-camera.c:	.num_vreg = ARRAY_SIZE(msm_8930_evt_cam_vreg),
+./board-8930-camera.c:	.gpio_conf = &msm_8930_evt_back_cam_gpio_conf,
+./board-8930-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov8825_data = {
+./board-8930-camera.c:	.pdata = &msm_camera_csi_device_data[0],
+./board-8930-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-8930-camera.c:	.actuator_info = &msm_act_main_cam_3_info,
+./board-8930-camera.c:static struct msm_camera_sensor_flash_data flash_ov9724 = {
+./board-8930-camera.c:static struct msm_camera_csi_lane_params ov9724_csi_lane_params = {
+./board-8930-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov9724 = {
+./board-8930-camera.c:	.cam_vreg = msm_8930_evt_cam_vreg,
+./board-8930-camera.c:	.num_vreg = ARRAY_SIZE(msm_8930_evt_cam_vreg),
+./board-8930-camera.c:	.gpio_conf = &msm_8930_evt__front_cam_gpio_conf,
+./board-8930-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov9724_data = {
+./board-8930-camera.c:	.pdata = &msm_camera_csi_device_data[1],
+./board-8930-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-8930-camera.c:static struct msm_actuator_info msm_act_main_cam_0_info = {
+./board-8930-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./board-8930-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_0,
+./board-8930-camera.c:static struct msm_camera_sensor_flash_data flash_imx074 = {
+./board-8930-camera.c:static struct msm_camera_csi_lane_params imx074_csi_lane_params = {
+./board-8930-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_imx074 = {
+./board-8930-camera.c:	.cam_vreg = msm_8930_cam_vreg,
+./board-8930-camera.c:	.num_vreg = ARRAY_SIZE(msm_8930_cam_vreg),
+./board-8930-camera.c:	.gpio_conf = &msm_8930_back_cam_gpio_conf,
+./board-8930-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx074_data = {
+./board-8930-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./board-8930-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-8930-camera.c:	.actuator_info = &msm_act_main_cam_0_info,
+./board-8930-camera.c:static struct msm_camera_sensor_flash_data flash_mt9m114 = {
+./board-8930-camera.c:static struct msm_camera_csi_lane_params mt9m114_csi_lane_params = {
+./board-8930-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_mt9m114 = {
+./board-8930-camera.c:	.cam_vreg = msm_8930_cam_vreg,
+./board-8930-camera.c:	.num_vreg = ARRAY_SIZE(msm_8930_cam_vreg),
+./board-8930-camera.c:	.gpio_conf = &msm_8930_front_cam_gpio_conf,
+./board-8930-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9m114_data = {
+./board-8930-camera.c:	.pdata = &msm_camera_csi_device_data[1],
+./board-8930-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-8930-camera.c:static struct msm_camera_sensor_flash_data flash_ov2720 = {
+./board-8930-camera.c:static struct msm_camera_csi_lane_params ov2720_csi_lane_params = {
+./board-8930-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov2720 = {
+./board-8930-camera.c:	.cam_vreg = msm_8930_cam_vreg,
+./board-8930-camera.c:	.num_vreg = ARRAY_SIZE(msm_8930_cam_vreg),
+./board-8930-camera.c:	.gpio_conf = &msm_8930_front_cam_gpio_conf,
+./board-8930-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov2720_data = {
+./board-8930-camera.c:	.pdata	= &msm_camera_csi_device_data[1],
+./board-8930-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-8930-camera.c:static struct msm_camera_sensor_flash_data flash_s5k3l1yx = {
+./board-8930-camera.c:static struct msm_camera_csi_lane_params s5k3l1yx_csi_lane_params = {
+./board-8930-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_s5k3l1yx = {
+./board-8930-camera.c:	.cam_vreg = msm_8930_cam_vreg,
+./board-8930-camera.c:	.num_vreg = ARRAY_SIZE(msm_8930_cam_vreg),
+./board-8930-camera.c:	.gpio_conf = &msm_8930_back_cam_gpio_conf,
+./board-8930-camera.c:static struct msm_actuator_info msm_act_main_cam_2_info = {
+./board-8930-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./board-8930-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_2,
+./board-8930-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_s5k3l1yx_data = {
+./board-8930-camera.c:	.pdata                = &msm_camera_csi_device_data[0],
+./board-8930-camera.c:	.camera_type          = BACK_CAMERA_2D,
+./board-8930-camera.c:	.actuator_info    = &msm_act_main_cam_2_info,
+./board-8930-camera.c:static struct platform_device msm_camera_server = {
+./board-8930-camera.c:	.name = "msm_cam_server",
+./board-8930-camera.c:struct i2c_board_info msm8930_camera_i2c_boardinfo[] = {
+./board-8930-camera.c:	.platform_data = &msm_camera_sensor_imx074_data,
+./board-8930-camera.c:	.platform_data = &msm_camera_sensor_ov2720_data,
+./board-8930-camera.c:	.platform_data = &msm_camera_sensor_mt9m114_data,
+./board-8930-camera.c:	.platform_data = &msm_camera_sensor_s5k3l1yx_data,
+./board-8930-camera.c:struct i2c_board_info msm8930_evt_camera_i2c_boardinfo[] = {
+./board-8930-camera.c:	.platform_data = &msm_camera_sensor_ov8825_data,
+./board-8930-camera.c:	.platform_data = &msm_camera_sensor_ov9724_data,
+./board-8930-camera.c:struct msm_camera_board_info msm8930_camera_board_info = {
+./board-8930-camera.c:	.board_info = msm8930_camera_i2c_boardinfo,
+./board-8930-camera.c:	.num_i2c_board_info = ARRAY_SIZE(msm8930_camera_i2c_boardinfo),
+./board-8930-camera.c:void __init msm8930_init_cam(void)
+./board-8930-camera.c:	msm_gpiomux_install(msm8930_cam_common_configs,
+./board-8930-camera.c:			ARRAY_SIZE(msm8930_cam_common_configs));
+./board-8930-camera.c:		msm_gpiomux_install(msm8930_evt_cam_configs,
+./board-8930-camera.c:				ARRAY_SIZE(msm8930_evt_cam_configs));
+./board-8930-camera.c:		msm8930_camera_board_info.board_info =
+./board-8930-camera.c:			msm8930_evt_camera_i2c_boardinfo;
+./board-8930-camera.c:		msm8930_camera_board_info.num_i2c_board_info =
+./board-8930-camera.c:			ARRAY_SIZE(msm8930_evt_camera_i2c_boardinfo);
+./board-8930-camera.c:		struct msm_camera_sensor_info *s_info;
+./board-8930-camera.c:		s_info = &msm_camera_sensor_s5k3l1yx_data;
+./board-8930-camera.c:			cam_expander_info;
+./board-8930-camera.c:	platform_device_register(&msm_camera_server);
+./devices-msm7x27a.c:	CLK_DUMMY("cam_m_clk",		cam_m_clk.c,	NULL, 0),
+./devices-8960.c:static struct resource msm_cam_gsbi4_i2c_mux_resources[] = {
+./devices-8960.c:	.name           = "msm_cam_i2c_mux",
+./devices-8960.c:	.resource       = msm_cam_gsbi4_i2c_mux_resources,
+./devices-8960.c:	.num_resources  = ARRAY_SIZE(msm_cam_gsbi4_i2c_mux_resources),
+./devices-8960.c:static struct mem_pool msm8960_camera_pools[] =  {
+./devices-8960.c:	/* One address space for camera */
+./devices-8960.c:			.iova_pools = msm8960_camera_pools,
+./devices-8960.c:			.npools = ARRAY_SIZE(msm8960_camera_pools),
+./msm_bus/msm_bus_board_8974.c:static int sport_camera_cfg[] = {SLAVE_PORT_CAMERA_CFG};
+./msm_bus/msm_bus_board_8974.c:		.slavep = sport_camera_cfg,
+./msm_bus/msm_bus_board_8974.c:		.num_sports = ARRAY_SIZE(sport_camera_cfg),
+./board-qrd7627a.c:static int msm_ion_camera_size;
+./board-qrd7627a.c:	REGULATOR_SUPPLY("cam_ov5647_avdd", "0-006c"),
+./board-qrd7627a.c:	REGULATOR_SUPPLY("cam_ov7692_avdd", "0-0078"),
+./board-qrd7627a.c:	REGULATOR_SUPPLY("cam_ov8825_avdd", "0-000d"),
+./board-qrd7627a.c:	REGULATOR_SUPPLY("cam_ov5647_vdd", "0-006c"),
+./board-qrd7627a.c:	REGULATOR_SUPPLY("cam_ov7692_vdd", "0-0078"),
+./board-qrd7627a.c:	REGULATOR_SUPPLY("cam_ov8825_vdd", "0-000d"),
+./board-qrd7627a.c:	msm_ion_camera_size = pmem_adsp_size;
+./board-qrd7627a.c:	ion_pdata.heaps[1].size = msm_ion_camera_size;
+./board-qrd7627a.c:	msm7627a_reserve_table[MEMTYPE_EBI1].size += msm_ion_camera_size;
+./board-qrd7627a.c:	msm7627a_camera_init();
+./smd_tty.c:		 * interrupt came in wake anyone waiting and disable the
+./board-msm7627a-camera.c:static uint32_t camera_off_gpio_table[] = {
+./board-msm7627a-camera.c:static uint32_t camera_on_gpio_table[] = {
+./board-msm7627a-camera.c:static struct gpio s5k4e1_cam_req_gpio[] = {
+./board-msm7627a-camera.c:static struct msm_gpio_set_tbl s5k4e1_cam_gpio_set_tbl[] = {
+./board-msm7627a-camera.c:static struct msm_camera_gpio_conf gpio_conf_s5k4e1 = {
+./board-msm7627a-camera.c:	.camera_off_table = camera_off_gpio_table,
+./board-msm7627a-camera.c:	.camera_off_table_size = ARRAY_SIZE(camera_off_gpio_table),
+./board-msm7627a-camera.c:	.camera_on_table = camera_on_gpio_table,
+./board-msm7627a-camera.c:	.camera_on_table_size = ARRAY_SIZE(camera_on_gpio_table),
+./board-msm7627a-camera.c:	.cam_gpio_req_tbl = s5k4e1_cam_req_gpio,
+./board-msm7627a-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(s5k4e1_cam_req_gpio),
+./board-msm7627a-camera.c:	.cam_gpio_set_tbl = s5k4e1_cam_gpio_set_tbl,
+./board-msm7627a-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(s5k4e1_cam_gpio_set_tbl),
+./board-msm7627a-camera.c:static struct msm_camera_gpio_conf gpio_conf_mt9e013 = {
+./board-msm7627a-camera.c:	.camera_off_table = camera_off_gpio_table,
+./board-msm7627a-camera.c:	.camera_on_table = camera_on_gpio_table,
+./board-msm7627a-camera.c:static struct msm_camera_gpio_conf gpio_conf_ov9726 = {
+./board-msm7627a-camera.c:	.camera_off_table = camera_off_gpio_table,
+./board-msm7627a-camera.c:	.camera_on_table = camera_on_gpio_table,
+./board-msm7627a-camera.c:static struct gpio ov7692_cam_req_gpio[] = {
+./board-msm7627a-camera.c:static struct msm_gpio_set_tbl ov7692_cam_gpio_set_tbl[] = {
+./board-msm7627a-camera.c:static struct msm_camera_gpio_conf gpio_conf_ov7692 = {
+./board-msm7627a-camera.c:	.cam_gpio_req_tbl = ov7692_cam_req_gpio,
+./board-msm7627a-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(ov7692_cam_req_gpio),
+./board-msm7627a-camera.c:	.cam_gpio_set_tbl = ov7692_cam_gpio_set_tbl,
+./board-msm7627a-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(ov7692_cam_gpio_set_tbl),
+./board-msm7627a-camera.c:static struct msm_camera_gpio_conf gpio_conf_ov5647 = {
+./board-msm7627a-camera.c:	.camera_off_table = camera_off_gpio_table,
+./board-msm7627a-camera.c:	.camera_on_table = camera_on_gpio_table,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src = {
+./board-msm7627a-camera.c:static struct camera_vreg_t msm_cam_vreg[] = {
+./board-msm7627a-camera.c:static struct camera_vreg_t ov5647_gpio_vreg[] = {
+./board-msm7627a-camera.c:	{"cam_ov5647_avdd", REG_GPIO, 0, 0, 0},
+./board-msm7627a-camera.c:	{"cam_ov5647_vdd", REG_GPIO, 0, 0, 0},
+./board-msm7627a-camera.c:static struct camera_vreg_t ov8825_gpio_vreg[] = {
+./board-msm7627a-camera.c:	{"cam_ov8825_avdd", REG_GPIO, 0, 0, 0},
+./board-msm7627a-camera.c:	{"cam_ov8825_vdd", REG_GPIO, 0, 0, 0},
+./board-msm7627a-camera.c:static struct camera_vreg_t ov7692_gpio_vreg[] = {
+./board-msm7627a-camera.c:	{"cam_ov7692_avdd", REG_GPIO, 0, 0, 0},
+./board-msm7627a-camera.c:	{"cam_ov7692_vdd", REG_GPIO, 0, 0, 0},
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_s5k4e1_data;
+./board-msm7627a-camera.c:struct msm_camera_device_platform_data msm_camera_device_data_csi1[] = {
+./board-msm7627a-camera.c:struct msm_camera_device_platform_data msm_camera_device_data_csi0[] = {
+./board-msm7627a-camera.c:static struct i2c_board_info msm_act_main_cam_i2c_info = {
+./board-msm7627a-camera.c:static struct msm_actuator_info msm_act_main_cam_4_info = {
+./board-msm7627a-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./board-msm7627a-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_4,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_s5k4e1 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_s5k4e1 = {
+./board-msm7627a-camera.c:	.cam_vreg = msm_cam_vreg,
+./board-msm7627a-camera.c:	.num_vreg = ARRAY_SIZE(msm_cam_vreg),
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_s5k4e1_data = {
+./board-msm7627a-camera.c:	.pdata                  = &msm_camera_device_data_csi1[0],
+./board-msm7627a-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-msm7627a-camera.c:	.actuator_info = &msm_act_main_cam_4_info,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov7692 = {
+./board-msm7627a-camera.c:	.cam_vreg = msm_cam_vreg,
+./board-msm7627a-camera.c:	.num_vreg = ARRAY_SIZE(msm_cam_vreg),
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_ov7692 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov7692_data = {
+./board-msm7627a-camera.c:	.pdata			= &msm_camera_device_data_csi0[0],
+./board-msm7627a-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-msm7627a-camera.c:static struct msm_actuator_info msm_act_main_cam_5_info = {
+./board-msm7627a-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./board-msm7627a-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_5,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov5647 = {
+./board-msm7627a-camera.c:	.cam_vreg = msm_cam_vreg,
+./board-msm7627a-camera.c:	.num_vreg = ARRAY_SIZE(msm_cam_vreg),
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src_ov5647 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_ov5647 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov5647_data = {
+./board-msm7627a-camera.c:	.pdata          = &msm_camera_device_data_csi1[0],
+./board-msm7627a-camera.c:	.camera_type	= BACK_CAMERA_2D,
+./board-msm7627a-camera.c:	.actuator_info = &msm_act_main_cam_5_info,
+./board-msm7627a-camera.c:static struct msm_camera_gpio_conf gpio_conf_ov8825 = {
+./board-msm7627a-camera.c:	.camera_off_table = camera_off_gpio_table,
+./board-msm7627a-camera.c:	.camera_on_table = camera_on_gpio_table,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src_ov8825 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_ov8825 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov8825 = {
+./board-msm7627a-camera.c:	.cam_vreg = msm_cam_vreg,
+./board-msm7627a-camera.c:	.num_vreg = ARRAY_SIZE(msm_cam_vreg),
+./board-msm7627a-camera.c:static struct msm_actuator_info msm_act_main_cam_3_info = {
+./board-msm7627a-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./board-msm7627a-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_3,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov8825_data = {
+./board-msm7627a-camera.c:	.pdata  = &msm_camera_device_data_csi1[1],
+./board-msm7627a-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-msm7627a-camera.c:	.actuator_info = &msm_act_main_cam_3_info,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_mt9e013 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_mt9e013 = {
+./board-msm7627a-camera.c:	.cam_vreg = msm_cam_vreg,
+./board-msm7627a-camera.c:	.num_vreg = ARRAY_SIZE(msm_cam_vreg),
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9e013_data = {
+./board-msm7627a-camera.c:	.pdata                  = &msm_camera_device_data_csi1[1],
+./board-msm7627a-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_ov9726 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov9726 = {
+./board-msm7627a-camera.c:	.cam_vreg = msm_cam_vreg,
+./board-msm7627a-camera.c:	.num_vreg = ARRAY_SIZE(msm_cam_vreg),
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov9726_data = {
+./board-msm7627a-camera.c:	.pdata                  = &msm_camera_device_data_csi0[0],
+./board-msm7627a-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-msm7627a-camera.c:static struct platform_device msm_camera_server = {
+./board-msm7627a-camera.c:	.name = "msm_cam_server",
+./board-msm7627a-camera.c:static void __init msm7x27a_init_cam(void)
+./board-msm7627a-camera.c:		sensor_board_info_s5k4e1.cam_vreg = NULL;
+./board-msm7627a-camera.c:		sensor_board_info_mt9e013.cam_vreg = NULL;
+./board-msm7627a-camera.c:		sensor_board_info_ov9726.cam_vreg = NULL;
+./board-msm7627a-camera.c:		sensor_board_info_ov7692.cam_vreg = NULL;
+./board-msm7627a-camera.c:		sensor_board_info_ov5647.cam_vreg = NULL;
+./board-msm7627a-camera.c:		sensor_board_info_ov8825.cam_vreg = NULL;
+./board-msm7627a-camera.c:		sensor_board_info_ov7692.cam_vreg =
+./board-msm7627a-camera.c:		sensor_board_info_ov5647.cam_vreg =
+./board-msm7627a-camera.c:		sensor_board_info_ov8825.cam_vreg =
+./board-msm7627a-camera.c:	platform_device_register(&msm_camera_server);
+./board-msm7627a-camera.c:static struct i2c_board_info i2c_camera_devices[] = {
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_s5k4e1_data,
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_ov9726_data,
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_mt9e013_data,
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_ov7692_data,
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_ov5647_data,
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_ov8825_data,
+./board-msm7627a-camera.c:static uint32_t camera_off_gpio_table[] = {
+./board-msm7627a-camera.c:static uint32_t camera_on_gpio_table[] = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src = {
+./board-msm7627a-camera.c:static struct regulator_bulk_data regs_camera[] = {
+./board-msm7627a-camera.c:static void qrd1_camera_gpio_cfg(void)
+./board-msm7627a-camera.c:				"camera!\n", __func__);
+./board-msm7627a-camera.c:		pr_err("%s: unable to enable reset gpio for main camera!\n",
+./board-msm7627a-camera.c:				"camera!\n", __func__);
+./board-msm7627a-camera.c:static void evb_camera_gpio_cfg(void)
+./board-msm7627a-camera.c:	rc = gpio_request(msm_camera_sensor_ov5647_data.sensor_pwd, "ov5647");
+./board-msm7627a-camera.c:			 __func__, msm_camera_sensor_ov5647_data.sensor_pwd);
+./board-msm7627a-camera.c:	rc = gpio_tlmm_config(GPIO_CFG(msm_camera_sensor_ov5647_data.sensor_pwd,
+./board-msm7627a-camera.c:		pr_err("%s:unable to enable Powr Dwn gpio for main camera!\n",
+./board-msm7627a-camera.c:		gpio_free(msm_camera_sensor_ov5647_data.sensor_pwd);
+./board-msm7627a-camera.c:	rc = gpio_direction_output(msm_camera_sensor_ov5647_data.sensor_pwd, 1);
+./board-msm7627a-camera.c:		pr_err("%s: unable to set gpio: %d direction for ov5647 camera\n",
+./board-msm7627a-camera.c:			__func__, msm_camera_sensor_ov5647_data.sensor_pwd);
+./board-msm7627a-camera.c:	rc = gpio_request(msm_camera_sensor_ov5647_data.sensor_reset, "ov5647");
+./board-msm7627a-camera.c:			 __func__, msm_camera_sensor_ov5647_data.sensor_reset);
+./board-msm7627a-camera.c:				msm_camera_sensor_ov5647_data.sensor_reset,
+./board-msm7627a-camera.c:		pr_err("%s: unable to enable reset gpio for main camera!\n",
+./board-msm7627a-camera.c:		gpio_free(msm_camera_sensor_ov5647_data.sensor_reset);
+./board-msm7627a-camera.c:			msm_camera_sensor_ov5647_data.sensor_reset, 1);
+./board-msm7627a-camera.c:		pr_err("%s: unable to set gpio: %d direction for ov5647 camera\n",
+./board-msm7627a-camera.c:			__func__, msm_camera_sensor_ov5647_data.sensor_reset);
+./board-msm7627a-camera.c:static void msm_camera_vreg_config(int vreg_en)
+./board-msm7627a-camera.c:		regulator_bulk_enable(ARRAY_SIZE(regs_camera), regs_camera) :
+./board-msm7627a-camera.c:		regulator_bulk_disable(ARRAY_SIZE(regs_camera), regs_camera);
+./board-msm7627a-camera.c:				gpio_tlmm_config(camera_off_gpio_table[i],
+./board-msm7627a-camera.c:static int config_camera_on_gpios_rear(void)
+./board-msm7627a-camera.c:		msm_camera_vreg_config(1);
+./board-msm7627a-camera.c:	rc = config_gpio_table(camera_on_gpio_table,
+./board-msm7627a-camera.c:			ARRAY_SIZE(camera_on_gpio_table));
+./board-msm7627a-camera.c:static void config_camera_off_gpios_rear(void)
+./board-msm7627a-camera.c:		msm_camera_vreg_config(0);
+./board-msm7627a-camera.c:	config_gpio_table(camera_off_gpio_table,
+./board-msm7627a-camera.c:			ARRAY_SIZE(camera_off_gpio_table));
+./board-msm7627a-camera.c:static int config_camera_on_gpios_front(void)
+./board-msm7627a-camera.c:		msm_camera_vreg_config(1);
+./board-msm7627a-camera.c:	rc = config_gpio_table(camera_on_gpio_table,
+./board-msm7627a-camera.c:			ARRAY_SIZE(camera_on_gpio_table));
+./board-msm7627a-camera.c:static void config_camera_off_gpios_front(void)
+./board-msm7627a-camera.c:		msm_camera_vreg_config(0);
+./board-msm7627a-camera.c:	config_gpio_table(camera_off_gpio_table,
+./board-msm7627a-camera.c:			ARRAY_SIZE(camera_off_gpio_table));
+./board-msm7627a-camera.c:struct msm_camera_device_platform_data msm_camera_device_data_rear = {
+./board-msm7627a-camera.c:	.camera_gpio_on		= config_camera_on_gpios_rear,
+./board-msm7627a-camera.c:	.camera_gpio_off	= config_camera_off_gpios_rear,
+./board-msm7627a-camera.c:struct msm_camera_device_platform_data msm_camera_device_data_front = {
+./board-msm7627a-camera.c:	.camera_gpio_on		= config_camera_on_gpios_front,
+./board-msm7627a-camera.c:	.camera_gpio_off	= config_camera_off_gpios_front,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info ov5647_sensor_7627a_info = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src_ov5647 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_ov5647 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov5647_data = {
+./board-msm7627a-camera.c:	.pdata          = &msm_camera_device_data_rear,
+./board-msm7627a-camera.c:static struct platform_device msm_camera_sensor_ov5647 = {
+./board-msm7627a-camera.c:	.name      = "msm_camera_ov5647",
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_ov5647_data,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info s5k4e1_sensor_7627a_info = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_s5k4e1 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_s5k4e1_data = {
+./board-msm7627a-camera.c:	.pdata			= &msm_camera_device_data_rear,
+./board-msm7627a-camera.c:static struct platform_device msm_camera_sensor_s5k4e1 = {
+./board-msm7627a-camera.c:	.name   = "msm_camera_s5k4e1",
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_s5k4e1_data,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info imx072_sensor_7627a_info = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_imx072 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx072_data = {
+./board-msm7627a-camera.c:	.pdata			= &msm_camera_device_data_rear,
+./board-msm7627a-camera.c:static struct platform_device msm_camera_sensor_imx072 = {
+./board-msm7627a-camera.c:	.name   = "msm_camera_imx072",
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_imx072_data,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov9726_data;
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info ov9726_sensor_7627a_info = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_ov9726 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov9726_data = {
+./board-msm7627a-camera.c:	.pdata			= &msm_camera_device_data_front,
+./board-msm7627a-camera.c:static struct platform_device msm_camera_sensor_ov9726 = {
+./board-msm7627a-camera.c:	.name   = "msm_camera_ov9726",
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_ov9726_data,
+./board-msm7627a-camera.c:static inline void msm_camera_vreg_init(void) { }
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info mt9e013_sensor_7627a_info = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_mt9e013 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9e013_data = {
+./board-msm7627a-camera.c:	.pdata		= &msm_camera_device_data_rear,
+./board-msm7627a-camera.c:static struct platform_device msm_camera_sensor_mt9e013 = {
+./board-msm7627a-camera.c:	.name      = "msm_camera_mt9e013",
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_mt9e013_data,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info ov5640_sensor_info = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src_ov5640 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_ov5640 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov5640_data = {
+./board-msm7627a-camera.c:	.pdata			= &msm_camera_device_data_rear,
+./board-msm7627a-camera.c:static struct platform_device msm_camera_sensor_ov5640 = {
+./board-msm7627a-camera.c:	.name   = "msm_camera_ov5640",
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_ov5640_data,
+./board-msm7627a-camera.c:static struct msm_camera_sensor_platform_info ov7692_sensor_7627a_info = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_flash_data flash_ov7692 = {
+./board-msm7627a-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov7692_data = {
+./board-msm7627a-camera.c:	.pdata			= &msm_camera_device_data_front,
+./board-msm7627a-camera.c:static struct platform_device msm_camera_sensor_ov7692 = {
+./board-msm7627a-camera.c:	.name   = "msm_camera_ov7692",
+./board-msm7627a-camera.c:		.platform_data = &msm_camera_sensor_ov7692_data,
+./board-msm7627a-camera.c:static struct i2c_board_info i2c_camera_devices[] = {
+./board-msm7627a-camera.c:static struct i2c_board_info i2c_camera_devices_qrd[] = {
+./board-msm7627a-camera.c:static struct i2c_board_info i2c_camera_devices_evb[] = {
+./board-msm7627a-camera.c:static struct platform_device *camera_devices_msm[] __initdata = {
+./board-msm7627a-camera.c:	&msm_camera_sensor_s5k4e1,
+./board-msm7627a-camera.c:	&msm_camera_sensor_imx072,
+./board-msm7627a-camera.c:	&msm_camera_sensor_ov9726,
+./board-msm7627a-camera.c:	&msm_camera_sensor_mt9e013,
+./board-msm7627a-camera.c:static struct platform_device *camera_devices_qrd[] __initdata = {
+./board-msm7627a-camera.c:	&msm_camera_sensor_ov5640,
+./board-msm7627a-camera.c:	&msm_camera_sensor_ov7692,
+./board-msm7627a-camera.c:static struct platform_device *camera_devices_evb[] __initdata = {
+./board-msm7627a-camera.c:	&msm_camera_sensor_ov5647,
+./board-msm7627a-camera.c:	&msm_camera_sensor_ov7692,
+./board-msm7627a-camera.c:	&msm_camera_sensor_ov8825,
+./board-msm7627a-camera.c:static struct i2c_board_info cam_exp_i2c_info[] __initdata = {
+./board-msm7627a-camera.c:				cam_exp_i2c_info,
+./board-msm7627a-camera.c:				ARRAY_SIZE(cam_exp_i2c_info));
+./board-msm7627a-camera.c:static int lcd_camera_ldo_1v8 = SKU3_LCD_CAMERA_LDO_1V8;
+./board-msm7627a-camera.c:static void lcd_camera_power_init(void)
+./board-msm7627a-camera.c:	pr_debug("lcd_camera_power_init\n");
+./board-msm7627a-camera.c:		lcd_camera_ldo_1v8 = SKU7_LCD_CAMERA_LDO_1V8;
+./board-msm7627a-camera.c:		lcd_camera_ldo_1v8 = SKU3_LCD_CAMERA_LDO_1V8;
+./board-msm7627a-camera.c:	if (gpio_request(LCD_CAMERA_LDO_2V8, "lcd_camera_ldo_2v8")) {
+./board-msm7627a-camera.c:		pr_err("failed to request gpio lcd_camera_ldo_2v8\n");
+./board-msm7627a-camera.c:		pr_err("%s: unable to enable lcd_camera_ldo_2v8!\n", __func__);
+./board-msm7627a-camera.c:	if (gpio_request(lcd_camera_ldo_1v8, "lcd_camera_ldo_1v8")) {
+./board-msm7627a-camera.c:		pr_err("failed to request gpio lcd_camera_ldo_1v8\n");
+./board-msm7627a-camera.c:	rc = gpio_tlmm_config(GPIO_CFG(lcd_camera_ldo_1v8, 0,
+./board-msm7627a-camera.c:		pr_err("%s: unable to enable lcd_camera_ldo_1v8!\n", __func__);
+./board-msm7627a-camera.c:	gpio_free(lcd_camera_ldo_1v8);
+./board-msm7627a-camera.c:static int lcd_camera_power_on_sku3(void)
+./board-msm7627a-camera.c:	pr_debug("turn on sku3 lcd_camera_ldo_1v8\n");
+./board-msm7627a-camera.c:	gpio_set_value_cansleep(lcd_camera_ldo_1v8, 1);
+./board-msm7627a-camera.c:	pr_debug("turn on sku3 lcd_camera_ldo\n");
+./board-msm7627a-camera.c:static int lcd_camera_power_off_sku3(void)
+./board-msm7627a-camera.c:	pr_debug("turn off sku3 lcd_camera_ldo_1v8\n");
+./board-msm7627a-camera.c:	gpio_set_value_cansleep(lcd_camera_ldo_1v8, 0);
+./board-msm7627a-camera.c:	pr_debug("turn off sku3 lcd_camera_ldo\n");
+./board-msm7627a-camera.c:	gpio_free(lcd_camera_ldo_1v8);
+./board-msm7627a-camera.c:int lcd_camera_power_onoff(int on)
+./board-msm7627a-camera.c:	pr_debug("lcd_camera_power_onoff on = %d,\n", on);
+./board-msm7627a-camera.c:		rc = lcd_camera_power_on_sku3();
+./board-msm7627a-camera.c:		rc = lcd_camera_power_off_sku3();
+./board-msm7627a-camera.c:EXPORT_SYMBOL(lcd_camera_power_onoff);
+./board-msm7627a-camera.c:void __init msm7627a_camera_init(void)
+./board-msm7627a-camera.c:	pr_debug("msm7627a_camera_init Entered\n");
+./board-msm7627a-camera.c:		ov7692_cam_req_gpio[0].gpio =
+./board-msm7627a-camera.c:		ov7692_cam_gpio_set_tbl[0].gpio = GPIO_SKU7_CAM_VGA_SHDN;
+./board-msm7627a-camera.c:		ov7692_cam_gpio_set_tbl[1].gpio = GPIO_SKU7_CAM_VGA_SHDN;
+./board-msm7627a-camera.c:		msm_camera_sensor_ov5647_data.sensor_pwd =
+./board-msm7627a-camera.c:		msm_camera_sensor_ov5647_data.sensor_reset =
+./board-msm7627a-camera.c:	/* LCD and camera power (VREG & LDO) init */
+./board-msm7627a-camera.c:		lcd_camera_power_init();
+./board-msm7627a-camera.c:		evb_camera_gpio_cfg();
+./board-msm7627a-camera.c:		qrd1_camera_gpio_cfg();
+./board-msm7627a-camera.c:		platform_add_devices(camera_devices_qrd,
+./board-msm7627a-camera.c:				ARRAY_SIZE(camera_devices_qrd));
+./board-msm7627a-camera.c:		platform_add_devices(camera_devices_evb,
+./board-msm7627a-camera.c:				ARRAY_SIZE(camera_devices_evb));
+./board-msm7627a-camera.c:		platform_add_devices(camera_devices_msm,
+./board-msm7627a-camera.c:				ARRAY_SIZE(camera_devices_msm));
+./board-msm7627a-camera.c:	rc = regulator_bulk_get(NULL, ARRAY_SIZE(regs_camera), regs_camera);
+./board-msm7627a-camera.c:	rc = regulator_bulk_set_voltage(ARRAY_SIZE(regs_camera), regs_camera);
+./board-msm7627a-camera.c:	msm7x27a_init_cam();
+./board-msm7627a-camera.c:				i2c_camera_devices_qrd,
+./board-msm7627a-camera.c:				ARRAY_SIZE(i2c_camera_devices_qrd));
+./board-msm7627a-camera.c:				i2c_camera_devices_evb,
+./board-msm7627a-camera.c:				ARRAY_SIZE(i2c_camera_devices_evb));
+./board-msm7627a-camera.c:				i2c_camera_devices,
+./board-msm7627a-camera.c:				ARRAY_SIZE(i2c_camera_devices));
+./Makefile:	obj-$(CONFIG_ARCH_MSM8X60) += board-msm8x60-camera.o
+./Makefile:board-7627a-all-objs += board-msm7627a-storage.o board-msm7627a-bt.o board-msm7627a-camera.o
+./Makefile:board-8960-all-objs += board-8960.o board-8960-camera.o board-8960-display.o board-8960-pmic.o board-8960-storage.o board-8960-gpiomux.o
+./Makefile:board-8930-all-objs += board-8930.o board-8930-camera.o board-8930-display.o board-8930-pmic.o board-8930-storage.o board-8930-gpiomux.o devices-8930.o board-8930-gpu.o
+./Makefile:board-8064-all-objs += board-8064.o board-8064-pmic.o board-8064-storage.o board-8064-gpiomux.o board-8064-camera.o board-8064-display.o board-8064-gpu.o
+./ocmem.c:	"camera",
+./ocmem.c:	{ "camera", OCMEM_CAMERA, 0x0, 0x0, 0x0, 0},
+./clock-pcom-lookup.c:static DEFINE_CLK_PCOM(cam_m_clk,	CAM_M_CLK,	0);
+./clock-pcom-lookup.c:	CLK_LOOKUP("cam_m_clk",		cam_m_clk.c,	NULL),
+./clock-pcom-lookup.c:	CLK_LOOKUP("cam_clk",		cam_m_clk.c,	"0-0036"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("cam_clk",		cam_m_clk.c,	"0-001b"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("cam_clk",		cam_m_clk.c,	"0-0010"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("cam_clk",		cam_m_clk.c,	"0-0078"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("cam_clk",		cam_m_clk.c,	"0-006c"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("cam_clk",		cam_m_clk.c,	"0-000d"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("csi_clk",		csi0_clk.c,	"msm_camera_ov9726.0"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("csi_pclk",		csi0_p_clk.c,	"msm_camera_ov9726.0"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("csi_vfe_clk",	csi0_vfe_clk.c,	"msm_camera_ov9726.0"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("csi_clk",		csi0_clk.c,	"msm_camera_ov7692.0"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("csi_pclk",		csi0_p_clk.c,	"msm_camera_ov7692.0"),
+./clock-pcom-lookup.c:	CLK_LOOKUP("csi_vfe_clk",	csi0_vfe_clk.c,	"msm_camera_ov7692.0"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vana",		"4-001a"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vana",		"4-006c"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vana",		"4-0048"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vana",            "4-0020"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vdig",		"4-001a"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vdig",		"4-006c"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0048"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vdig",            "4-0020"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vaf",		"4-001a"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vaf",		"4-006c"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0048"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vaf",             "4-0020"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vio",		"4-001a"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vio",		"4-006c"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vio",		"4-0048"),
+./board-8930-regulator-pm8917.c:	REGULATOR_SUPPLY("cam_vio",             "4-0020"),
+./board-8960.h:extern struct msm_camera_board_info msm8960_camera_board_info;
+./board-8960.h:void msm8960_init_cam(void);
+./board-8960.c:	struct i2c_registry msm8960_camera_i2c_devices = {
+./board-8960.c:		msm8960_camera_board_info.board_info,
+./board-8960.c:		msm8960_camera_board_info.num_i2c_board_info,
+./board-8960.c:	if (msm8960_camera_i2c_devices.machs & mach_mask)
+./board-8960.c:		i2c_register_board_info(msm8960_camera_i2c_devices.bus,
+./board-8960.c:			msm8960_camera_i2c_devices.info,
+./board-8960.c:			msm8960_camera_i2c_devices.len);
+./board-8960.c:	msm8960_init_cam();
+./board-msm7x27a.c:static int msm_ion_camera_size;
+./board-msm7x27a.c:	msm_ion_camera_size = pmem_adsp_size;
+./board-msm7x27a.c:	ion_pdata.heaps[1].size = msm_ion_camera_size;
+./board-msm7x27a.c:	msm7x27a_reserve_table[MEMTYPE_EBI1].size += msm_ion_camera_size;
+./board-msm7x27a.c:	msm7627a_camera_init();
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-001a"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0010"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-006c"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0048"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0020"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0034"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-001a"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0010"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-006c"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0048"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0020"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vdig",		"4-0034"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-001a"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0010"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-006c"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0048"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0020"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0034"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-001a"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-0010"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-006c"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-0048"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-0020"),
+./board-8960-regulator.c:	REGULATOR_SUPPLY("cam_vio",		"4-0034"),
+./board-msm7x27.c:#include <mach/camera.h>
+./board-msm7x27.c:static uint32_t camera_off_gpio_table[] = {
+./board-msm7x27.c:static uint32_t camera_on_gpio_table[] = {
+./board-msm7x27.c:static void msm_camera_vreg_config(int vreg_en)
+./board-msm7x27.c:			goto cam_vreg_fail;
+./board-msm7x27.c:			goto cam_vreg_fail;
+./board-msm7x27.c:			goto cam_vreg2_fail;
+./board-msm7x27.c:			goto cam_vreg2_fail;
+./board-msm7x27.c:			goto cam_vreg2_fail;
+./board-msm7x27.c:cam_vreg2_fail:
+./board-msm7x27.c:cam_vreg_fail:
+./board-msm7x27.c:static int config_camera_on_gpios(void)
+./board-msm7x27.c:		msm_camera_vreg_config(vreg_en);
+./board-msm7x27.c:	config_gpio_table(camera_on_gpio_table,
+./board-msm7x27.c:		ARRAY_SIZE(camera_on_gpio_table));
+./board-msm7x27.c:static void config_camera_off_gpios(void)
+./board-msm7x27.c:		msm_camera_vreg_config(vreg_en);
+./board-msm7x27.c:	config_gpio_table(camera_off_gpio_table,
+./board-msm7x27.c:		ARRAY_SIZE(camera_off_gpio_table));
+./board-msm7x27.c:static struct msm_camera_device_platform_data msm_camera_device_data = {
+./board-msm7x27.c:	.camera_gpio_on  = config_camera_on_gpios,
+./board-msm7x27.c:	.camera_gpio_off = config_camera_off_gpios,
+./board-msm7x27.c:static struct msm_camera_sensor_flash_src msm_flash_src = {
+./board-msm7x27.c:static struct msm_camera_sensor_flash_data flash_mt9d112 = {
+./board-msm7x27.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9d112_data = {
+./board-msm7x27.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x27.c:static struct platform_device msm_camera_sensor_mt9d112 = {
+./board-msm7x27.c:	.name      = "msm_camera_mt9d112",
+./board-msm7x27.c:		.platform_data = &msm_camera_sensor_mt9d112_data,
+./board-msm7x27.c:static struct msm_camera_sensor_flash_data flash_s5k3e2fx = {
+./board-msm7x27.c:static struct msm_camera_sensor_info msm_camera_sensor_s5k3e2fx_data = {
+./board-msm7x27.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x27.c:static struct platform_device msm_camera_sensor_s5k3e2fx = {
+./board-msm7x27.c:	.name      = "msm_camera_s5k3e2fx",
+./board-msm7x27.c:		.platform_data = &msm_camera_sensor_s5k3e2fx_data,
+./board-msm7x27.c:static struct msm_camera_sensor_flash_data flash_mt9p012 = {
+./board-msm7x27.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9p012_data = {
+./board-msm7x27.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x27.c:static struct platform_device msm_camera_sensor_mt9p012 = {
+./board-msm7x27.c:	.name      = "msm_camera_mt9p012",
+./board-msm7x27.c:		.platform_data = &msm_camera_sensor_mt9p012_data,
+./board-msm7x27.c:static struct msm_camera_sensor_flash_data flash_mt9p012_km = {
+./board-msm7x27.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9p012_km_data = {
+./board-msm7x27.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x27.c:static struct platform_device msm_camera_sensor_mt9p012_km = {
+./board-msm7x27.c:	.name      = "msm_camera_mt9p012_km",
+./board-msm7x27.c:		.platform_data = &msm_camera_sensor_mt9p012_km_data,
+./board-msm7x27.c:static struct msm_camera_sensor_flash_data flash_mt9t013 = {
+./board-msm7x27.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9t013_data = {
+./board-msm7x27.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x27.c:static struct platform_device msm_camera_sensor_mt9t013 = {
+./board-msm7x27.c:	.name      = "msm_camera_mt9t013",
+./board-msm7x27.c:		.platform_data = &msm_camera_sensor_mt9t013_data,
+./board-msm7x27.c:static struct msm_camera_sensor_flash_data flash_vb6801 = {
+./board-msm7x27.c:static struct msm_camera_sensor_info msm_camera_sensor_vb6801_data = {
+./board-msm7x27.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x27.c:static struct platform_device msm_camera_sensor_vb6801 = {
+./board-msm7x27.c:	.name      = "msm_camera_vb6801",
+./board-msm7x27.c:		.platform_data = &msm_camera_sensor_vb6801_data,
+./board-msm7x27.c:	&msm_camera_sensor_mt9t013,
+./board-msm7x27.c:	&msm_camera_sensor_mt9d112,
+./board-msm7x27.c:	&msm_camera_sensor_s5k3e2fx,
+./board-msm7x27.c:	&msm_camera_sensor_mt9p012,
+./board-msm7x27.c:	&msm_camera_sensor_mt9p012_km,
+./board-msm7x27.c:	&msm_camera_sensor_vb6801,
+./board-msm7x27.c:	config_camera_off_gpios(); /* might not be necessary */
+./board-sapphire-panel.c:		if  (is_12pin_camera())
+./board-sapphire-panel.c:		if (is_12pin_camera())
+./devices-qsd8x50.c:static struct platform_device msm_camera_device = {
+./devices-qsd8x50.c:	.name	= "msm_camera",
+./devices-qsd8x50.c:void __init msm_camera_register_device(void *res, uint32_t num,
+./devices-qsd8x50.c:	msm_camera_device.num_resources = num;
+./devices-qsd8x50.c:	msm_camera_device.resource = res;
+./devices-qsd8x50.c:	msm_register_device(&msm_camera_device, data);
+./memory_topology.c:		 * non-valid memory (e.g. modem memory) became greater than
+./clock-8960.c:		.freq_tbl = clk_tbl_cam, \
+./clock-8960.c:static struct clk_freq_tbl clk_tbl_cam[] = {
+./clock-8960.c:static CLK_CAM(cam0_clk, 0, 15);
+./clock-8960.c:static CLK_CAM(cam1_clk, 1, 16);
+./clock-8960.c:static CLK_CAM(cam2_clk, 2, 31);
+./clock-8960.c:	{ TEST_MM_LS(0x02), &cam1_clk.c },
+./clock-8960.c:	{ TEST_MM_LS(0x1D), &cam0_clk.c },
+./clock-8960.c:	{ TEST_MM_LS(0x27), &cam2_clk.c },
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,		"4-000d"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam2_clk.c,		"4-006e"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-001a"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-0010"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-0034"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-0020"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam1_clk.c,	"4-0048"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam1_clk.c,	"4-006c"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-001a"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-006c"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-0048"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam2_clk.c,		NULL),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-0020"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-0034"),
+./clock-8960.c:        CLK_LOOKUP("cam_clk",           cam0_clk.c,     "4-0036"),
+./clock-8960.c:        CLK_LOOKUP("cam_clk",           cam0_clk.c,     "4-0010"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-001a"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam1_clk.c,	"4-006c"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam1_clk.c,	"4-0048"),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam2_clk.c,		NULL),
+./clock-8960.c:	CLK_LOOKUP("cam_clk",		cam0_clk.c,	"4-0020"),
+./board-msm8x60-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src = {
+./board-msm8x60-camera.c:static struct msm_camera_sensor_strobe_flash_data strobe_flash_xenon = {
+./board-msm8x60-camera.c:static struct msm_bus_vectors cam_init_vectors[] = {
+./board-msm8x60-camera.c:static struct msm_bus_vectors cam_preview_vectors[] = {
+./board-msm8x60-camera.c:static struct msm_bus_vectors cam_video_vectors[] = {
+./board-msm8x60-camera.c:static struct msm_bus_vectors cam_snapshot_vectors[] = {
+./board-msm8x60-camera.c:static struct msm_bus_vectors cam_zsl_vectors[] = {
+./board-msm8x60-camera.c:static struct msm_bus_vectors cam_stereo_video_vectors[] = {
+./board-msm8x60-camera.c:static struct msm_bus_vectors cam_stereo_snapshot_vectors[] = {
+./board-msm8x60-camera.c:static struct msm_bus_paths cam_bus_client_config[] = {
+./board-msm8x60-camera.c:		ARRAY_SIZE(cam_init_vectors),
+./board-msm8x60-camera.c:		cam_init_vectors,
+./board-msm8x60-camera.c:		ARRAY_SIZE(cam_preview_vectors),
+./board-msm8x60-camera.c:		cam_preview_vectors,
+./board-msm8x60-camera.c:		ARRAY_SIZE(cam_video_vectors),
+./board-msm8x60-camera.c:		cam_video_vectors,
+./board-msm8x60-camera.c:		ARRAY_SIZE(cam_snapshot_vectors),
+./board-msm8x60-camera.c:		cam_snapshot_vectors,
+./board-msm8x60-camera.c:		ARRAY_SIZE(cam_zsl_vectors),
+./board-msm8x60-camera.c:		cam_zsl_vectors,
+./board-msm8x60-camera.c:		ARRAY_SIZE(cam_stereo_video_vectors),
+./board-msm8x60-camera.c:		cam_stereo_video_vectors,
+./board-msm8x60-camera.c:		ARRAY_SIZE(cam_stereo_snapshot_vectors),
+./board-msm8x60-camera.c:		cam_stereo_snapshot_vectors,
+./board-msm8x60-camera.c:static struct msm_bus_scale_pdata cam_bus_client_pdata = {
+./board-msm8x60-camera.c:		cam_bus_client_config,
+./board-msm8x60-camera.c:		ARRAY_SIZE(cam_bus_client_config),
+./board-msm8x60-camera.c:		.name = "msm_camera",
+./board-msm8x60-camera.c:static struct msm_camera_device_platform_data msm_camera_csi_device_data[] = {
+./board-msm8x60-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-msm8x60-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-msm8x60-camera.c:static struct camera_vreg_t msm_8x60_back_cam_vreg[] = {
+./board-msm8x60-camera.c:	{"cam_vana", REG_LDO, 2850000, 2850000, -1},
+./board-msm8x60-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-msm8x60-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, -1},
+./board-msm8x60-camera.c:static struct gpio msm8x60_common_cam_gpio[] = {
+./board-msm8x60-camera.c:static struct gpio msm8x60_back_cam_gpio[] = {
+./board-msm8x60-camera.c:static struct msm_gpio_set_tbl msm8x60_back_cam_gpio_set_tbl[] = {
+./board-msm8x60-camera.c:static struct msm_camera_gpio_conf msm_8x60_back_cam_gpio_conf = {
+./board-msm8x60-camera.c:	.cam_gpio_common_tbl = msm8x60_common_cam_gpio,
+./board-msm8x60-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(msm8x60_common_cam_gpio),
+./board-msm8x60-camera.c:	.cam_gpio_req_tbl = msm8x60_back_cam_gpio,
+./board-msm8x60-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(msm8x60_back_cam_gpio),
+./board-msm8x60-camera.c:	.cam_gpio_set_tbl = msm8x60_back_cam_gpio_set_tbl,
+./board-msm8x60-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(msm8x60_back_cam_gpio_set_tbl),
+./board-msm8x60-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_0,
+./board-msm8x60-camera.c:static struct msm_camera_sensor_flash_data flash_imx074 = {
+./board-msm8x60-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_imx074 = {
+./board-msm8x60-camera.c:	.cam_vreg = msm_8x60_back_cam_vreg,
+./board-msm8x60-camera.c:	.num_vreg = ARRAY_SIZE(msm_8x60_back_cam_vreg),
+./board-msm8x60-camera.c:	.gpio_conf = &msm_8x60_back_cam_gpio_conf,
+./board-msm8x60-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx074_data = {
+./board-msm8x60-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./board-msm8x60-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-msm8x60-camera.c:static struct msm_camera_sensor_flash_data flash_mt9e013 = {
+./board-msm8x60-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_mt9e013 = {
+./board-msm8x60-camera.c:	.cam_vreg = msm_8x60_back_cam_vreg,
+./board-msm8x60-camera.c:	.num_vreg = ARRAY_SIZE(msm_8x60_back_cam_vreg),
+./board-msm8x60-camera.c:	.gpio_conf = &msm_8x60_back_cam_gpio_conf,
+./board-msm8x60-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9e013_data = {
+./board-msm8x60-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./board-msm8x60-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-msm8x60-camera.c:static struct gpio ov7692_cam_gpio[] = {
+./board-msm8x60-camera.c:static struct msm_gpio_set_tbl ov7692_cam_gpio_set_tbl[] = {
+./board-msm8x60-camera.c:static struct msm_camera_gpio_conf ov7692_cam_gpio_conf = {
+./board-msm8x60-camera.c:	.cam_gpio_common_tbl = msm8x60_common_cam_gpio,
+./board-msm8x60-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(msm8x60_common_cam_gpio),
+./board-msm8x60-camera.c:	.cam_gpio_req_tbl = ov7692_cam_gpio,
+./board-msm8x60-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(ov7692_cam_gpio),
+./board-msm8x60-camera.c:	.cam_gpio_set_tbl = ov7692_cam_gpio_set_tbl,
+./board-msm8x60-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(ov7692_cam_gpio_set_tbl),
+./board-msm8x60-camera.c:static struct msm_camera_sensor_flash_data flash_ov7692 = {
+./board-msm8x60-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov7692 = {
+./board-msm8x60-camera.c:	.cam_vreg = msm_8x60_back_cam_vreg,
+./board-msm8x60-camera.c:	.num_vreg = ARRAY_SIZE(msm_8x60_back_cam_vreg),
+./board-msm8x60-camera.c:	.gpio_conf = &ov7692_cam_gpio_conf,
+./board-msm8x60-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov7692_data = {
+./board-msm8x60-camera.c:	.pdata	= &msm_camera_csi_device_data[1],
+./board-msm8x60-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-msm8x60-camera.c:static struct platform_device msm_camera_server = {
+./board-msm8x60-camera.c:	.name = "msm_cam_server",
+./board-msm8x60-camera.c:void __init msm8x60_init_cam(void)
+./board-msm8x60-camera.c:	platform_device_register(&msm_camera_server);
+./board-msm8x60-camera.c:static struct i2c_board_info msm8x60_camera_i2c_boardinfo[] = {
+./board-msm8x60-camera.c:	.platform_data = &msm_camera_sensor_imx074_data,
+./board-msm8x60-camera.c:	.platform_data = &msm_camera_sensor_mt9e013_data,
+./board-msm8x60-camera.c:	.platform_data = &msm_camera_sensor_ov7692_data,
+./board-msm8x60-camera.c:struct msm_camera_board_info msm8x60_camera_board_info = {
+./board-msm8x60-camera.c:	.board_info = msm8x60_camera_i2c_boardinfo,
+./board-msm8x60-camera.c:	.num_i2c_board_info = ARRAY_SIZE(msm8x60_camera_i2c_boardinfo),
+./lge/mako/board-mako.h:extern struct msm_camera_board_info apq8064_camera_board_info;
+./lge/mako/board-mako.h:/* Enabling flash LED for camera */
+./lge/mako/board-mako.h:extern struct msm_camera_board_info apq8064_lge_camera_board_info;
+./lge/mako/board-mako.h:void apq8064_init_cam(void);
+./lge/mako/Makefile:	board-mako-camera.o \
+./lge/mako/board-mako-camera.c:#include <media/msm_camera.h>
+./lge/mako/board-mako-camera.c:static struct gpiomux_setting cam_settings[] = {
+./lge/mako/board-mako-camera.c:static struct msm_gpiomux_config apq8064_cam_common_configs[] = {
+./lge/mako/board-mako-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[1],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[4],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[1],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./lge/mako/board-mako-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./lge/mako/board-mako-camera.c:static struct msm_bus_vectors cam_init_vectors[] = {
+./lge/mako/board-mako-camera.c:static struct msm_bus_vectors cam_preview_vectors[] = {
+./lge/mako/board-mako-camera.c:static struct msm_bus_vectors cam_video_vectors[] = {
+./lge/mako/board-mako-camera.c:static struct msm_bus_vectors cam_snapshot_vectors[] = {
+./lge/mako/board-mako-camera.c:static struct msm_bus_vectors cam_zsl_vectors[] = {
+./lge/mako/board-mako-camera.c:static struct msm_bus_vectors cam_video_ls_vectors[] = {
+./lge/mako/board-mako-camera.c:static struct msm_bus_paths cam_bus_client_config[] = {
+./lge/mako/board-mako-camera.c:		ARRAY_SIZE(cam_init_vectors),
+./lge/mako/board-mako-camera.c:		cam_init_vectors,
+./lge/mako/board-mako-camera.c:		ARRAY_SIZE(cam_preview_vectors),
+./lge/mako/board-mako-camera.c:		cam_preview_vectors,
+./lge/mako/board-mako-camera.c:		ARRAY_SIZE(cam_video_vectors),
+./lge/mako/board-mako-camera.c:		cam_video_vectors,
+./lge/mako/board-mako-camera.c:		ARRAY_SIZE(cam_snapshot_vectors),
+./lge/mako/board-mako-camera.c:		cam_snapshot_vectors,
+./lge/mako/board-mako-camera.c:		ARRAY_SIZE(cam_zsl_vectors),
+./lge/mako/board-mako-camera.c:		cam_zsl_vectors,
+./lge/mako/board-mako-camera.c:		ARRAY_SIZE(cam_video_ls_vectors),
+./lge/mako/board-mako-camera.c:		cam_video_ls_vectors,
+./lge/mako/board-mako-camera.c:static struct msm_bus_scale_pdata cam_bus_client_pdata = {
+./lge/mako/board-mako-camera.c:		cam_bus_client_config,
+./lge/mako/board-mako-camera.c:		ARRAY_SIZE(cam_bus_client_config),
+./lge/mako/board-mako-camera.c:		.name = "msm_camera",
+./lge/mako/board-mako-camera.c:static struct msm_camera_device_platform_data msm_camera_csi_device_data[] = {
+./lge/mako/board-mako-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./lge/mako/board-mako-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./lge/mako/board-mako-camera.c:static struct camera_vreg_t apq_8064_back_cam_vreg[] = {
+./lge/mako/board-mako-camera.c:	{"cam1_vdig", REG_LDO, 1200000, 1200000, 105000},
+./lge/mako/board-mako-camera.c:	{"cam1_vio", REG_VS, 0, 0, 0},
+./lge/mako/board-mako-camera.c:	{"cam1_vana", REG_LDO, 2850000, 2850000, 85600},
+./lge/mako/board-mako-camera.c:	{"cam1_vaf", REG_LDO, 2800000, 2800000, 300000},
+./lge/mako/board-mako-camera.c:	{"cam1_vaf", REG_LDO, 1800000, 1800000, 150000},
+./lge/mako/board-mako-camera.c:static struct camera_vreg_t apq_8064_front_cam_vreg[] = {
+./lge/mako/board-mako-camera.c:	{"cam2_vio", REG_VS, 0, 0, 0},
+./lge/mako/board-mako-camera.c:	{"cam2_vana", REG_LDO, 2800000, 2850000, 85600},
+./lge/mako/board-mako-camera.c:	{"cam2_vdig", REG_LDO, 1200000, 1200000, 105000},
+./lge/mako/board-mako-camera.c:static struct gpio apq8064_common_cam_gpio[] = {
+./lge/mako/board-mako-camera.c:static struct gpio apq8064_back_cam_gpio[] = {
+./lge/mako/board-mako-camera.c:static struct msm_gpio_set_tbl apq8064_back_cam_gpio_set_tbl[] = {
+./lge/mako/board-mako-camera.c:static struct msm_camera_gpio_conf apq8064_back_cam_gpio_conf = {
+./lge/mako/board-mako-camera.c:	.cam_gpio_req_tbl = apq8064_back_cam_gpio,
+./lge/mako/board-mako-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(apq8064_back_cam_gpio),
+./lge/mako/board-mako-camera.c:	.cam_gpio_set_tbl = apq8064_back_cam_gpio_set_tbl,
+./lge/mako/board-mako-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(apq8064_back_cam_gpio_set_tbl),
+./lge/mako/board-mako-camera.c:static struct gpio apq8064_front_cam_gpio[] = {
+./lge/mako/board-mako-camera.c:static struct msm_gpio_set_tbl apq8064_front_cam_gpio_set_tbl[] = {
+./lge/mako/board-mako-camera.c:static struct msm_camera_gpio_conf apq8064_front_cam_gpio_conf = {
+./lge/mako/board-mako-camera.c:	.cam_gpio_req_tbl = apq8064_front_cam_gpio,
+./lge/mako/board-mako-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(apq8064_front_cam_gpio),
+./lge/mako/board-mako-camera.c:	.cam_gpio_set_tbl = apq8064_front_cam_gpio_set_tbl,
+./lge/mako/board-mako-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(apq8064_front_cam_gpio_set_tbl),
+./lge/mako/board-mako-camera.c:static struct msm_camera_i2c_conf apq8064_back_cam_i2c_conf = {
+./lge/mako/board-mako-camera.c:static struct i2c_board_info msm_act_main_cam_i2c_info = {
+./lge/mako/board-mako-camera.c:static struct msm_actuator_info msm_act_main_cam_0_info = {
+./lge/mako/board-mako-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./lge/mako/board-mako-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_1,
+./lge/mako/board-mako-camera.c:static struct msm_camera_sensor_flash_data flash_imx111 = {
+./lge/mako/board-mako-camera.c:static struct msm_camera_csi_lane_params imx111_csi_lane_params = {
+./lge/mako/board-mako-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_imx111 = {
+./lge/mako/board-mako-camera.c:	.cam_vreg = apq_8064_back_cam_vreg,
+./lge/mako/board-mako-camera.c:	.num_vreg = ARRAY_SIZE(apq_8064_back_cam_vreg),
+./lge/mako/board-mako-camera.c:	.gpio_conf = &apq8064_back_cam_gpio_conf,
+./lge/mako/board-mako-camera.c:	.i2c_conf = &apq8064_back_cam_i2c_conf,
+./lge/mako/board-mako-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx111_data = {
+./lge/mako/board-mako-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./lge/mako/board-mako-camera.c:	.camera_type = BACK_CAMERA_2D,
+./lge/mako/board-mako-camera.c:	.actuator_info = &msm_act_main_cam_0_info,
+./lge/mako/board-mako-camera.c:static struct i2c_board_info msm_act_main_cam_i2c_info = {
+./lge/mako/board-mako-camera.c:static struct msm_actuator_info msm_act_main_cam_0_info = {
+./lge/mako/board-mako-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./lge/mako/board-mako-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_1,
+./lge/mako/board-mako-camera.c:static struct msm_camera_sensor_flash_data flash_imx091 = {
+./lge/mako/board-mako-camera.c:static struct msm_camera_csi_lane_params imx091_csi_lane_params = {
+./lge/mako/board-mako-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_imx091 = {
+./lge/mako/board-mako-camera.c:	.cam_vreg = apq_8064_back_cam_vreg,
+./lge/mako/board-mako-camera.c:	.num_vreg = ARRAY_SIZE(apq_8064_back_cam_vreg),
+./lge/mako/board-mako-camera.c:	.gpio_conf = &apq8064_back_cam_gpio_conf,
+./lge/mako/board-mako-camera.c:	.i2c_conf = &apq8064_back_cam_i2c_conf,
+./lge/mako/board-mako-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx091_data = {
+./lge/mako/board-mako-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./lge/mako/board-mako-camera.c:	.camera_type = BACK_CAMERA_2D,
+./lge/mako/board-mako-camera.c:	.actuator_info = &msm_act_main_cam_0_info,
+./lge/mako/board-mako-camera.c:static struct msm_camera_i2c_conf apq8064_front_cam_i2c_conf = {
+./lge/mako/board-mako-camera.c:static struct msm_camera_sensor_flash_data flash_imx119 = {
+./lge/mako/board-mako-camera.c:static struct msm_camera_csi_lane_params imx119_csi_lane_params = {
+./lge/mako/board-mako-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_imx119 = {
+./lge/mako/board-mako-camera.c:	.cam_vreg = apq_8064_front_cam_vreg,
+./lge/mako/board-mako-camera.c:	.num_vreg = ARRAY_SIZE(apq_8064_front_cam_vreg),
+./lge/mako/board-mako-camera.c:	.gpio_conf = &apq8064_front_cam_gpio_conf,
+./lge/mako/board-mako-camera.c:	.i2c_conf = &apq8064_front_cam_i2c_conf,
+./lge/mako/board-mako-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx119_data = {
+./lge/mako/board-mako-camera.c:	.pdata	= &msm_camera_csi_device_data[1],
+./lge/mako/board-mako-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./lge/mako/board-mako-camera.c:/* Enabling flash LED for camera */
+./lge/mako/board-mako-camera.c:static struct platform_device msm_camera_server = {
+./lge/mako/board-mako-camera.c:	.name = "msm_cam_server",
+./lge/mako/board-mako-camera.c:static __init void mako_fixup_cam(void)
+./lge/mako/board-mako-camera.c:	ret = gpio_request_array(apq8064_common_cam_gpio,
+./lge/mako/board-mako-camera.c:			ARRAY_SIZE(apq8064_common_cam_gpio));
+./lge/mako/board-mako-camera.c:		pr_err("%s: failed gpio request common_cam_gpio\n", __func__);
+./lge/mako/board-mako-camera.c:void __init apq8064_init_cam(void)
+./lge/mako/board-mako-camera.c:	msm_gpiomux_install(apq8064_cam_common_configs,
+./lge/mako/board-mako-camera.c:			ARRAY_SIZE(apq8064_cam_common_configs));
+./lge/mako/board-mako-camera.c:	mako_fixup_cam();
+./lge/mako/board-mako-camera.c:	platform_device_register(&msm_camera_server);
+./lge/mako/board-mako-camera.c:static struct i2c_board_info apq8064_camera_i2c_boardinfo[] = {
+./lge/mako/board-mako-camera.c:		.platform_data = &msm_camera_sensor_imx111_data,
+./lge/mako/board-mako-camera.c:		.platform_data = &msm_camera_sensor_imx091_data,
+./lge/mako/board-mako-camera.c:		.platform_data = &msm_camera_sensor_imx119_data,
+./lge/mako/board-mako-camera.c:/* Enabling flash LED for camera */
+./lge/mako/board-mako-camera.c:static struct i2c_board_info apq8064_lge_camera_i2c_boardinfo[] = {
+./lge/mako/board-mako-camera.c:struct msm_camera_board_info apq8064_camera_board_info = {
+./lge/mako/board-mako-camera.c:	.board_info = apq8064_camera_i2c_boardinfo,
+./lge/mako/board-mako-camera.c:	.num_i2c_board_info = ARRAY_SIZE(apq8064_camera_i2c_boardinfo),
+./lge/mako/board-mako-camera.c:/* Enabling flash LED for camera */
+./lge/mako/board-mako-camera.c:struct msm_camera_board_info apq8064_lge_camera_board_info = {
+./lge/mako/board-mako-camera.c:	.board_info = apq8064_lge_camera_i2c_boardinfo,
+./lge/mako/board-mako-camera.c:	.num_i2c_board_info = ARRAY_SIZE(apq8064_lge_camera_i2c_boardinfo),
+./lge/mako/board-mako.c:	struct i2c_registry apq8064_camera_i2c_devices = {
+./lge/mako/board-mako.c:		apq8064_camera_board_info.board_info,
+./lge/mako/board-mako.c:		apq8064_camera_board_info.num_i2c_board_info,
+./lge/mako/board-mako.c:/* [patch for Enabling flash LED for camera]
+./lge/mako/board-mako.c:	struct i2c_registry apq8064_lge_camera_i2c_devices = {
+./lge/mako/board-mako.c:		apq8064_lge_camera_board_info.board_info,
+./lge/mako/board-mako.c:		apq8064_lge_camera_board_info.num_i2c_board_info,
+./lge/mako/board-mako.c:	i2c_register_board_info(apq8064_camera_i2c_devices.bus,
+./lge/mako/board-mako.c:		apq8064_camera_i2c_devices.info,
+./lge/mako/board-mako.c:		apq8064_camera_i2c_devices.len);
+./lge/mako/board-mako.c:/* [patch for Enabling flash LED for camera]
+./lge/mako/board-mako.c:		i2c_register_board_info(apq8064_lge_camera_i2c_devices.bus,
+./lge/mako/board-mako.c:			apq8064_lge_camera_i2c_devices.info,
+./lge/mako/board-mako.c:			apq8064_lge_camera_i2c_devices.len);
+./lge/mako/board-mako.c:	apq8064_init_cam();
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-001a"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0048"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-006c"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0034"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vana",		"4-0020"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam1_vana",		"4-000d"), /* GSBI4, Slave Addr: 0x0d, imx111 */
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam2_vana",		"4-006e"), /* GSBI4, Slave Addr: 0x6e, imx119 */
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam1_vdig",		"4-000d"), /* GSBI4, Slave Addr: 0x0d, imx111 */
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam2_vdig",		"4-006e"), /* GSBI4, Slave Addr: 0x6e, imx119 */
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-001a"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0048"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-006c"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0034"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam_vaf",		"4-0020"),
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam1_vaf",	"4-000d"), /* GSBI4, Slave Addr: 0x0d, imx111 */
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam1_vaf",	"4-000d"), /* GSBI4, Slave Addr: 0x0d, imx091 */
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam1_vio",		"4-000d"), /* GSBI4, Slave Addr: 0x0d, imx111 */
+./lge/mako/board-mako-regulator.c:	REGULATOR_SUPPLY("cam2_vio",		"4-006e"), /* GSBI4, Slave Addr: 0x6e, imx119 */
+./devices-8930.c:static struct mem_pool msm8930_camera_pools[] =  {
+./devices-8930.c:	/* One address space for camera */
+./devices-8930.c:			.iova_pools = msm8930_camera_pools,
+./devices-8930.c:			.npools = ARRAY_SIZE(msm8930_camera_pools),
+./board-msm7x30.c:#include <mach/camera.h>
+./board-msm7x30.c:static struct msm_camera_device_platform_data msm_camera_csi_device_data[] = {
+./board-msm7x30.c:static struct camera_vreg_t msm_7x30_back_cam_vreg[] = {
+./board-msm7x30.c:static uint32_t camera_off_gpio_table[] = {
+./board-msm7x30.c:static uint32_t camera_on_gpio_table[] = {
+./board-msm7x30.c:static struct gpio msm7x30_back_cam_gpio[] = {
+./board-msm7x30.c:static struct msm_gpio_set_tbl msm7x30_back_cam_gpio_set_tbl[] = {
+./board-msm7x30.c:static struct msm_camera_gpio_conf msm_7x30_back_cam_gpio_conf = {
+./board-msm7x30.c:	.cam_gpio_req_tbl = msm7x30_back_cam_gpio,
+./board-msm7x30.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(msm7x30_back_cam_gpio),
+./board-msm7x30.c:	.cam_gpio_set_tbl = msm7x30_back_cam_gpio_set_tbl,
+./board-msm7x30.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(msm7x30_back_cam_gpio_set_tbl),
+./board-msm7x30.c:	.camera_off_table = camera_off_gpio_table,
+./board-msm7x30.c:	.camera_off_table_size = ARRAY_SIZE(camera_off_gpio_table),
+./board-msm7x30.c:	.camera_on_table = camera_on_gpio_table,
+./board-msm7x30.c:	.camera_on_table_size = ARRAY_SIZE(camera_on_gpio_table),
+./board-msm7x30.c:static struct msm_camera_sensor_flash_data flash_vx6953 = {
+./board-msm7x30.c:static struct msm_camera_sensor_platform_info sensor_board_info_vx6953 = {
+./board-msm7x30.c:	.cam_vreg = msm_7x30_back_cam_vreg,
+./board-msm7x30.c:	.num_vreg = ARRAY_SIZE(msm_7x30_back_cam_vreg),
+./board-msm7x30.c:	.gpio_conf = &msm_7x30_back_cam_gpio_conf,
+./board-msm7x30.c:static struct msm_camera_sensor_info msm_camera_sensor_vx6953_data = {
+./board-msm7x30.c:	.pdata	= &msm_camera_csi_device_data[0],
+./board-msm7x30.c:	.camera_type = BACK_CAMERA_2D,
+./board-msm7x30.c:static struct platform_device msm_camera_server = {
+./board-msm7x30.c:	.name = "msm_cam_server",
+./board-msm7x30.c:void __init msm7x30_init_cam(void)
+./board-msm7x30.c:	platform_device_register(&msm_camera_server);
+./board-msm7x30.c:static struct i2c_board_info msm_camera_boardinfo[] = {
+./board-msm7x30.c:	.platform_data = &msm_camera_sensor_vx6953_data,
+./board-msm7x30.c:static struct i2c_board_info msm_camera_boardinfo[] __initdata = {
+./board-msm7x30.c:static uint32_t camera_off_vcm_gpio_table[] = {
+./board-msm7x30.c:static uint32_t camera_off_gpio_table[] = {
+./board-msm7x30.c:static uint32_t camera_on_vcm_gpio_table[] = {
+./board-msm7x30.c:static uint32_t camera_on_gpio_table[] = {
+./board-msm7x30.c:static uint32_t camera_off_gpio_fluid_table[] = {
+./board-msm7x30.c:static uint32_t camera_on_gpio_fluid_table[] = {
+./board-msm7x30.c:static int config_camera_on_gpios(void)
+./board-msm7x30.c:	config_gpio_table(camera_on_gpio_table,
+./board-msm7x30.c:		ARRAY_SIZE(camera_on_gpio_table));
+./board-msm7x30.c:		config_gpio_table(camera_on_vcm_gpio_table,
+./board-msm7x30.c:			ARRAY_SIZE(camera_on_vcm_gpio_table));
+./board-msm7x30.c:		config_gpio_table(camera_on_gpio_fluid_table,
+./board-msm7x30.c:			ARRAY_SIZE(camera_on_gpio_fluid_table));
+./board-msm7x30.c:static void config_camera_off_gpios(void)
+./board-msm7x30.c:	config_gpio_table(camera_off_gpio_table,
+./board-msm7x30.c:		ARRAY_SIZE(camera_off_gpio_table));
+./board-msm7x30.c:		config_gpio_table(camera_off_vcm_gpio_table,
+./board-msm7x30.c:			ARRAY_SIZE(camera_off_vcm_gpio_table));
+./board-msm7x30.c:		config_gpio_table(camera_off_gpio_fluid_table,
+./board-msm7x30.c:			ARRAY_SIZE(camera_off_gpio_fluid_table));
+./board-msm7x30.c:struct resource msm_camera_resources[] = {
+./board-msm7x30.c:struct msm_camera_device_platform_data msm_camera_device_data = {
+./board-msm7x30.c:	.camera_gpio_on  = config_camera_on_gpios,
+./board-msm7x30.c:	.camera_gpio_off = config_camera_off_gpios,
+./board-msm7x30.c:	.ioext.camifpadphy = 0xAB000000,
+./board-msm7x30.c:	.ioext.camifpadsz  = 0x00000400,
+./board-msm7x30.c:static struct msm_camera_sensor_flash_src msm_flash_src_pwm = {
+./board-msm7x30.c:static struct msm_camera_sensor_flash_data flash_mt9d112 = {
+./board-msm7x30.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9d112_data = {
+./board-msm7x30.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x30.c:	.resource       = msm_camera_resources,
+./board-msm7x30.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-msm7x30.c:static struct platform_device msm_camera_sensor_mt9d112 = {
+./board-msm7x30.c:	.name      = "msm_camera_mt9d112",
+./board-msm7x30.c:		.platform_data = &msm_camera_sensor_mt9d112_data,
+./board-msm7x30.c:static struct msm_camera_sensor_platform_info ov9726_sensor_7630_info = {
+./board-msm7x30.c:static struct msm_camera_sensor_flash_data flash_ov9726 = {
+./board-msm7x30.c:static struct msm_camera_sensor_info msm_camera_sensor_ov9726_data = {
+./board-msm7x30.c:	.pdata		= &msm_camera_device_data,
+./board-msm7x30.c:	.resource	= msm_camera_resources,
+./board-msm7x30.c:	.num_resources	= ARRAY_SIZE(msm_camera_resources),
+./board-msm7x30.c:struct platform_device msm_camera_sensor_ov9726 = {
+./board-msm7x30.c:	.name	= "msm_camera_ov9726",
+./board-msm7x30.c:		.platform_data = &msm_camera_sensor_ov9726_data,
+./board-msm7x30.c:static struct msm_camera_sensor_flash_data flash_s5k3e2fx = {
+./board-msm7x30.c:static struct msm_camera_sensor_info msm_camera_sensor_s5k3e2fx_data = {
+./board-msm7x30.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x30.c:	.resource       = msm_camera_resources,
+./board-msm7x30.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-msm7x30.c:static struct platform_device msm_camera_sensor_s5k3e2fx = {
+./board-msm7x30.c:	.name      = "msm_camera_s5k3e2fx",
+./board-msm7x30.c:		.platform_data = &msm_camera_sensor_s5k3e2fx_data,
+./board-msm7x30.c:static struct msm_camera_sensor_flash_data flash_mt9p012 = {
+./board-msm7x30.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9p012_data = {
+./board-msm7x30.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x30.c:	.resource       = msm_camera_resources,
+./board-msm7x30.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-msm7x30.c:static struct platform_device msm_camera_sensor_mt9p012 = {
+./board-msm7x30.c:	.name      = "msm_camera_mt9p012",
+./board-msm7x30.c:		.platform_data = &msm_camera_sensor_mt9p012_data,
+./board-msm7x30.c:static struct msm_camera_sensor_platform_info mt9e013_sensor_7630_info = {
+./board-msm7x30.c:static struct msm_camera_sensor_flash_data flash_mt9e013 = {
+./board-msm7x30.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9e013_data = {
+./board-msm7x30.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x30.c:	.resource       = msm_camera_resources,
+./board-msm7x30.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-msm7x30.c:static struct platform_device msm_camera_sensor_mt9e013 = {
+./board-msm7x30.c:	.name      = "msm_camera_mt9e013",
+./board-msm7x30.c:		.platform_data = &msm_camera_sensor_mt9e013_data,
+./board-msm7x30.c:static struct msm_camera_sensor_platform_info vx6953_sensor_7630_info = {
+./board-msm7x30.c:static struct msm_camera_sensor_flash_data flash_vx6953 = {
+./board-msm7x30.c:static struct msm_camera_sensor_info msm_camera_sensor_vx6953_data = {
+./board-msm7x30.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x30.c:	.resource       = msm_camera_resources,
+./board-msm7x30.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-msm7x30.c:static struct platform_device msm_camera_sensor_vx6953 = {
+./board-msm7x30.c:	.name  	= "msm_camera_vx6953",
+./board-msm7x30.c:		.platform_data = &msm_camera_sensor_vx6953_data,
+./board-msm7x30.c:static struct msm_camera_sensor_flash_src msm_flash_src_current_driver = {
+./board-msm7x30.c:static struct msm_camera_sensor_flash_data flash_sn12m0pz = {
+./board-msm7x30.c:static struct msm_camera_sensor_info msm_camera_sensor_sn12m0pz_data = {
+./board-msm7x30.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x30.c:	.resource       = msm_camera_resources,
+./board-msm7x30.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-msm7x30.c:static struct platform_device msm_camera_sensor_sn12m0pz = {
+./board-msm7x30.c:	.name      = "msm_camera_sn12m0pz",
+./board-msm7x30.c:		.platform_data = &msm_camera_sensor_sn12m0pz_data,
+./board-msm7x30.c:static struct msm_camera_sensor_flash_data flash_mt9t013 = {
+./board-msm7x30.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9t013_data = {
+./board-msm7x30.c:	.pdata          = &msm_camera_device_data,
+./board-msm7x30.c:	.resource       = msm_camera_resources,
+./board-msm7x30.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-msm7x30.c:static struct platform_device msm_camera_sensor_mt9t013 = {
+./board-msm7x30.c:	.name      = "msm_camera_mt9t013",
+./board-msm7x30.c:		.platform_data = &msm_camera_sensor_mt9t013_data,
+./board-msm7x30.c:	&msm_camera_sensor_mt9t013,
+./board-msm7x30.c:	&msm_camera_sensor_mt9d112,
+./board-msm7x30.c:	&msm_camera_sensor_ov9726,
+./board-msm7x30.c:	&msm_camera_sensor_s5k3e2fx,
+./board-msm7x30.c:	&msm_camera_sensor_mt9p012,
+./board-msm7x30.c:	&msm_camera_sensor_mt9e013,
+./board-msm7x30.c:	&msm_camera_sensor_vx6953,
+./board-msm7x30.c:	&msm_camera_sensor_sn12m0pz,
+./board-msm7x30.c:	msm7x30_init_cam();
+./board-msm7x30.c:	i2c_register_board_info(4 /* QUP ID */, msm_camera_boardinfo,
+./board-msm7x30.c:				ARRAY_SIZE(msm_camera_boardinfo));
+./board-msm7x30.c:unsigned long msm_ion_camera_size;
+./board-msm7x30.c:	msm_ion_camera_size = size;
+./board-msm7x30.c:	ion_pdata.heaps[1].size = msm_ion_camera_size;
+./board-msm7x30.c:	msm7x30_reserve_table[MEMTYPE_EBI0].size += msm_ion_camera_size;
+./clock-8x60.c:static struct clk_freq_tbl clk_tbl_cam[] = {
+./clock-8x60.c:static struct rcg_clk cam_clk = {
+./clock-8x60.c:	.freq_tbl = clk_tbl_cam,
+./clock-8x60.c:		.dbg_name = "cam_clk",
+./clock-8x60.c:		CLK_INIT(cam_clk.c),
+./clock-8x60.c:	{ TEST_MM_LS(0x1D), &cam_clk.c },
+./clock-8x60.c:	CLK_LOOKUP("cam_clk",		cam_clk.c,		NULL),
+./clock-8x60.c:	CLK_LOOKUP("csi_clk",		csi1_clk.c, "msm_camera_ov7692.0"),
+./clock-8x60.c:	CLK_LOOKUP("csi_clk",		csi1_clk.c, "msm_camera_ov9726.0"),
+./clock-8x60.c:	CLK_LOOKUP("csi_vfe_clk",	csi1_vfe_clk.c, "msm_camera_ov7692.0"),
+./clock-8x60.c:	CLK_LOOKUP("csi_vfe_clk",	csi1_vfe_clk.c, "msm_camera_ov9726.0"),
+./clock-8x60.c:	CLK_LOOKUP("csi_pclk",		csi1_p_clk.c, "msm_camera_ov7692.0"),
+./clock-8x60.c:	CLK_LOOKUP("csi_pclk",		csi1_p_clk.c, "msm_camera_ov9726.0"),
+./board-8064.h:extern struct msm_camera_board_info apq8064_camera_board_info;
+./board-8064.h:void apq8064_init_cam(void);
+./board-8930.c:		.desc = "camera_focus",
+./board-8930.c:		.desc = "camera_snapshot",
+./board-8930.c:		.desc = "camera_focus",
+./board-8930.c:		.desc = "camera_snapshot",
+./board-8930.c:	struct i2c_registry msm8930_camera_i2c_devices = {
+./board-8930.c:		msm8930_camera_board_info.board_info,
+./board-8930.c:		msm8930_camera_board_info.num_i2c_board_info,
+./board-8930.c:		msm8930_camera_i2c_devices.machs |= I2C_EVT;
+./board-8930.c:		msm8930_camera_i2c_devices.bus = MSM_8930_GSBI8_QUP_I2C_BUS_ID;
+./board-8930.c:	if (msm8930_camera_i2c_devices.machs & mach_mask)
+./board-8930.c:		i2c_register_board_info(msm8930_camera_i2c_devices.bus,
+./board-8930.c:			msm8930_camera_i2c_devices.info,
+./board-8930.c:			msm8930_camera_i2c_devices.len);
+./board-8930.c:	msm8930_init_cam();
+./devices-8064.c:static struct mem_pool apq8064_camera_pools[] =  {
+./devices-8064.c:	/* One address space for camera */
+./devices-8064.c:			.iova_pools = apq8064_camera_pools,
+./devices-8064.c:			.npools = ARRAY_SIZE(apq8064_camera_pools),
+./devices_htc.c:static struct android_pmem_platform_data pmem_camera_pdata = {
+./devices_htc.c:	.name = "pmem_camera",
+./devices_htc.c:static struct platform_device pmem_camera_device = {
+./devices_htc.c:	.dev = { .platform_data = &pmem_camera_pdata },
+./devices_htc.c:	if (setting->pmem_camera_size) {
+./devices_htc.c:		pmem_camera_pdata.start = setting->pmem_camera_start;
+./devices_htc.c:		pmem_camera_pdata.size = setting->pmem_camera_size;
+./devices_htc.c:		platform_device_register(&pmem_camera_device);
+./board-msm7627a-display.c:void sku3_lcdc_lcd_camera_power_init(void)
+./board-msm7627a-display.c:	if (gpio_request(SKU3_LCDC_LCD_CAMERA_LDO_2V8, "lcd_camera_ldo_2v8")) {
+./board-msm7627a-display.c:		pr_err("failed to request gpio lcd_camera_ldo_2v8\n");
+./board-msm7627a-display.c:		pr_err("%s:unable to enable lcd_camera_ldo_2v8!\n", __func__);
+./board-msm7627a-display.c:				"lcd_camera_ldo_1v8")) {
+./board-msm7627a-display.c:			pr_err("failed to request gpio lcd_camera_ldo_1v8\n");
+./board-msm7627a-display.c:			pr_err("%s: unable to enable lcdc_camera_ldo_1v8!\n",
+./board-msm7627a-display.c:				"lcd_camera_ldo_1v8")) {
+./board-msm7627a-display.c:			pr_err("failed to request gpio lcd_camera_ldo_1v8\n");
+./board-msm7627a-display.c:			pr_err("%s: unable to enable lcdc_camera_ldo_1v8!\n",
+./board-msm7627a-display.c:int sku3_lcdc_lcd_camera_power_onoff(int on)
+./board-msm7627a-display.c:		sku3_lcdc_lcd_camera_power_onoff(1);
+./board-msm7627a-display.c:		sku3_lcdc_lcd_camera_power_onoff(0);
+./board-msm7627a-display.c:		sku3_lcdc_lcd_camera_power_init();
+./dal_axi.c:static void *cam_dev_handle;
+./dal_axi.c:	if (!cam_dev_handle)
+./dal_axi.c:	rc = dalrpc_fcn_0(DALRPC_AXI_FREE, cam_dev_handle, mode);
+./dal_axi.c:	rc = daldevice_detach(cam_dev_handle);
+./dal_axi.c:	cam_dev_handle = NULL;
+./dal_axi.c:	(void)daldevice_detach(cam_dev_handle);
+./dal_axi.c:	cam_dev_handle = NULL;
+./dal_axi.c:				DALRPC_DEST_MODEM, &cam_dev_handle);
+./dal_axi.c:	rc = dalrpc_fcn_0(DALRPC_AXI_ALLOCATE, cam_dev_handle, mode);
+./dal_axi.c:	(void)daldevice_detach(cam_dev_handle);
+./dal_axi.c:	cam_dev_handle = NULL;
+./board-qsd8x50.c:#include <mach/camera.h>
+./board-qsd8x50.c:static uint32_t camera_off_gpio_table[] = {
+./board-qsd8x50.c:static uint32_t camera_on_gpio_table[] = {
+./board-qsd8x50.c:static uint32_t camera_on_gpio_ffa_table[] = {
+./board-qsd8x50.c:static uint32_t camera_off_gpio_ffa_table[] = {
+./board-qsd8x50.c:static void msm_camera_vreg_config(int vreg_en)
+./board-qsd8x50.c:static int config_camera_on_gpios(void)
+./board-qsd8x50.c:		config_gpio_table(camera_on_gpio_ffa_table,
+./board-qsd8x50.c:		ARRAY_SIZE(camera_on_gpio_ffa_table));
+./board-qsd8x50.c:		msm_camera_vreg_config(vreg_en);
+./board-qsd8x50.c:	config_gpio_table(camera_on_gpio_table,
+./board-qsd8x50.c:		ARRAY_SIZE(camera_on_gpio_table));
+./board-qsd8x50.c:static void config_camera_off_gpios(void)
+./board-qsd8x50.c:		config_gpio_table(camera_off_gpio_ffa_table,
+./board-qsd8x50.c:		ARRAY_SIZE(camera_off_gpio_ffa_table));
+./board-qsd8x50.c:		msm_camera_vreg_config(vreg_en);
+./board-qsd8x50.c:	config_gpio_table(camera_off_gpio_table,
+./board-qsd8x50.c:		ARRAY_SIZE(camera_off_gpio_table));
+./board-qsd8x50.c:static struct resource msm_camera_resources[] = {
+./board-qsd8x50.c:static struct msm_camera_device_platform_data msm_camera_device_data = {
+./board-qsd8x50.c:	.camera_gpio_on  = config_camera_on_gpios,
+./board-qsd8x50.c:	.camera_gpio_off = config_camera_off_gpios,
+./board-qsd8x50.c:static struct msm_camera_sensor_flash_src msm_flash_src = {
+./board-qsd8x50.c:static struct msm_camera_sensor_flash_data flash_mt9d112 = {
+./board-qsd8x50.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9d112_data = {
+./board-qsd8x50.c:	.pdata          = &msm_camera_device_data,
+./board-qsd8x50.c:	.resource       = msm_camera_resources,
+./board-qsd8x50.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-qsd8x50.c:static struct platform_device msm_camera_sensor_mt9d112 = {
+./board-qsd8x50.c:	.name      = "msm_camera_mt9d112",
+./board-qsd8x50.c:		.platform_data = &msm_camera_sensor_mt9d112_data,
+./board-qsd8x50.c:static struct msm_camera_sensor_flash_data flash_s5k3e2fx = {
+./board-qsd8x50.c:static struct msm_camera_sensor_info msm_camera_sensor_s5k3e2fx_data = {
+./board-qsd8x50.c:	.pdata          = &msm_camera_device_data,
+./board-qsd8x50.c:	.resource       = msm_camera_resources,
+./board-qsd8x50.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-qsd8x50.c:static struct platform_device msm_camera_sensor_s5k3e2fx = {
+./board-qsd8x50.c:	.name      = "msm_camera_s5k3e2fx",
+./board-qsd8x50.c:		.platform_data = &msm_camera_sensor_s5k3e2fx_data,
+./board-qsd8x50.c:static struct msm_camera_sensor_flash_data flash_mt9p012 = {
+./board-qsd8x50.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9p012_data = {
+./board-qsd8x50.c:	.pdata          = &msm_camera_device_data,
+./board-qsd8x50.c:	.resource       = msm_camera_resources,
+./board-qsd8x50.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-qsd8x50.c:static struct platform_device msm_camera_sensor_mt9p012 = {
+./board-qsd8x50.c:	.name      = "msm_camera_mt9p012",
+./board-qsd8x50.c:		.platform_data = &msm_camera_sensor_mt9p012_data,
+./board-qsd8x50.c:static struct msm_camera_sensor_flash_data flash_mt9p012_km = {
+./board-qsd8x50.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9p012_km_data = {
+./board-qsd8x50.c:	.pdata          = &msm_camera_device_data,
+./board-qsd8x50.c:	.resource       = msm_camera_resources,
+./board-qsd8x50.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-qsd8x50.c:static struct platform_device msm_camera_sensor_mt9p012_km = {
+./board-qsd8x50.c:	.name      = "msm_camera_mt9p012_km",
+./board-qsd8x50.c:		.platform_data = &msm_camera_sensor_mt9p012_km_data,
+./board-qsd8x50.c:static struct msm_camera_sensor_flash_data flash_mt9t013 = {
+./board-qsd8x50.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9t013_data = {
+./board-qsd8x50.c:	.pdata          = &msm_camera_device_data,
+./board-qsd8x50.c:	.resource       = msm_camera_resources,
+./board-qsd8x50.c:	.num_resources  = ARRAY_SIZE(msm_camera_resources),
+./board-qsd8x50.c:static struct platform_device msm_camera_sensor_mt9t013 = {
+./board-qsd8x50.c:	.name      = "msm_camera_mt9t013",
+./board-qsd8x50.c:		.platform_data = &msm_camera_sensor_mt9t013_data,
+./board-qsd8x50.c:	&msm_camera_sensor_mt9t013,
+./board-qsd8x50.c:	&msm_camera_sensor_mt9d112,
+./board-qsd8x50.c:	&msm_camera_sensor_s5k3e2fx,
+./board-qsd8x50.c:	&msm_camera_sensor_mt9p012,
+./board-qsd8x50.c:	&msm_camera_sensor_mt9p012_km,
+./board-qsd8x50.c:	config_camera_off_gpios(); /* might not be necessary */
+./devices.h:void __init msm_camera_register_device(void *, uint32_t, void *);
+./board-8974-gpiomux.c:static struct gpiomux_setting cam_settings[] = {
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[2],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[2],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[2],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[2],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-8974-gpiomux.c:			[GPIOMUX_ACTIVE]    = &cam_settings[0],
+./board-8974-gpiomux.c:			[GPIOMUX_SUSPENDED] = &cam_settings[1],
+./board-msm8x60.c:static struct msm_camera_sensor_flash_src msm_flash_src = {
+./board-msm8x60.c:static struct msm_camera_sensor_strobe_flash_data strobe_flash_xenon = {
+./board-msm8x60.c:int msm_cam_gpio_tbl[] = {
+./board-msm8x60.c:enum msm_cam_stat{
+./board-msm8x60.c:static int config_gpio_table(enum msm_cam_stat stat)
+./board-msm8x60.c:		for (i = 0; i < ARRAY_SIZE(msm_cam_gpio_tbl); i++) {
+./board-msm8x60.c:			rc = gpio_request(msm_cam_gpio_tbl[i], "CAM_GPIO");
+./board-msm8x60.c:					gpio_free(msm_cam_gpio_tbl[i]);
+./board-msm8x60.c:		for (i = 0; i < ARRAY_SIZE(msm_cam_gpio_tbl); i++)
+./board-msm8x60.c:			gpio_free(msm_cam_gpio_tbl[i]);
+./board-msm8x60.c:static struct msm_camera_sensor_platform_info sensor_board_info = {
+./board-msm8x60.c:static int config_camera_on_gpios_fluid(void)
+./board-msm8x60.c:static void config_camera_off_gpios_fluid(void)
+./board-msm8x60.c:static int config_camera_on_gpios(void)
+./board-msm8x60.c:		return config_camera_on_gpios_fluid();
+./board-msm8x60.c:static void config_camera_off_gpios(void)
+./board-msm8x60.c:		return config_camera_off_gpios_fluid();
+./board-msm8x60.c:static int config_camera_on_gpios_qs_cam_fluid(void)
+./board-msm8x60.c:	rc = config_camera_on_gpios_fluid();
+./board-msm8x60.c:		printk(KERN_ERR "%s: config_camera_on_gpios_fluid"
+./board-msm8x60.c:static void config_camera_off_gpios_qs_cam_fluid(void)
+./board-msm8x60.c:	config_camera_off_gpios_fluid();
+./board-msm8x60.c:static int config_camera_on_gpios_qs_cam(void)
+./board-msm8x60.c:		return config_camera_on_gpios_qs_cam_fluid();
+./board-msm8x60.c:	rc = config_camera_on_gpios();
+./board-msm8x60.c:static void config_camera_off_gpios_qs_cam(void)
+./board-msm8x60.c:		return config_camera_off_gpios_qs_cam_fluid();
+./board-msm8x60.c:	config_camera_off_gpios();
+./board-msm8x60.c:static int config_camera_on_gpios_web_cam(void)
+./board-msm8x60.c:static void config_camera_off_gpios_web_cam(void)
+./board-msm8x60.c:static struct msm_bus_vectors cam_init_vectors[] = {
+./board-msm8x60.c:static struct msm_bus_vectors cam_preview_vectors[] = {
+./board-msm8x60.c:static struct msm_bus_vectors cam_video_vectors[] = {
+./board-msm8x60.c:static struct msm_bus_vectors cam_snapshot_vectors[] = {
+./board-msm8x60.c:static struct msm_bus_vectors cam_zsl_vectors[] = {
+./board-msm8x60.c:static struct msm_bus_vectors cam_stereo_video_vectors[] = {
+./board-msm8x60.c:static struct msm_bus_vectors cam_stereo_snapshot_vectors[] = {
+./board-msm8x60.c:static struct msm_bus_paths cam_bus_client_config[] = {
+./board-msm8x60.c:		ARRAY_SIZE(cam_init_vectors),
+./board-msm8x60.c:		cam_init_vectors,
+./board-msm8x60.c:		ARRAY_SIZE(cam_preview_vectors),
+./board-msm8x60.c:		cam_preview_vectors,
+./board-msm8x60.c:		ARRAY_SIZE(cam_video_vectors),
+./board-msm8x60.c:		cam_video_vectors,
+./board-msm8x60.c:		ARRAY_SIZE(cam_snapshot_vectors),
+./board-msm8x60.c:		cam_snapshot_vectors,
+./board-msm8x60.c:		ARRAY_SIZE(cam_zsl_vectors),
+./board-msm8x60.c:		cam_zsl_vectors,
+./board-msm8x60.c:		ARRAY_SIZE(cam_stereo_video_vectors),
+./board-msm8x60.c:		cam_stereo_video_vectors,
+./board-msm8x60.c:		ARRAY_SIZE(cam_stereo_snapshot_vectors),
+./board-msm8x60.c:		cam_stereo_snapshot_vectors,
+./board-msm8x60.c:static struct msm_bus_scale_pdata cam_bus_client_pdata = {
+./board-msm8x60.c:		cam_bus_client_config,
+./board-msm8x60.c:		ARRAY_SIZE(cam_bus_client_config),
+./board-msm8x60.c:		.name = "msm_camera",
+./board-msm8x60.c:struct msm_camera_device_platform_data msm_camera_device_data = {
+./board-msm8x60.c:	.camera_gpio_on  = config_camera_on_gpios,
+./board-msm8x60.c:	.camera_gpio_off = config_camera_off_gpios,
+./board-msm8x60.c:	.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-msm8x60.c:struct msm_camera_device_platform_data msm_camera_device_data_qs_cam = {
+./board-msm8x60.c:	.camera_gpio_on  = config_camera_on_gpios_qs_cam,
+./board-msm8x60.c:	.camera_gpio_off = config_camera_off_gpios_qs_cam,
+./board-msm8x60.c:	.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-msm8x60.c:struct msm_camera_device_platform_data msm_camera_device_data_web_cam = {
+./board-msm8x60.c:	.camera_gpio_on  = config_camera_on_gpios_web_cam,
+./board-msm8x60.c:	.camera_gpio_off = config_camera_off_gpios_web_cam,
+./board-msm8x60.c:	.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-msm8x60.c:struct resource msm_camera_resources[] = {
+./board-msm8x60.c:static struct msm_camera_sensor_platform_info mt9e013_sensor_8660_info = {
+./board-msm8x60.c:static struct msm_camera_sensor_flash_data flash_mt9e013 = {
+./board-msm8x60.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9e013_data = {
+./board-msm8x60.c:		.pdata			= &msm_camera_device_data,
+./board-msm8x60.c:		.resource		= msm_camera_resources,
+./board-msm8x60.c:		.num_resources	= ARRAY_SIZE(msm_camera_resources),
+./board-msm8x60.c:struct platform_device msm_camera_sensor_mt9e013 = {
+./board-msm8x60.c:		.name	= "msm_camera_mt9e013",
+./board-msm8x60.c:			.platform_data = &msm_camera_sensor_mt9e013_data,
+./board-msm8x60.c:static struct msm_camera_sensor_platform_info imx074_sensor_board_info = {
+./board-msm8x60.c:static struct msm_camera_sensor_flash_data flash_imx074 = {
+./board-msm8x60.c:static struct msm_camera_sensor_info msm_camera_sensor_imx074_data = {
+./board-msm8x60.c:	.pdata			= &msm_camera_device_data,
+./board-msm8x60.c:	.resource		= msm_camera_resources,
+./board-msm8x60.c:	.num_resources		= ARRAY_SIZE(msm_camera_resources),
+./board-msm8x60.c:struct platform_device msm_camera_sensor_imx074 = {
+./board-msm8x60.c:	.name	= "msm_camera_imx074",
+./board-msm8x60.c:		.platform_data = &msm_camera_sensor_imx074_data,
+./board-msm8x60.c:static struct msm_camera_sensor_platform_info ov9726_sensor_8660_info = {
+./board-msm8x60.c:static struct msm_camera_sensor_flash_data flash_ov9726 = {
+./board-msm8x60.c:static struct msm_camera_sensor_info msm_camera_sensor_ov9726_data = {
+./board-msm8x60.c:	.pdata		= &msm_camera_device_data_web_cam,
+./board-msm8x60.c:	.resource	= msm_camera_resources,
+./board-msm8x60.c:	.num_resources	= ARRAY_SIZE(msm_camera_resources),
+./board-msm8x60.c:struct platform_device msm_camera_sensor_webcam_ov9726 = {
+./board-msm8x60.c:	.name	= "msm_camera_ov9726",
+./board-msm8x60.c:		.platform_data = &msm_camera_sensor_ov9726_data,
+./board-msm8x60.c:static struct msm_camera_sensor_flash_data flash_ov7692 = {
+./board-msm8x60.c:static struct msm_camera_sensor_info msm_camera_sensor_ov7692_data = {
+./board-msm8x60.c:	.pdata		= &msm_camera_device_data_web_cam,
+./board-msm8x60.c:	.resource	= msm_camera_resources,
+./board-msm8x60.c:	.num_resources	= ARRAY_SIZE(msm_camera_resources),
+./board-msm8x60.c:static struct platform_device msm_camera_sensor_webcam_ov7692 = {
+./board-msm8x60.c:	.name	= "msm_camera_ov7692",
+./board-msm8x60.c:		.platform_data = &msm_camera_sensor_ov7692_data,
+./board-msm8x60.c:static struct msm_camera_sensor_platform_info vx6953_sensor_8660_info = {
+./board-msm8x60.c:static struct msm_camera_sensor_flash_data flash_vx6953 = {
+./board-msm8x60.c:static struct msm_camera_sensor_info msm_camera_sensor_vx6953_data = {
+./board-msm8x60.c:	.pdata			= &msm_camera_device_data,
+./board-msm8x60.c:	.resource		= msm_camera_resources,
+./board-msm8x60.c:	.num_resources	= ARRAY_SIZE(msm_camera_resources),
+./board-msm8x60.c:struct platform_device msm_camera_sensor_vx6953 = {
+./board-msm8x60.c:	.name	= "msm_camera_vx6953",
+./board-msm8x60.c:		.platform_data = &msm_camera_sensor_vx6953_data,
+./board-msm8x60.c:static struct msm_camera_sensor_platform_info qs_s5k4e1_sensor_8660_info = {
+./board-msm8x60.c:static struct msm_camera_sensor_flash_data flash_qs_s5k4e1 = {
+./board-msm8x60.c:static struct msm_camera_sensor_info msm_camera_sensor_qs_s5k4e1_data = {
+./board-msm8x60.c:	.pdata			= &msm_camera_device_data_qs_cam,
+./board-msm8x60.c:	.resource		= msm_camera_resources,
+./board-msm8x60.c:	.num_resources	= ARRAY_SIZE(msm_camera_resources),
+./board-msm8x60.c:struct platform_device msm_camera_sensor_qs_s5k4e1 = {
+./board-msm8x60.c:	.name	= "msm_camera_qs_s5k4e1",
+./board-msm8x60.c:		.platform_data = &msm_camera_sensor_qs_s5k4e1_data,
+./board-msm8x60.c:static struct i2c_board_info msm_camera_boardinfo[] __initdata = {
+./board-msm8x60.c:static struct i2c_board_info msm_camera_dragon_boardinfo[] __initdata = {
+./board-msm8x60.c:	REGULATOR_SUPPLY("cam_vana",		"1-001a"),
+./board-msm8x60.c:	REGULATOR_SUPPLY("cam_vana",		"1-006c"),
+./board-msm8x60.c:	REGULATOR_SUPPLY("cam_vana",		"1-0078"),
+./board-msm8x60.c:	REGULATOR_SUPPLY("cam_vdig",		"1-001a"),
+./board-msm8x60.c:	REGULATOR_SUPPLY("cam_vdig",		"1-006c"),
+./board-msm8x60.c:	REGULATOR_SUPPLY("cam_vdig",		"1-0078"),
+./board-msm8x60.c:	REGULATOR_SUPPLY("cam_vio",			"1-001a"),
+./board-msm8x60.c:	REGULATOR_SUPPLY("cam_vio",			"1-006c"),
+./board-msm8x60.c:	REGULATOR_SUPPLY("cam_vio",			"1-0078"),
+./board-msm8x60.c:	&msm_camera_sensor_mt9e013,
+./board-msm8x60.c:	&msm_camera_sensor_imx074,
+./board-msm8x60.c:	&msm_camera_sensor_webcam_ov7692,
+./board-msm8x60.c:	&msm_camera_sensor_webcam_ov9726,
+./board-msm8x60.c:	&msm_camera_sensor_qs_s5k4e1,
+./board-msm8x60.c:	&msm_camera_sensor_vx6953,
+./board-msm8x60.c:			struct pm8058_gpio_cfg qs_hc37_cam_pd_gpio_cfg = {
+./board-msm8x60.c:		/* qs_cam_hc37_cam_pd only for 8660 fluid qs camera*/
+./board-msm8x60.c:			rc = pm8xxx_gpio_config(qs_hc37_cam_pd_gpio_cfg.gpio,
+./board-msm8x60.c:					&qs_hc37_cam_pd_gpio_cfg.cfg);
+./board-msm8x60.c:				pr_err("%s pmic qs_hc37_cam_pd gpio config failed\n",
+./board-msm8x60.c:		.name		= "camera:flash0",
+./board-msm8x60.c:		.name		= "camera:flash1",
+./board-msm8x60.c:		msm_camera_boardinfo,
+./board-msm8x60.c:		ARRAY_SIZE(msm_camera_boardinfo),
+./board-msm8x60.c:		msm_camera_dragon_boardinfo,
+./board-msm8x60.c:		ARRAY_SIZE(msm_camera_dragon_boardinfo),
+./board-msm8x60.c:	struct i2c_registry msm8x60_camera_i2c_devices = {
+./board-msm8x60.c:		msm8x60_camera_board_info.board_info,
+./board-msm8x60.c:		msm8x60_camera_board_info.num_i2c_board_info,
+./board-msm8x60.c:	if (msm8x60_camera_i2c_devices.machs & mach_mask)
+./board-msm8x60.c:		i2c_register_board_info(msm8x60_camera_i2c_devices.bus,
+./board-msm8x60.c:			msm8x60_camera_i2c_devices.info,
+./board-msm8x60.c:			msm8x60_camera_i2c_devices.len);
+./board-msm8x60.c:	msm8x60_init_cam();
+./board-msm8x60.c:		msm_camera_sensor_ov9726_data.sensor_reset = 62;
+./board-8960-camera.c:static struct i2c_board_info cam_expander_i2c_info[] = {
+./board-8960-camera.c:static struct msm_cam_expander_info cam_expander_info[] = {
+./board-8960-camera.c:		cam_expander_i2c_info,
+./board-8960-camera.c:static struct gpiomux_setting cam_settings[] = {
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[1],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8960-camera.c:static struct msm_gpiomux_config msm8960_cam_common_configs[] = {
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[1],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[2],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[0],
+./board-8960-camera.c:static struct msm_gpiomux_config msm8960_cam_2d_configs[] = {
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8960-camera.c:			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+./board-8960-camera.c:			[GPIOMUX_SUSPENDED] = &cam_settings[8],
+./board-8960-camera.c:static struct msm_camera_sensor_strobe_flash_data strobe_flash_xenon = {
+./board-8960-camera.c:static struct msm_camera_sensor_flash_src msm_flash_src = {
+./board-8960-camera.c:static struct msm_bus_vectors cam_init_vectors[] = {
+./board-8960-camera.c:static struct msm_bus_vectors cam_preview_vectors[] = {
+./board-8960-camera.c:static struct msm_bus_vectors cam_video_vectors[] = {
+./board-8960-camera.c:static struct msm_bus_vectors cam_snapshot_vectors[] = {
+./board-8960-camera.c:static struct msm_bus_vectors cam_zsl_vectors[] = {
+./board-8960-camera.c:static struct msm_bus_vectors cam_video_ls_vectors[] = {
+./board-8960-camera.c:static struct msm_bus_paths cam_bus_client_config[] = {
+./board-8960-camera.c:		ARRAY_SIZE(cam_init_vectors),
+./board-8960-camera.c:		cam_init_vectors,
+./board-8960-camera.c:		ARRAY_SIZE(cam_preview_vectors),
+./board-8960-camera.c:		cam_preview_vectors,
+./board-8960-camera.c:		ARRAY_SIZE(cam_video_vectors),
+./board-8960-camera.c:		cam_video_vectors,
+./board-8960-camera.c:		ARRAY_SIZE(cam_snapshot_vectors),
+./board-8960-camera.c:		cam_snapshot_vectors,
+./board-8960-camera.c:		ARRAY_SIZE(cam_zsl_vectors),
+./board-8960-camera.c:		cam_zsl_vectors,
+./board-8960-camera.c:		ARRAY_SIZE(cam_video_ls_vectors),
+./board-8960-camera.c:		cam_video_ls_vectors,
+./board-8960-camera.c:static struct msm_bus_scale_pdata cam_bus_client_pdata = {
+./board-8960-camera.c:		cam_bus_client_config,
+./board-8960-camera.c:		ARRAY_SIZE(cam_bus_client_config),
+./board-8960-camera.c:		.name = "msm_camera",
+./board-8960-camera.c:static struct msm_camera_device_platform_data msm_camera_csi_device_data[] = {
+./board-8960-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-8960-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-8960-camera.c:		.cam_bus_scale_table = &cam_bus_client_pdata,
+./board-8960-camera.c:static struct camera_vreg_t msm_8960_back_cam_vreg[] = {
+./board-8960-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8960-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8960-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8960-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2800000, 300000},
+./board-8960-camera.c:static struct camera_vreg_t msm_8960_front_cam_vreg[] = {
+./board-8960-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8960-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8960-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8960-camera.c:static struct gpio msm8960_common_cam_gpio[] = {
+./board-8960-camera.c:static struct gpio msm8960_front_cam_gpio[] = {
+./board-8960-camera.c:static struct gpio msm8960_back_cam_gpio[] = {
+./board-8960-camera.c:static struct msm_gpio_set_tbl msm8960_front_cam_gpio_set_tbl[] = {
+./board-8960-camera.c:static struct msm_gpio_set_tbl msm8960_back_cam_gpio_set_tbl[] = {
+./board-8960-camera.c:static struct msm_camera_gpio_conf msm_8960_front_cam_gpio_conf = {
+./board-8960-camera.c:	.cam_gpiomux_conf_tbl = msm8960_cam_2d_configs,
+./board-8960-camera.c:	.cam_gpiomux_conf_tbl_size = ARRAY_SIZE(msm8960_cam_2d_configs),
+./board-8960-camera.c:	.cam_gpio_common_tbl = msm8960_common_cam_gpio,
+./board-8960-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(msm8960_common_cam_gpio),
+./board-8960-camera.c:	.cam_gpio_req_tbl = msm8960_front_cam_gpio,
+./board-8960-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(msm8960_front_cam_gpio),
+./board-8960-camera.c:	.cam_gpio_set_tbl = msm8960_front_cam_gpio_set_tbl,
+./board-8960-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(msm8960_front_cam_gpio_set_tbl),
+./board-8960-camera.c:static struct msm_camera_gpio_conf msm_8960_back_cam_gpio_conf = {
+./board-8960-camera.c:	.cam_gpiomux_conf_tbl = msm8960_cam_2d_configs,
+./board-8960-camera.c:	.cam_gpiomux_conf_tbl_size = ARRAY_SIZE(msm8960_cam_2d_configs),
+./board-8960-camera.c:	.cam_gpio_common_tbl = msm8960_common_cam_gpio,
+./board-8960-camera.c:	.cam_gpio_common_tbl_size = ARRAY_SIZE(msm8960_common_cam_gpio),
+./board-8960-camera.c:	.cam_gpio_req_tbl = msm8960_back_cam_gpio,
+./board-8960-camera.c:	.cam_gpio_req_tbl_size = ARRAY_SIZE(msm8960_back_cam_gpio),
+./board-8960-camera.c:	.cam_gpio_set_tbl = msm8960_back_cam_gpio_set_tbl,
+./board-8960-camera.c:	.cam_gpio_set_tbl_size = ARRAY_SIZE(msm8960_back_cam_gpio_set_tbl),
+./board-8960-camera.c:static struct i2c_board_info msm_act_main_cam_i2c_info = {
+./board-8960-camera.c:static struct msm_actuator_info msm_act_main_cam_0_info = {
+./board-8960-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./board-8960-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_0,
+./board-8960-camera.c:static struct i2c_board_info msm_act_main_cam1_i2c_info = {
+./board-8960-camera.c:static struct msm_actuator_info msm_act_main_cam_1_info = {
+./board-8960-camera.c:	.board_info     = &msm_act_main_cam1_i2c_info,
+./board-8960-camera.c:	.cam_name       = MSM_ACTUATOR_MAIN_CAM_1,
+./board-8960-camera.c:static struct msm_camera_sensor_flash_data flash_imx074 = {
+./board-8960-camera.c:static struct msm_camera_csi_lane_params imx074_csi_lane_params = {
+./board-8960-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_imx074 = {
+./board-8960-camera.c:	.cam_vreg = msm_8960_back_cam_vreg,
+./board-8960-camera.c:	.num_vreg = ARRAY_SIZE(msm_8960_back_cam_vreg),
+./board-8960-camera.c:	.gpio_conf = &msm_8960_back_cam_gpio_conf,
+./board-8960-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx074_data = {
+./board-8960-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./board-8960-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-8960-camera.c:	.actuator_info = &msm_act_main_cam_0_info,
+./board-8960-camera.c:static struct camera_vreg_t msm_8960_mt9m114_vreg[] = {
+./board-8960-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8960-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8960-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8960-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2800000, 300000},
+./board-8960-camera.c:static struct msm_camera_sensor_flash_data flash_mt9m114 = {
+./board-8960-camera.c:static struct msm_camera_csi_lane_params mt9m114_csi_lane_params = {
+./board-8960-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_mt9m114 = {
+./board-8960-camera.c:	.cam_vreg = msm_8960_mt9m114_vreg,
+./board-8960-camera.c:	.gpio_conf = &msm_8960_front_cam_gpio_conf,
+./board-8960-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_mt9m114_data = {
+./board-8960-camera.c:	.pdata = &msm_camera_csi_device_data[1],
+./board-8960-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-8960-camera.c:static struct msm_camera_sensor_flash_data flash_ov2720 = {
+./board-8960-camera.c:static struct msm_camera_csi_lane_params ov2720_csi_lane_params = {
+./board-8960-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_ov2720 = {
+./board-8960-camera.c:	.cam_vreg = msm_8960_front_cam_vreg,
+./board-8960-camera.c:	.num_vreg = ARRAY_SIZE(msm_8960_front_cam_vreg),
+./board-8960-camera.c:	.gpio_conf = &msm_8960_front_cam_gpio_conf,
+./board-8960-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_ov2720_data = {
+./board-8960-camera.c:	.pdata	= &msm_camera_csi_device_data[1],
+./board-8960-camera.c:	.camera_type = FRONT_CAMERA_2D,
+./board-8960-camera.c:static struct camera_vreg_t msm_8960_s5k3l1yx_vreg[] = {
+./board-8960-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8960-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8960-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8960-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2800000, 300000},
+./board-8960-camera.c:static struct msm_camera_sensor_flash_data flash_s5k3l1yx = {
+./board-8960-camera.c:static struct msm_camera_csi_lane_params s5k3l1yx_csi_lane_params = {
+./board-8960-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_s5k3l1yx = {
+./board-8960-camera.c:	.cam_vreg = msm_8960_s5k3l1yx_vreg,
+./board-8960-camera.c:	.gpio_conf = &msm_8960_back_cam_gpio_conf,
+./board-8960-camera.c:static struct msm_actuator_info msm_act_main_cam_2_info = {
+./board-8960-camera.c:	.board_info     = &msm_act_main_cam_i2c_info,
+./board-8960-camera.c:	.cam_name   = MSM_ACTUATOR_MAIN_CAM_2,
+./board-8960-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_s5k3l1yx_data = {
+./board-8960-camera.c:	.pdata                = &msm_camera_csi_device_data[0],
+./board-8960-camera.c:	.camera_type          = BACK_CAMERA_2D,
+./board-8960-camera.c:	.actuator_info    = &msm_act_main_cam_2_info,
+./board-8960-camera.c:static struct msm_camera_csi_lane_params imx091_csi_lane_params = {
+./board-8960-camera.c:static struct camera_vreg_t msm_8960_imx091_vreg[] = {
+./board-8960-camera.c:	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
+./board-8960-camera.c:	{"cam_vaf", REG_LDO, 2800000, 2800000, 300000},
+./board-8960-camera.c:	{"cam_vdig", REG_LDO, 1200000, 1200000, 105000},
+./board-8960-camera.c:	{"cam_vio", REG_VS, 0, 0, 0},
+./board-8960-camera.c:static struct msm_camera_sensor_flash_data flash_imx091 = {
+./board-8960-camera.c:static struct msm_camera_sensor_platform_info sensor_board_info_imx091 = {
+./board-8960-camera.c:	.cam_vreg = msm_8960_imx091_vreg,
+./board-8960-camera.c:	.gpio_conf = &msm_8960_back_cam_gpio_conf,
+./board-8960-camera.c:static struct msm_camera_sensor_info msm_camera_sensor_imx091_data = {
+./board-8960-camera.c:	.pdata	= &msm_camera_csi_device_data[0],
+./board-8960-camera.c:	.camera_type = BACK_CAMERA_2D,
+./board-8960-camera.c:	.actuator_info = &msm_act_main_cam_1_info,
+./board-8960-camera.c:static int32_t msm_camera_8960_ext_power_ctrl(int enable)
+./board-8960-camera.c:static struct platform_device msm_camera_server = {
+./board-8960-camera.c:	.name = "msm_cam_server",
+./board-8960-camera.c:void __init msm8960_init_cam(void)
+./board-8960-camera.c:	msm_gpiomux_install(msm8960_cam_common_configs,
+./board-8960-camera.c:			ARRAY_SIZE(msm8960_cam_common_configs));
+./board-8960-camera.c:			cam_expander_info;
+./board-8960-camera.c:		struct msm_camera_sensor_info *s_info;
+./board-8960-camera.c:		s_info = &msm_camera_sensor_imx074_data;
+./board-8960-camera.c:		s_info = &msm_camera_sensor_ov2720_data;
+./board-8960-camera.c:			msm_camera_8960_ext_power_ctrl;
+./board-8960-camera.c:		msm_camera_sensor_imx091_data.sensor_platform_info->
+./board-8960-camera.c:	platform_device_register(&msm_camera_server);
+./board-8960-camera.c:static struct i2c_board_info msm8960_camera_i2c_boardinfo[] = {
+./board-8960-camera.c:	.platform_data = &msm_camera_sensor_imx074_data,
+./board-8960-camera.c:	.platform_data = &msm_camera_sensor_ov2720_data,
+./board-8960-camera.c:	.platform_data = &msm_camera_sensor_mt9m114_data,
+./board-8960-camera.c:	.platform_data = &msm_camera_sensor_s5k3l1yx_data,
+./board-8960-camera.c:	.platform_data = &msm_camera_sensor_imx091_data,
+./board-8960-camera.c:struct msm_camera_board_info msm8960_camera_board_info = {
+./board-8960-camera.c:	.board_info = msm8960_camera_i2c_boardinfo,
+./board-8960-camera.c:	.num_i2c_board_info = ARRAY_SIZE(msm8960_camera_i2c_boardinfo),
+./board-msm7627a.h:void __init msm7627a_camera_init(void);
+./board-msm7627a.h:int lcd_camera_power_onoff(int on);
+./devices-msm7x25.c:static struct platform_device msm_camera_device = {
+./devices-msm7x25.c:	.name	= "msm_camera",
+./devices-msm7x25.c:void __init msm_camera_register_device(void *res, uint32_t num,
+./devices-msm7x25.c:	msm_camera_device.num_resources = num;
+./devices-msm7x25.c:	msm_camera_device.resource = res;
+./devices-msm7x25.c:	msm_register_device(&msm_camera_device, data);
+./devices-msm7x30.c:		.name   = "msm_camif",
+./devices-msm7x30.c:static struct platform_device msm_camera_device = {
+./devices-msm7x30.c:	.name	= "msm_camera",
+./devices-msm7x30.c:void __init msm_camera_register_device(void *res, uint32_t num,
+./devices-msm7x30.c:	msm_camera_device.num_resources = num;
+./devices-msm7x30.c:	msm_camera_device.resource = res;
+./devices-msm7x30.c:	msm_register_device(&msm_camera_device, data);
+./smd_rpc_sym:0x30000072  cameraremoted

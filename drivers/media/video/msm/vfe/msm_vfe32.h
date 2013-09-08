@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -989,8 +989,8 @@ struct axi_ctrl_t {
 	struct clk *vfe_clk[3];
 	struct tasklet_struct vfe32_tasklet;
 	struct vfe_share_ctrl_t *share_ctrl;
-        struct device *iommu_ctx_imgwr;
-        struct device *iommu_ctx_misc;
+    struct device *iommu_ctx_imgwr;
+    struct device *iommu_ctx_misc;
 };
 
 struct vfe32_ctrl_type {

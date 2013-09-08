@@ -131,6 +131,12 @@ static struct pm8xxx_gpio_init pm8921_gpios[] __initdata = {
 	PM8921_GPIO_OUTPUT(34, 0, MED),
 	PM8921_GPIO_OUTPUT(13, 0, HIGH),               /* PCIE_CLK_PWR_EN */
 	PM8921_GPIO_INPUT(12, PM_GPIO_PULL_UP_30),     /* PCIE_WAKE_N */
+	PM8921_GPIO_OUTPUT(19, 0, HIGH), /* AMP_EN_AMP */
+	PM8921_GPIO_OUTPUT(20, 0, HIGH), /* PMIC - FSA8008 EAR_MIC_BIAS_EN */
+	PM8921_GPIO_OUTPUT(31, 0, HIGH), /* PMIC - FSA8008_EAR_MIC_EN */
+	PM8921_GPIO_INPUT(32, PM_GPIO_PULL_UP_1P5), /* PMIC - FSA8008_EARPOL_DETECT */
+	PM8921_GPIO_OUTPUT(33, 0, HIGH), /* HAPTIC_EN */
+	PM8921_GPIO_OUTPUT(34, 0, HIGH), /* WCD_RESET_N */
 	PM8921_GPIO_OUTPUT(17, 0, HIGH), /* CAM_VCM_EN */
 };
 
@@ -380,6 +386,8 @@ static struct pm8xxx_adc_amux apq8064_pm8921_adc_channels_data[] = {
 		ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
 	{"xo_therm", CHANNEL_MUXOFF, CHAN_PATH_SCALING1, AMUX_RSV0,
 		ADC_DECIMATION_TYPE2, ADC_SCALE_XOTHERM},
+	{"usb_id", ADC_MPP_1_AMUX6, CHAN_PATH_SCALING1, AMUX_RSV1,
+		ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
 };
 
 static struct pm8xxx_adc_properties apq8064_pm8921_adc_data = {
@@ -415,7 +423,7 @@ apq8064_pm8921_irq_pdata __devinitdata = {
 
 static struct pm8xxx_rtc_platform_data
 apq8064_pm8921_rtc_pdata = {
-	.rtc_write_enable       = false,
+	.rtc_write_enable       = true,
 	.rtc_alarm_powerup      = false,
 };
 
@@ -426,7 +434,7 @@ static int apq8064_pm8921_therm_mitigation[] = {
 	325,
 };
 
-#define MAX_VOLTAGE_MV          4200
+#define MAX_VOLTAGE_MV          4360
 #define CHG_TERM_MA		100
 
 static struct pm8921_charger_platform_data

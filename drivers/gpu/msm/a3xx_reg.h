@@ -706,6 +706,9 @@
 #define VBIF_PERF_CNT_1_SEL 8
 #define VBIF_PERF_CNT_1_SEL_MASK 0x7f00
 
+/* RBBM_CLOCK_CTL default value */
+#define A3XX_RBBM_CLOCK_CTL_DEFAULT 0xBFFFFFFF
+
 /* VBIF countables */
 #define VBIF_DDR_TOTAL_CYCLES 110
 
