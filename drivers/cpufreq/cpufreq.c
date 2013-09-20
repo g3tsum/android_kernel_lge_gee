@@ -435,14 +435,20 @@ static ssize_t store_##file_name					\
 	if (ret != 1)							\
 		return -EINVAL;						\
 									\
+	ret = cpufreq_driver->verify(&new_policy);			\
+	if (ret)							\
+		pr_err("cpufreq: Frequency verification failed\n");	\
+									\
+	policy->user_policy.object = new_policy.object;			\
 	ret = __cpufreq_set_policy(policy, &new_policy);		\
-	policy->user_policy.object = policy->object;			\
 									\
 	return ret ? ret : count;					\
 }
 
+#ifndef CONFIG_HOTPLUG_CPU
 store_one(scaling_min_freq, min);
 store_one(scaling_max_freq, max);
+#endif
 
 /**
  * show_cpuinfo_cur_freq - current CPU frequency as detected by hardware
@@ -472,7 +478,77 @@ static ssize_t show_scaling_governor(struct cpufreq_policy *policy, char *buf)
 	return -EINVAL;
 }
 
+#ifdef CONFIG_HOTPLUG_CPU
+static ssize_t store_scaling_governor(struct cpufreq_policy *policy,
+					const char *buf, size_t count)
+{
+	unsigned int ret = -EINVAL;
+	char	str_governor[16];
+	struct cpufreq_policy new_policy;
+	struct cpufreq_policy *curr_policy;
+	bool sysfs_policy = false;
+	int cpu;
 
+	ret = sscanf(buf, "%15s", str_governor);
+	if (ret != 1)
+		return -EINVAL;
+
+	// try to set governor to all online cpus
+	// else governor will be set when cpu comes online the next time
+	for_each_online_cpu(cpu) {
+		if (cpu == policy->cpu)
+			sysfs_policy = true;
+
+		curr_policy = cpufreq_cpu_get(cpu);
+		if (!curr_policy)
+			continue;
+
+		ret = cpufreq_get_policy(&new_policy, cpu);
+		if (ret){
+			cpufreq_cpu_put(curr_policy);
+			continue;
+		}
+		
+		if (cpufreq_parse_governor(str_governor, &new_policy.policy,
+						&new_policy.governor)){
+
+			cpufreq_cpu_put(curr_policy);
+			continue;
+		}
+
+		// for policy this is already locked
+		if (!sysfs_policy){
+			if (lock_policy_rwsem_write(cpu) < 0){
+				cpufreq_cpu_put(curr_policy);	
+				continue;				
+			}
+		}
+		
+		if (!cpu_online(cpu)){
+			cpufreq_cpu_put(curr_policy);	
+			continue;				
+		}
+
+		/* Do not use cpufreq_set_policy here or the user_policy.max
+	   	will be wrongly overridden */
+		ret = __cpufreq_set_policy(curr_policy, &new_policy);
+
+		curr_policy->user_policy.policy = curr_policy->policy;
+		curr_policy->user_policy.governor = curr_policy->governor;
+		
+		sysfs_notify(&curr_policy->kobj, NULL, "scaling_governor");
+		
+		if (!ret)
+			pr_info("store_scaling_governor setting governor %s on cpu %d ok\n", str_governor, cpu);
+
+		if (!sysfs_policy)
+			unlock_policy_rwsem_write(cpu);
+
+		cpufreq_cpu_put(curr_policy);
+	}
+	return count;
+}
+#else
 /**
  * store_scaling_governor - store policy for the specified CPU
  */
@@ -509,6 +585,7 @@ static ssize_t store_scaling_governor(struct cpufreq_policy *policy,
 	else
 		return count;
 }
+#endif
 
 /**
  * show_scaling_driver - show the cpufreq driver currently loaded
@@ -619,22 +696,125 @@ static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
 	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
 }
 
-#ifdef CONFIG_USERSPACE_VOLTAGE_CONTROL
+#ifdef CONFIG_HOTPLUG_CPU
+static ssize_t store_scaling_max_freq(struct cpufreq_policy *policy,
+					const char *buf, size_t count)
+{
+	unsigned int ret = -EINVAL;		
+	unsigned int cpu;			
+	struct cpufreq_policy new_policy;	
+	struct cpufreq_policy *curr_policy;
+	unsigned int max_freq;
+	bool sysfs_policy = false;
 
-extern ssize_t acpuclk_get_vdd_levels_str(char *buf);
-extern void acpuclk_set_vdd(const char *buf);
+	ret = sscanf(buf, "%u", &max_freq);
+		
+	if (ret != 1)
+		return -EINVAL;
 
-static ssize_t show_UV_mV_table(struct cpufreq_policy *policy, char *buf) {
-	return acpuclk_get_vdd_levels_str(buf);
-}
+	if (max_freq == 0)
+		return -EINVAL;
+				
+	for_each_online_cpu(cpu) {
+		if (cpu == policy->cpu)
+			sysfs_policy = true;
 
-static ssize_t store_UV_mV_table(struct cpufreq_policy *policy, const char *buf, size_t count) {
-	acpuclk_set_vdd(buf);
+		curr_policy = cpufreq_cpu_get(cpu);
+		if (!curr_policy)
+			continue;
+
+		ret = cpufreq_get_policy(&new_policy, cpu);
+		if (ret){
+			cpufreq_cpu_put(curr_policy);
+			continue;
+		}
+
+		// for policy this is already locked
+		if (!sysfs_policy){
+			if (lock_policy_rwsem_write(cpu) < 0){
+				cpufreq_cpu_put(curr_policy);	
+				continue;				
+			}
+		}
+
+		if (!cpu_online(cpu)){
+			cpufreq_cpu_put(curr_policy);	
+			continue;				
+		}
+
+		new_policy.max = max_freq;
+		ret = __cpufreq_set_policy(curr_policy, &new_policy);
+		curr_policy->user_policy.max = new_policy.max;
+		if (!ret)
+			pr_info("store_scaling_max_freq set policy->max of cpu %d to %d - ok\n", cpu, new_policy.max);
+		
+		if (!sysfs_policy)
+			unlock_policy_rwsem_write(cpu);
+
+		cpufreq_cpu_put(curr_policy);
+	}
 	return count;
 }
 
-#endif
+static ssize_t store_scaling_min_freq(struct cpufreq_policy *policy,
+					const char *buf, size_t count)
+{
+	unsigned int ret = -EINVAL;		
+	unsigned int cpu;			
+	struct cpufreq_policy new_policy;
+	struct cpufreq_policy *curr_policy;
+	unsigned int min_freq;
+	bool sysfs_policy = false;
+	
+	ret = sscanf(buf, "%u", &min_freq);
+		
+	if (ret != 1)
+		return -EINVAL;
 
+	if (min_freq == 0)
+		return -EINVAL;
+				
+	for_each_online_cpu(cpu) {
+		if (cpu == policy->cpu)
+			sysfs_policy = true;
+
+		curr_policy = cpufreq_cpu_get(cpu);
+		if (!curr_policy)
+			continue;
+
+		ret = cpufreq_get_policy(&new_policy, cpu);
+		if (ret){
+			cpufreq_cpu_put(curr_policy);
+			continue;					
+		}
+
+		// for policy this is already locked
+		if (!sysfs_policy){
+			if (lock_policy_rwsem_write(cpu) < 0){
+				cpufreq_cpu_put(curr_policy);	
+				continue;				
+			}
+		}
+
+		if (!cpu_online(cpu)){
+			cpufreq_cpu_put(curr_policy);	
+			continue;				
+		}
+		
+		new_policy.min = min_freq;
+		ret = __cpufreq_set_policy(curr_policy, &new_policy);
+		curr_policy->user_policy.min = new_policy.min;
+		if (!ret)
+			pr_info("store_scaling_min_freq set policy->min of cpu %d to %d - ok\n", cpu, new_policy.min);
+
+		if (!sysfs_policy)
+			unlock_policy_rwsem_write(cpu);
+		
+		cpufreq_cpu_put(curr_policy);
+	}
+	return count;
+}
+#endif
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
 cpufreq_freq_attr_ro(cpuinfo_min_freq);
 cpufreq_freq_attr_ro(cpuinfo_max_freq);
@@ -646,13 +826,12 @@ cpufreq_freq_attr_ro(bios_limit);
 cpufreq_freq_attr_ro(related_cpus);
 cpufreq_freq_attr_ro(affected_cpus);
 cpufreq_freq_attr_ro(cpu_utilization);
+#ifdef CONFIG_HOTPLUG_CPU
 cpufreq_freq_attr_rw(scaling_min_freq);
 cpufreq_freq_attr_rw(scaling_max_freq);
+#endif
 cpufreq_freq_attr_rw(scaling_governor);
 cpufreq_freq_attr_rw(scaling_setspeed);
-#ifdef CONFIG_USERSPACE_VOLTAGE_CONTROL
-cpufreq_freq_attr_rw(UV_mV_table);
-#endif
 
 static struct attribute *default_attrs[] = {
 	&cpuinfo_min_freq.attr,
@@ -667,9 +846,6 @@ static struct attribute *default_attrs[] = {
 	&scaling_driver.attr,
 	&scaling_available_governors.attr,
 	&scaling_setspeed.attr,
-#ifdef CONFIG_USERSPACE_VOLTAGE_CONTROL
-	&UV_mV_table.attr,
-#endif
 	NULL
 };
 
@@ -760,6 +936,9 @@ static int cpufreq_add_dev_policy(unsigned int cpu,
 #ifdef CONFIG_SMP
 	unsigned long flags;
 	unsigned int j;
+	
+	/* maxwen: governor and all limits are already set in cpufreq_add_dev */
+#if 0
 #ifdef CONFIG_HOTPLUG_CPU
 	struct cpufreq_governor *gov;
 
@@ -779,6 +958,7 @@ static int cpufreq_add_dev_policy(unsigned int cpu,
 	}
 	pr_debug("Restoring CPU%d min %d and max %d\n",
 		cpu, policy->min, policy->max);
+#endif
 #endif
 
 	for_each_cpu(j, policy->cpus) {
@@ -809,6 +989,8 @@ static int cpufreq_add_dev_policy(unsigned int cpu,
 
 			spin_lock_irqsave(&cpufreq_driver_lock, flags);
 			cpumask_copy(managed_policy->cpus, policy->cpus);
+			cpumask_and(managed_policy->cpus,
+					managed_policy->cpus, cpu_online_mask);
 			per_cpu(cpufreq_cpu_data, cpu) = managed_policy;
 			spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
 
@@ -960,6 +1142,7 @@ static int cpufreq_add_dev(struct device *dev, struct subsys_interface *sif)
 	unsigned int j;
 #ifdef CONFIG_HOTPLUG_CPU
 	int sibling;
+	struct cpufreq_policy *cp;
 #endif
 
 	if (cpu_is_offline(cpu))
@@ -1007,7 +1190,7 @@ static int cpufreq_add_dev(struct device *dev, struct subsys_interface *sif)
 	/* Set governor before ->init, so that driver could check it */
 #ifdef CONFIG_HOTPLUG_CPU
 	for_each_online_cpu(sibling) {
-		struct cpufreq_policy *cp = per_cpu(cpufreq_cpu_data, sibling);
+		cp = per_cpu(cpufreq_cpu_data, sibling);
 		if (cp && cp->governor &&
 		    (cpumask_test_cpu(cpu, cp->related_cpus))) {
 			policy->governor = cp->governor;
@@ -1018,6 +1201,7 @@ static int cpufreq_add_dev(struct device *dev, struct subsys_interface *sif)
 #endif
 	if (!found)
 		policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+
 	/* call driver. From then on the cpufreq must be able
 	 * to accept all calls to ->verify and ->setpolicy for this CPU
 	 */
@@ -1028,6 +1212,14 @@ static int cpufreq_add_dev(struct device *dev, struct subsys_interface *sif)
 	}
 	policy->user_policy.min = policy->min;
 	policy->user_policy.max = policy->max;
+
+	if (found) {
+		/* Calling the driver can overwrite policy frequencies */
+		policy->min = cp->min;
+		policy->max = cp->max;
+		policy->user_policy.min = cp->user_policy.min;
+		policy->user_policy.max = cp->user_policy.max;
+	}
 
 	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
 				     CPUFREQ_START, policy);
@@ -1813,146 +2005,6 @@ error_out:
 	return ret;
 }
 
-#ifdef CONFIG_CPUFREQ_LIMIT_MAX_FREQ // limit max freq
-enum {
-	SET_MIN = 0,
-	SET_MAX
-};
-
-int cpufreq_set_limits_off(int cpu, unsigned int limit, unsigned int value)
-{
-	int ret = -EINVAL;
-	unsigned long flags;
-
-	if (!(limit == SET_MIN || limit == SET_MAX))
-		goto out;
-	if (!cpu_is_offline(cpu))
-		goto out;
-
-	spin_lock_irqsave(&cpufreq_driver_lock, flags);
-
-	if (!cpufreq_driver)
-		goto out_unlock;
-
-	if (!try_module_get(cpufreq_driver->owner))
-		goto out_unlock;
-
-	if (limit == SET_MAX) {
-		if (per_cpu(cpufreq_policy_save, cpu).max)
-			per_cpu(cpufreq_policy_save, cpu).max = value;
-		else
-			goto out_put_module;
-	}
-	else {
-		if (per_cpu(cpufreq_policy_save, cpu).min)
-			per_cpu(cpufreq_policy_save, cpu).min = value;
-		else
-			goto out_put_module;
-	}
-	ret = 0;
-	pr_info("%s: Setting [min/max:0/1] = %d frequency of cpu[%d]  to %d\n",  __func__, limit, cpu, value);
-
-out_put_module:
-	module_put(cpufreq_driver->owner);
-out_unlock:
-	spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
-out:
-	return ret;
-}
-
-int cpufreq_set_limits(int cpu, unsigned int limit, unsigned int value)
-{
-	struct cpufreq_policy new_policy;
-	struct cpufreq_policy *cur_policy;
-	int ret = -EINVAL;
-
-	if (!(limit == SET_MIN || limit == SET_MAX))
-		goto out;
-	if (cpu_is_offline(cpu))
-		goto out;
-
-	cur_policy = cpufreq_cpu_get(cpu);
-	if (!cur_policy)
-		goto out;
-	if (lock_policy_rwsem_write(cpu) < 0)
-		goto out_put_freq;
-
-	memcpy(&new_policy, cur_policy, sizeof(struct cpufreq_policy));
-
-	if (limit == SET_MAX)
-	{
-		// for app boost = DVFS lock
-		if (cur_policy->min > value)
-		{
-			new_policy.min = value;
-			ret = __cpufreq_set_policy(cur_policy, &new_policy);
-			if(ret < 0)
-				goto out_unlock;
-
-			cur_policy->user_policy.min = cur_policy->min;
-		}
-
-		new_policy.max = value;
-	}
-	else
-	{
-		// no other cases to change min value, now
-		if (cur_policy->max < value)
-			value = cur_policy->max;
-
-		new_policy.min = value;
-	}
-
-	ret = __cpufreq_set_policy(cur_policy, &new_policy);
-	if(ret < 0)
-		goto out_unlock;
-
-	if (limit == SET_MAX)
-		cur_policy->user_policy.max = cur_policy->max;
-	else
-		cur_policy->user_policy.min = cur_policy->min;
-
-	ret = 0;
-	pr_info("%s: Setting [min/max:0/1] = %d frequency of cpu[%d]  to %d\n",  __func__, limit, cpu, value);
-out_unlock:
-	unlock_policy_rwsem_write(cpu);
-out_put_freq:
-	cpufreq_cpu_put(cur_policy);
-out:
-	return ret;
-}
-
-int cpufreq_get_limits(int cpu, unsigned int limit)
-{
-	struct cpufreq_policy *cur_policy;
-	int ret = -EINVAL;
-	unsigned int value = 0;
-	if (!(limit == SET_MIN || limit == SET_MAX))
-		goto out;
-	if (cpu_is_offline(cpu))
-		goto out;
-	cur_policy = cpufreq_cpu_get(cpu);
-	if (!cur_policy)
-		goto out;
-	if (lock_policy_rwsem_write(cpu) < 0)
-		goto out_put_freq;
-
-	if (limit == SET_MAX)
-		value = cur_policy->max;
-	else
-		value = cur_policy->min;
-
-	ret = value;
-	unlock_policy_rwsem_write(cpu);
-	pr_info("%s: [min/max:0/1] = %d frequency of cpu[%d]: %d\n", __func__, limit, cpu, value);
-
-out_put_freq:
-	cpufreq_cpu_put(cur_policy);
-out:
-	return ret;
-}
-#endif
-
 /**
  *	cpufreq_update_policy - re-evaluate an existing cpufreq policy
  *	@cpu: CPU which shall be re-evaluated
@@ -2008,7 +2060,7 @@ no_policy:
 }
 EXPORT_SYMBOL(cpufreq_update_policy);
 
-static int cpufreq_cpu_callback(struct notifier_block *nfb,
+static int __cpuinit cpufreq_cpu_callback(struct notifier_block *nfb,
 					unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long)hcpu;
@@ -2161,6 +2213,7 @@ static int __init cpufreq_core_init(void)
 	cpufreq_global_kobject = kobject_create_and_add("cpufreq", &cpu_subsys.dev_root->kobj);
 	BUG_ON(!cpufreq_global_kobject);
 	register_syscore_ops(&cpufreq_syscore_ops);
+
 	return 0;
 }
 core_initcall(cpufreq_core_init);
