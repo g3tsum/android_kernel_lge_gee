@@ -1,5 +1,4 @@
 /* Copyright (c) 2012, The Linux Foundation. All rights reserved.
- * Copyright (c) 2012, LGE Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -21,7 +20,7 @@
 #include <mach/socinfo.h>
 
 #include "devices.h"
-#include "board-mako.h"
+#include "board-8064.h"
 
 #ifdef CONFIG_MSM_DCVS
 static struct msm_dcvs_freq_entry grp3d_freq[] = {
@@ -94,13 +93,13 @@ static struct msm_bus_vectors grp3d_low_vectors[] = {
 		.src = MSM_BUS_MASTER_GRAPHICS_3D,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
 		.ab = 0,
-		.ib = KGSL_CONVERT_TO_MBPS(1700),
+		.ib = KGSL_CONVERT_TO_MBPS(1000),
 	},
 	{
 		.src = MSM_BUS_MASTER_GRAPHICS_3D_PORT1,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
 		.ab = 0,
-		.ib = KGSL_CONVERT_TO_MBPS(1700),
+		.ib = KGSL_CONVERT_TO_MBPS(1000),
 	},
 };
 
@@ -183,12 +182,6 @@ static struct resource kgsl_3d0_resources[] = {
 	{
 		.name = KGSL_3D0_REG_MEMORY,
 		.start = 0x04300000, /* GFX3D address */
-    .end = 0x0430ffff,
-    .flags = IORESOURCE_MEM,
-  },
-  {
-    .name = KGSL_3D0_SHADER_MEMORY,
-    .start = 0x04310000, /* Shader Mem Address */
 		.end = 0x0431ffff,
 		.flags = IORESOURCE_MEM,
 	},
@@ -256,6 +249,7 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 	.num_levels = 5,
 	.set_grp_async = NULL,
 	.idle_timeout = HZ/10,
+	.nap_allowed = true,
 	.strtstp_sleepwake = true,
 	.clk_map = KGSL_CLK_CORE | KGSL_CLK_IFACE | KGSL_CLK_MEM_IFACE,
 #ifdef CONFIG_MSM_BUS_SCALING
@@ -282,13 +276,17 @@ void __init apq8064_init_gpu(void)
 {
 	unsigned int version = socinfo_get_version();
 
-	if ((SOCINFO_VERSION_MAJOR(version) == 1) &&
-			(SOCINFO_VERSION_MINOR(version) == 1))
-		kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 1);
-	else
-		kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 0);
+	if (cpu_is_apq8064ab())
+		kgsl_3d0_pdata.pwrlevel[0].gpu_freq = 450000000;
+	if (SOCINFO_VERSION_MAJOR(version) == 2) {
+		kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 2);
+	} else {
+		if ((SOCINFO_VERSION_MAJOR(version) == 1) &&
+				(SOCINFO_VERSION_MINOR(version) == 1))
+			kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 1);
+		else
+			kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 0);
+	}
 
 	platform_device_register(&device_kgsl_3d0);
 }
-
-
