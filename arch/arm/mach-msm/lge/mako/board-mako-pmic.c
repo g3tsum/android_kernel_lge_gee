@@ -395,17 +395,17 @@ static struct pm8xxx_adc_platform_data apq8064_pm8921_adc_pdata = {
 };
 
 static struct pm8xxx_mpp_platform_data
-apq8064_pm8921_mpp_pdata __devinitdata = {
+apq8064_pm8921_mpp_pdata = {
 	.mpp_base	= PM8921_MPP_PM_TO_SYS(1),
 };
 
 static struct pm8xxx_gpio_platform_data
-apq8064_pm8921_gpio_pdata __devinitdata = {
+apq8064_pm8921_gpio_pdata = {
 	.gpio_base	= PM8921_GPIO_PM_TO_SYS(1),
 };
 
 static struct pm8xxx_irq_platform_data
-apq8064_pm8921_irq_pdata __devinitdata = {
+apq8064_pm8921_irq_pdata = {
 	.irq_base		= PM8921_IRQ_BASE,
 	.devirq			= MSM_GPIO_TO_INT(74),
 	.irq_trigger_flag	= IRQF_TRIGGER_LOW,
@@ -429,7 +429,7 @@ static int apq8064_pm8921_therm_mitigation[] = {
 #define CHG_TERM_MA		100
 
 static struct pm8921_charger_platform_data
-apq8064_pm8921_chg_pdata __devinitdata = {
+apq8064_pm8921_chg_pdata = {
 	.update_time		= 60000,
 	.max_voltage		= MAX_VOLTAGE_MV,
 	.min_voltage		= 3200,
@@ -460,7 +460,7 @@ apq8064_pm8xxx_ccadc_pdata = {
 };
 
 static struct pm8921_bms_platform_data
-apq8064_pm8921_bms_pdata __devinitdata = {
+apq8064_pm8921_bms_pdata = {
 	.battery_type			= BATT_LGE,
 	.r_sense_uohm			= 10000,
 	.v_cutoff			= 3400,
@@ -620,7 +620,7 @@ static struct pm8xxx_keypad_platform_data keypad_data = {
 };
 
 static struct pm8921_platform_data
-apq8064_pm8921_platform_data __devinitdata = {
+apq8064_pm8921_platform_data = {
 	.regulator_pdatas  = msm8064_pm8921_regulator_pdata,
 	.irq_pdata		= &apq8064_pm8921_irq_pdata,
 	.gpio_pdata		= &apq8064_pm8921_gpio_pdata,
@@ -637,7 +637,7 @@ apq8064_pm8921_platform_data __devinitdata = {
 };
 
 static struct pm8xxx_irq_platform_data
-apq8064_pm8821_irq_pdata __devinitdata = {
+apq8064_pm8821_irq_pdata = {
 	.irq_base		= PM8821_IRQ_BASE,
 	.devirq			= PM8821_SEC_IRQ_N,
 	.irq_trigger_flag	= IRQF_TRIGGER_HIGH,
@@ -645,17 +645,17 @@ apq8064_pm8821_irq_pdata __devinitdata = {
 };
 
 static struct pm8xxx_mpp_platform_data
-apq8064_pm8821_mpp_pdata __devinitdata = {
+apq8064_pm8821_mpp_pdata = {
 	.mpp_base	= PM8821_MPP_PM_TO_SYS(1),
 };
 
 static struct pm8821_platform_data
-apq8064_pm8821_platform_data __devinitdata = {
+apq8064_pm8821_platform_data = {
 	.irq_pdata	= &apq8064_pm8821_irq_pdata,
 	.mpp_pdata	= &apq8064_pm8821_mpp_pdata,
 };
 
-static struct msm_ssbi_platform_data apq8064_ssbi_pm8921_pdata __devinitdata = {
+static struct msm_ssbi_platform_data apq8064_ssbi_pm8921_pdata = {
 	.controller_type = MSM_SBI_CTRL_PMIC_ARBITER,
 	.slave	= {
 		.name		= "pm8921-core",
@@ -663,7 +663,7 @@ static struct msm_ssbi_platform_data apq8064_ssbi_pm8921_pdata __devinitdata = {
 	},
 };
 
-static struct msm_ssbi_platform_data apq8064_ssbi_pm8821_pdata __devinitdata = {
+static struct msm_ssbi_platform_data apq8064_ssbi_pm8821_pdata = {
 	.controller_type = MSM_SBI_CTRL_PMIC_ARBITER,
 	.slave	= {
 		.name		= "pm8821-core",
