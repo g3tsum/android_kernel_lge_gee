@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  * Copyright (c) 2012, LGE Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -11,7 +11,9 @@
  * GNU General Public License for more details.
  *
  */
+#include <linux/err.h>
 #include <linux/kernel.h>
+#include <linux/bitops.h>
 #include <linux/platform_device.h>
 #include <linux/gpio.h>
 #include <linux/io.h>
@@ -20,6 +22,7 @@
 #ifdef CONFIG_SMB349_CHARGER
 #include <linux/i2c/smb349.h>
 #endif
+#include <linux/i2c/sx150x.h>
 #include <linux/slimbus/slimbus.h>
 #include <linux/mfd/wcd9xxx/core.h>
 #include <linux/mfd/wcd9xxx/pdata.h>
@@ -35,14 +38,17 @@
 #include <linux/msm_thermal.h>
 #include <linux/i2c/isa1200.h>
 #include <linux/gpio_keys.h>
+#include <linux/epm_adc.h>
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
-#include <asm/hardware/gic.h>
+#include <linux/irqchip/arm-gic.h>
 #include <asm/mach/mmc.h>
 #include <linux/platform_data/qcom_wcnss_device.h>
+#include <linux/ci-bridge-spi.h>
 
 #include <mach/board.h>
 #include <mach/msm_iomap.h>
+#include <mach/ion.h>
 #include <linux/usb/msm_hsusb.h>
 #include <linux/usb/android.h>
 #include <mach/socinfo.h>
@@ -77,14 +83,25 @@
 #include <asm/system_info.h>
 #include <asm/system_misc.h>
 
+#include <mach/msm_serial_hs.h>
+#include <sound/cs8427.h>
+#include <media/gpio-ir-recv.h>
+#include <mach/msm_pcie.h>
+
 #include "msm_watchdog.h"
 #include "board-mako.h"
+#include "clock.h"
 #include "spm.h"
 #include <mach/mpm.h>
 #include "rpm_resources.h"
 #include "pm.h"
 #include "pm-boot.h"
 #include "devices-msm8x60.h"
+#include "platsmp.h"
+
+#define MHL_GPIO_INT           30
+#define MHL_GPIO_RESET         35
+#include "sysmon.h"
 
 #define MSM_PMEM_ADSP_SIZE         0x7800000
 #define MSM_PMEM_AUDIO_SIZE        0x4CF000
@@ -1021,13 +1038,6 @@ static struct platform_device msm_device_wcnss_wlan = {
 	.dev		= {.platform_data = &qcom_wcnss_pdata},
 };
 
-#ifdef CONFIG_RADIO_IRIS
-static struct platform_device msm_device_iris_fm __devinitdata = {
-	.name = "iris_fm",
-	.id   = -1,
-};
-#endif
-
 #ifdef CONFIG_QSEECOM
 /* qseecom bus scaling */
 static struct msm_bus_vectors qseecom_clks_init_vectors[] = {
@@ -1620,7 +1630,7 @@ static void __init apq8064_init_buses(void)
 	msm_bus_8064_cpss_fpb.dev.platform_data = &msm_bus_8064_cpss_fpb_pdata;
 } 
 
-static struct platform_device apq8064_device_ext_dsv_load_vreg __devinitdata = {
+static struct platform_device apq8064_device_ext_dsv_load_vreg = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= APQ8064_EXT_DSV_LOAD_EN_GPIO,
 	.dev	= {
@@ -1629,27 +1639,13 @@ static struct platform_device apq8064_device_ext_dsv_load_vreg __devinitdata = {
 	},
 };
 
-static struct platform_device apq8064_device_rpm_regulator __devinitdata = {
+static struct platform_device apq8064_device_rpm_regulator = {
 	.name	= "rpm-regulator",
 	.id	= -1,
 	.dev	= {
 		.platform_data = &apq8064_rpm_regulator_pdata,
 	},
 };
-
-#ifdef CONFIG_IR_GPIO_CIR
-static struct gpio_ir_recv_platform_data gpio_ir_recv_pdata = {
-	.gpio_nr = 88,
-	.active_low = 1,
-};
-
-static struct platform_device gpio_ir_recv_pdev = {
-	.name = "gpio-rc-recv",
-	.dev = {
-		.platform_data = &gpio_ir_recv_pdata,
-	},
-};
-#endif
 
 static struct platform_device *common_not_mpq_devices[] __initdata = {
 	&apq8064_device_qup_i2c_gsbi1,
@@ -1671,9 +1667,6 @@ static struct platform_device *common_devices[] __initdata = {
 	&apq8064_device_hsusb_host,
 	&android_usb_device,
 	&msm_device_wcnss_wlan,
-#ifdef CONFIG_RADIO_IRIS
-	&msm_device_iris_fm,
-#endif
 #ifdef CONFIG_ION_MSM
 	&apq8064_ion_dev,
 #endif
@@ -2048,10 +2041,10 @@ MACHINE_START(APQ8064_MAKO, "QCT APQ8064 MAKO")
 	.map_io = apq8064_map_io,
 	.reserve = apq8064_reserve,
 	.init_irq = apq8064_init_irq,
-	.handle_irq = gic_handle_irq,
-	.timer = &msm_timer,
+	.init_time = msm_timer_init,
 	.init_machine = apq8064_mako_init,
 	.init_early = apq8064_allocate_memory_regions,
 	.init_very_early = apq8064_early_reserve,
 	.restart = msm_restart,
+	.smp = &msm8960_smp_ops,
 MACHINE_END

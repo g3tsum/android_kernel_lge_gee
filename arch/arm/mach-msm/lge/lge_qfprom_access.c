@@ -638,12 +638,12 @@ error_stat:
 	return ret;
 }
 
-static int __devexit lge_qfprom_interface_remove(struct platform_device *pdev)
+static int lge_qfprom_interface_remove(struct platform_device *pdev)
 {
 	return 0;
 }
 
-static int __init lge_qfprom_probe(struct platform_device *pdev)
+static int lge_qfprom_probe(struct platform_device *pdev)
 {
 	int err;
 	err = sysfs_create_group(&pdev->dev.kobj, &qfprom_attribute_group);
@@ -652,21 +652,21 @@ static int __init lge_qfprom_probe(struct platform_device *pdev)
 	return err;
 }
 
-static struct platform_driver lge_qfprom_driver __refdata = {
+static struct platform_driver lge_qfprom_driver = {
 	.probe = lge_qfprom_probe,
-	.remove = __devexit_p(lge_qfprom_interface_remove),
+	.remove = lge_qfprom_interface_remove,
 	.driver = {
 		.name = LGE_QFPROM_INTERFACE_NAME,
 		.owner = THIS_MODULE,
 	},
 };
 
-static int __init lge_qfprom_interface_init(void)
+static int lge_qfprom_interface_init(void)
 {
 	return platform_driver_register(&lge_qfprom_driver);
 }
 
-static void __exit lge_qfprom_interface_exit(void)
+static void lge_qfprom_interface_exit(void)
 {
 	platform_driver_unregister(&lge_qfprom_driver);
 }
