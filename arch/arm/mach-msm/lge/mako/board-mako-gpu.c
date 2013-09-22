@@ -20,7 +20,7 @@
 #include <mach/socinfo.h>
 
 #include "devices.h"
-#include "board-8064.h"
+#include "board-mako.h"
 
 #ifdef CONFIG_MSM_DCVS
 static struct msm_dcvs_freq_entry grp3d_freq[] = {
@@ -182,6 +182,12 @@ static struct resource kgsl_3d0_resources[] = {
 	{
 		.name = KGSL_3D0_REG_MEMORY,
 		.start = 0x04300000, /* GFX3D address */
+		.end = 0x0430ffff,
+		.flags = IORESOURCE_MEM,
+	},
+	{
+		.name = KGSL_3D0_SHADER_MEMORY,
+		.start = 0x04310000, /* Shader Mem Address */
 		.end = 0x0431ffff,
 		.flags = IORESOURCE_MEM,
 	},
@@ -249,7 +255,6 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 	.num_levels = 5,
 	.set_grp_async = NULL,
 	.idle_timeout = HZ/10,
-	.nap_allowed = true,
 	.strtstp_sleepwake = true,
 	.clk_map = KGSL_CLK_CORE | KGSL_CLK_IFACE | KGSL_CLK_MEM_IFACE,
 #ifdef CONFIG_MSM_BUS_SCALING
@@ -281,8 +286,11 @@ void __init apq8064_init_gpu(void)
 	if (SOCINFO_VERSION_MAJOR(version) == 2) {
 		kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 2);
 	} else {
+		/* The bootloader has started returning 1.2 for chips that
+		   are either 1.1 or 1.2. To handle that and default any
+		   future revisions to this path, check for minor version >=1 */
 		if ((SOCINFO_VERSION_MAJOR(version) == 1) &&
-				(SOCINFO_VERSION_MINOR(version) == 1))
+				(SOCINFO_VERSION_MINOR(version) >= 1))
 			kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 1);
 		else
 			kgsl_3d0_pdata.chipid = ADRENO_CHIPID(3, 2, 0, 0);

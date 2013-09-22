@@ -1122,7 +1122,7 @@ static int __init msm_mpdec_init(void) {
     was_paused = true;
 
     msm_mpdec_workq = alloc_workqueue("mpdec",
-                                      WQ_UNBOUND | WQ_RESCUER | WQ_FREEZABLE,
+                                      WQ_UNBOUND | WQ_MEM_RECLAIM | WQ_FREEZABLE,
                                       1);
     if (!msm_mpdec_workq)
         return -ENOMEM;
