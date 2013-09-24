@@ -3754,7 +3754,7 @@ static inline char *fmt_multiple_name(struct device *dev,
  *
  * @dai: DAI to register
  */
-static int snd_soc_register_dai(struct device *dev,
+int snd_soc_register_dai(struct device *dev,
 		struct snd_soc_dai_driver *dai_drv)
 {
 	struct snd_soc_codec *codec;
@@ -3801,13 +3801,14 @@ static int snd_soc_register_dai(struct device *dev,
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(snd_soc_register_dai);
 
 /**
  * snd_soc_unregister_dai - Unregister a DAI from the ASoC core
  *
  * @dai: DAI to unregister
  */
-static void snd_soc_unregister_dai(struct device *dev)
+void snd_soc_unregister_dai(struct device *dev)
 {
 	struct snd_soc_dai *dai;
 
@@ -3826,6 +3827,7 @@ found:
 	kfree(dai->name);
 	kfree(dai);
 }
+EXPORT_SYMBOL_GPL(snd_soc_unregister_dai);
 
 /**
  * snd_soc_register_dais - Register multiple DAIs with the ASoC core
@@ -3833,7 +3835,7 @@ found:
  * @dai: Array of DAIs to register
  * @count: Number of DAIs
  */
-static int snd_soc_register_dais(struct device *dev,
+int snd_soc_register_dais(struct device *dev,
 		struct snd_soc_dai_driver *dai_drv, size_t count)
 {
 	struct snd_soc_codec *codec;
@@ -3897,6 +3899,7 @@ err:
 
 	return ret;
 }
+EXPORT_SYMBOL_GPL(snd_soc_register_dais);
 
 /**
  * snd_soc_unregister_dais - Unregister multiple DAIs from the ASoC core
@@ -3904,13 +3907,14 @@ err:
  * @dai: Array of DAIs to unregister
  * @count: Number of DAIs
  */
-static void snd_soc_unregister_dais(struct device *dev, size_t count)
+void snd_soc_unregister_dais(struct device *dev, size_t count)
 {
 	int i;
 
 	for (i = 0; i < count; i++)
 		snd_soc_unregister_dai(dev);
 }
+EXPORT_SYMBOL_GPL(snd_soc_unregister_dais);
 
 /**
  * snd_soc_add_platform - Add a platform to the ASoC core
