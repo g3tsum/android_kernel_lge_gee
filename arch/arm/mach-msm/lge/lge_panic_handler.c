@@ -21,7 +21,7 @@
 #include <linux/delay.h>
 #include <linux/io.h>
 #include <linux/module.h>
-#include <linux/persistent_ram.h>
+#include <linux/pstore_ram.h>
 #include <asm/setup.h>
 #include <mach/board_lge.h>
 
