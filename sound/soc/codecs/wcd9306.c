@@ -153,6 +153,13 @@ static struct afe_param_id_cdc_aanc_version tapan_cdc_aanc_version = {
 	.aanc_hw_version        = AANC_HW_BLOCK_VERSION_2,
 };
 
+enum tapan_codec_type {
+	WCD9306,
+	WCD9302,
+};
+
+static enum tapan_codec_type codec_ver;
+
 enum {
 	AIF1_PB = 0,
 	AIF1_CAP,
@@ -296,6 +303,7 @@ struct tapan_priv {
 	u8 aux_r_gain;
 
 	bool spkr_pa_widget_on;
+	struct regulator *spkdrv_reg;
 
 	struct afe_param_cdc_slimbus_slave_cfg slimbus_slave_cfg;
 
@@ -2366,12 +2374,22 @@ static int tapan_codec_enable_vdd_spkr(struct snd_soc_dapm_widget *w,
 {
 	struct snd_soc_codec *codec = w->codec;
 	struct wcd9xxx *core = dev_get_drvdata(codec->dev->parent);
+	struct tapan_priv *priv = snd_soc_codec_get_drvdata(codec);
+	int ret = 0;
 
 	dev_dbg(codec->dev, "%s: %s %d\n", __func__, w->name, event);
 
+	WARN_ONCE(!priv->spkdrv_reg, "SPKDRV supply %s isn't defined\n",
+		WCD9XXX_VDD_SPKDRV_NAME);
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-
+		if (priv->spkdrv_reg) {
+			ret = regulator_enable(priv->spkdrv_reg);
+			if (ret)
+				dev_err(codec->dev,
+					"%s Failed to enable spkdrv reg %s\n",
+					__func__, WCD9XXX_VDD_SPKDRV_NAME);
+		}
 		if (spkr_drv_wrnd > 0) {
 			WARN_ON(!(snd_soc_read(codec, TAPAN_A_SPKR_DRV_EN) &
 				  0x80));
@@ -2391,6 +2409,13 @@ static int tapan_codec_enable_vdd_spkr(struct snd_soc_dapm_widget *w,
 				   0x80));
 			snd_soc_update_bits(codec, TAPAN_A_SPKR_DRV_EN, 0x80,
 					    0x80);
+		}
+		if (priv->spkdrv_reg) {
+			ret = regulator_disable(priv->spkdrv_reg);
+			if (ret)
+				dev_err(codec->dev,
+					"%s: Failed to disable spkdrv_reg %s\n",
+					__func__, WCD9XXX_VDD_SPKDRV_NAME);
 		}
 		break;
 	}
@@ -3696,20 +3721,6 @@ static struct snd_soc_dai_driver tapan9302_dai[] = {
 		.ops = &tapan_dai_ops,
 	},
 	{
-		.name = "tapan9302_tx3",
-		.id = AIF3_CAP,
-		.capture = {
-			.stream_name = "AIF3 Capture",
-			.rates = WCD9302_RATES,
-			.formats = TAPAN_FORMATS,
-			.rate_max = 48000,
-			.rate_min = 8000,
-			.channels_min = 1,
-			.channels_max = 2,
-		},
-		.ops = &tapan_dai_ops,
-	},
-	{
 		.name = "tapan9302_rx3",
 		.id = AIF3_PB,
 		.playback = {
@@ -3718,6 +3729,20 @@ static struct snd_soc_dai_driver tapan9302_dai[] = {
 			.formats = TAPAN_FORMATS,
 			.rate_min = 8000,
 			.rate_max = 48000,
+			.channels_min = 1,
+			.channels_max = 2,
+		},
+		.ops = &tapan_dai_ops,
+	},
+	{
+		.name = "tapan9302_tx3",
+		.id = AIF3_CAP,
+		.capture = {
+			.stream_name = "AIF3 Capture",
+			.rates = WCD9302_RATES,
+			.formats = TAPAN_FORMATS,
+			.rate_max = 48000,
+			.rate_min = 8000,
 			.channels_min = 1,
 			.channels_max = 2,
 		},
@@ -3783,20 +3808,6 @@ static struct snd_soc_dai_driver tapan_dai[] = {
 		.ops = &tapan_dai_ops,
 	},
 	{
-		.name = "tapan_tx3",
-		.id = AIF3_CAP,
-		.capture = {
-			.stream_name = "AIF3 Capture",
-			.rates = WCD9306_RATES,
-			.formats = TAPAN_FORMATS,
-			.rate_max = 48000,
-			.rate_min = 8000,
-			.channels_min = 1,
-			.channels_max = 2,
-		},
-		.ops = &tapan_dai_ops,
-	},
-	{
 		.name = "tapan_rx3",
 		.id = AIF3_PB,
 		.playback = {
@@ -3805,6 +3816,20 @@ static struct snd_soc_dai_driver tapan_dai[] = {
 			.formats = TAPAN_FORMATS,
 			.rate_min = 8000,
 			.rate_max = 192000,
+			.channels_min = 1,
+			.channels_max = 2,
+		},
+		.ops = &tapan_dai_ops,
+	},
+	{
+		.name = "tapan_tx3",
+		.id = AIF3_CAP,
+		.capture = {
+			.stream_name = "AIF3 Capture",
+			.rates = WCD9306_RATES,
+			.formats = TAPAN_FORMATS,
+			.rate_max = 48000,
+			.rate_min = 8000,
 			.channels_min = 1,
 			.channels_max = 2,
 		},
@@ -5455,7 +5480,25 @@ static void tapan_enable_config_rco(struct wcd9xxx *core, bool enable)
 	struct wcd9xxx_core_resource *core_res = &core->core_res;
 
 	if (enable) {
-		/* Enable RC Oscillator */
+		/*
+		 * Enable Bandgap
+		 * sleep required by codec hardware to enable bandgap
+		 */
+		wcd9xxx_reg_update(core, WCD9XXX_A_BIAS_CENTRAL_BG_CTL,
+				   0x80, 0x80);
+		wcd9xxx_reg_update(core, WCD9XXX_A_BIAS_CENTRAL_BG_CTL,
+				   0x04, 0x04);
+		wcd9xxx_reg_update(core, WCD9XXX_A_BIAS_CENTRAL_BG_CTL,
+				   0x01, 0x01);
+		usleep_range(1000, 1100);
+		wcd9xxx_reg_update(core, WCD9XXX_A_BIAS_CENTRAL_BG_CTL,
+				   0x80, 0x00);
+
+		/*
+		 * Enable RC Oscillator
+		 * Add sleep required by codec hardware after each register
+		 * write to enable RC oscillator
+		 */
 		wcd9xxx_reg_update(core, WCD9XXX_A_RC_OSC_FREQ, 0x10, 0x00);
 		wcd9xxx_reg_write(core_res, WCD9XXX_A_BIAS_OSC_BG_CTL, 0x17);
 		usleep_range(5, 5);
@@ -5481,29 +5524,39 @@ static void tapan_enable_config_rco(struct wcd9xxx *core, bool enable)
 		/*
 		 * Disable RC oscillator, reset the registers to their
 		 * default values
+		 * Add sleep required by codec hardware after each register
+		 * write to disable RC oscillator
 		 */
-		wcd9xxx_reg_write(core_res, WCD9XXX_A_CDC_CLK_MCLK_CTL, 0x00);
-		wcd9xxx_reg_write(core_res, WCD9XXX_A_CLK_BUFF_EN2, 0x02);
-		wcd9xxx_reg_write(core_res, WCD9XXX_A_CLK_BUFF_EN1, 0x04);
-		wcd9xxx_reg_write(core_res, WCD9XXX_A_RC_OSC_TEST, 0x0A);
-		wcd9xxx_reg_write(core_res, WCD9XXX_A_RC_OSC_FREQ, 0x46);
+		wcd9xxx_reg_update(core, WCD9XXX_A_CLK_BUFF_EN2, 0x04, 0x00);
+		usleep_range(50, 100);
+		wcd9xxx_reg_update(core, WCD9XXX_A_CLK_BUFF_EN2, 0x02, 0x02);
+		wcd9xxx_reg_update(core, WCD9XXX_A_CLK_BUFF_EN1, 0x05, 0x00);
+		usleep_range(50, 100);
+
+		wcd9xxx_reg_update(core, WCD9XXX_A_RC_OSC_FREQ, 0x80, 0x00);
+		usleep_range(10, 50);
 		wcd9xxx_reg_write(core_res, WCD9XXX_A_BIAS_OSC_BG_CTL, 0x16);
+		/* Disable Bandgap and wait 100us till it gets disabled */
+		wcd9xxx_reg_update(core, WCD9XXX_A_BIAS_CENTRAL_BG_CTL,
+				   0x03, 0x00);
+		usleep_range(100, 150);
 	}
 
 }
 
-static bool tapan_check_wcd9306(struct device *cdc_dev, bool sensed)
+static enum tapan_codec_type tapan_get_codec_ver(struct device *cdc_dev,
+						 bool sensed)
 {
 	struct wcd9xxx *core = dev_get_drvdata(cdc_dev->parent);
 	u8 reg_val;
-	bool ret = true;
+	enum tapan_codec_type cdc_type = WCD9306;
 	unsigned long timeout;
 	bool timedout;
 	struct wcd9xxx_core_resource *core_res = &core->core_res;
 
 	if (!core) {
 		dev_err(cdc_dev, "%s: core not initialized\n", __func__);
-		return -EINVAL;
+		return cdc_type;
 	}
 
 	tapan_enable_config_rco(core, 1);
@@ -5523,12 +5576,13 @@ static bool tapan_check_wcd9306(struct device *cdc_dev, bool sensed)
 	if (wcd9xxx_reg_read(core_res, TAPAN_A_QFUSE_DATA_OUT1) ||
 	    wcd9xxx_reg_read(core_res, TAPAN_A_QFUSE_DATA_OUT2)) {
 		dev_info(cdc_dev, "%s: wcd9302 detected\n", __func__);
-		ret = false;
+		cdc_type = WCD9302;
 	} else
 		dev_info(cdc_dev, "%s: wcd9306 detected\n", __func__);
 
 	tapan_enable_config_rco(core, 0);
-	return ret;
+
+	return cdc_type;
 };
 
 static int tapan_codec_probe(struct snd_soc_codec *codec)
@@ -5623,6 +5677,8 @@ static int tapan_codec_probe(struct snd_soc_codec *codec)
 		goto err_pdata;
 	}
 
+	tapan->spkdrv_reg =
+		tapan_codec_find_regulator(codec, WCD9XXX_VDD_SPKDRV_NAME);
 	if (spkr_drv_wrnd > 0) {
 		WCD9XXX_BG_CLK_LOCK(&tapan->resmgr);
 		wcd9xxx_resmgr_get_bandgap(&tapan->resmgr,
@@ -5653,7 +5709,7 @@ static int tapan_codec_probe(struct snd_soc_codec *codec)
 		tapan_init_slim_slave_cfg(codec);
 	}
 
-	if (tapan_check_wcd9306(codec->dev, false) == true) {
+	if (codec_ver == WCD9306) {
 		snd_soc_add_codec_controls(codec, tapan_9306_snd_controls,
 					   ARRAY_SIZE(tapan_9306_snd_controls));
 		snd_soc_dapm_new_controls(dapm, tapan_9306_dapm_widgets,
@@ -5678,11 +5734,13 @@ static int tapan_codec_probe(struct snd_soc_codec *codec)
 
 	atomic_set(&kp_tapan_priv, (unsigned long)tapan);
 	mutex_lock(&dapm->codec->mutex);
-	snd_soc_dapm_disable_pin(dapm, "ANC HPHL");
-	snd_soc_dapm_disable_pin(dapm, "ANC HPHR");
-	snd_soc_dapm_disable_pin(dapm, "ANC HEADPHONE");
-	snd_soc_dapm_disable_pin(dapm, "ANC EAR PA");
-	snd_soc_dapm_disable_pin(dapm, "ANC EAR");
+	if (codec_ver == WCD9306) {
+		snd_soc_dapm_disable_pin(dapm, "ANC HPHL");
+		snd_soc_dapm_disable_pin(dapm, "ANC HPHR");
+		snd_soc_dapm_disable_pin(dapm, "ANC HEADPHONE");
+		snd_soc_dapm_disable_pin(dapm, "ANC EAR PA");
+		snd_soc_dapm_disable_pin(dapm, "ANC EAR");
+	}
 	snd_soc_dapm_sync(dapm);
 	mutex_unlock(&dapm->codec->mutex);
 
@@ -5722,6 +5780,8 @@ static int tapan_codec_remove(struct snd_soc_codec *codec)
 
 	for (index = 0; index < CP_REG_MAX; index++)
 		tapan->cp_regulators[index] = NULL;
+
+	tapan->spkdrv_reg = NULL;
 
 	kfree(tapan);
 	return 0;
@@ -5775,16 +5835,10 @@ static const struct dev_pm_ops tapan_pm_ops = {
 static int tapan_probe(struct platform_device *pdev)
 {
 	int ret = 0;
-	bool is_wcd9306;
 
-	is_wcd9306 = tapan_check_wcd9306(&pdev->dev, false);
-	if (is_wcd9306 < 0) {
-		dev_info(&pdev->dev, "%s: cannot find codec type, default to 9306\n",
-			 __func__);
-		is_wcd9306 = true;
-	}
+	codec_ver = tapan_get_codec_ver(&pdev->dev, false);
 
-	if (!is_wcd9306) {
+	if (codec_ver == WCD9302) {
 		if (wcd9xxx_get_intf_type() == WCD9XXX_INTERFACE_TYPE_SLIMBUS)
 			ret = snd_soc_register_codec(&pdev->dev,
 				&soc_codec_dev_tapan,

@@ -16,6 +16,17 @@
 	};
 };
 
+&pma8084_mpps {
+	mpp@a200 { /* MPP 3 */
+		/* ext_5v enable */
+		qcom,mode = <1>;
+		qcom,invert = <0>;
+		qcom,vin-sel = <2>;
+		qcom,src-sel = <0>;
+		qcom,master-en = <1>;
+	};
+};
+
 &soc {
 };
 
@@ -155,4 +166,13 @@
 	wp-gpios = <&msmgpio 75 0x1>;
 
 	status = "ok";
+};
+
+&slim_msm {
+	taiko_codec {
+		qcom,cdc-micbias1-ext-cap;
+		qcom,cdc-micbias2-ext-cap;
+		qcom,cdc-micbias3-ext-cap;
+		qcom,cdc-micbias4-ext-cap;
+	};
 };

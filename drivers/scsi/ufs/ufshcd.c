@@ -80,6 +80,9 @@
 /* Task management command timeout */
 #define TM_CMD_TIMEOUT	100 /* msecs */
 
+/* maximum number of link-startup retries */
+#define DME_LINKSTARTUP_RETRIES 3
+
 /* Expose the flag value from utp_upiu_query.value */
 #define MASK_QUERY_UPIU_FLAG_LOC 0xFF
 
@@ -1977,20 +1980,33 @@ static int ufshcd_hba_enable(struct ufs_hba *hba)
 static int ufshcd_link_startup(struct ufs_hba *hba)
 {
 	int ret;
+	int retries = DME_LINKSTARTUP_RETRIES;
 
-	if (hba->vops && hba->vops->link_startup_notify)
-		hba->vops->link_startup_notify(hba, PRE_CHANGE);
+	do {
+		if (hba->vops && hba->vops->link_startup_notify)
+			hba->vops->link_startup_notify(hba, PRE_CHANGE);
 
-	ret = ufshcd_dme_link_startup(hba);
+		ret = ufshcd_dme_link_startup(hba);
+
+		/* check if device is detected by inter-connect layer */
+		if (!ret && !ufshcd_is_device_present(hba)) {
+			dev_err(hba->dev, "%s: Device not present\n", __func__);
+			ret = -ENXIO;
+			goto out;
+		}
+
+		/*
+		 * DME link lost indication is only received when link is up,
+		 * but we can't be sure if the link is up until link startup
+		 * succeeds. So reset the local Uni-Pro and try again.
+		 */
+		if (ret && ufshcd_hba_enable(hba))
+			goto out;
+	} while (ret && retries--);
+
 	if (ret)
+		/* failed to get the link up... retire */
 		goto out;
-
-	/* check if device is detected by inter-connect layer */
-	if (!ufshcd_is_device_present(hba)) {
-		dev_err(hba->dev, "%s: Device not present\n", __func__);
-		ret = -ENXIO;
-		goto out;
-	}
 
 	/* Include any host controller configuration via UIC commands */
 	if (hba->vops && hba->vops->link_startup_notify) {
@@ -3173,6 +3189,118 @@ out:
 }
 
 /**
+ * ufshcd_get_max_icc_level - calculate the ICC level
+ * @sup_curr_uA: max. current supported by the regulator
+ * @start_scan: row at the desc table to start scan from
+ * @buff: power descriptor buffer
+ *
+ * Returns calculated max ICC level for specific regulator
+ */
+static u8 ufshcd_get_max_icc_level(int sup_curr_uA, u8 start_scan, char *buff)
+{
+	u8 i;
+	int curr_uA;
+	u16 data;
+	u16 unit;
+
+	for (i = start_scan; i >= 0; i--) {
+		data = be16_to_cpu(*((u16 *)(buff + 2*i)));
+		unit = (data & ATTR_ICC_LVL_UNIT_MASK) >>
+						ATTR_ICC_LVL_UNIT_OFFSET;
+		curr_uA = data & ATTR_ICC_LVL_VALUE_MASK;
+		switch (unit) {
+		case UFSHCD_NANO_AMP:
+			curr_uA = curr_uA / 1000;
+			break;
+		case UFSHCD_MILI_AMP:
+			curr_uA = curr_uA * 1000;
+			break;
+		case UFSHCD_AMP:
+			curr_uA = curr_uA * 1000 * 1000;
+			break;
+		case UFSHCD_MICRO_AMP:
+		default:
+			break;
+		}
+		if (sup_curr_uA >= curr_uA)
+			break;
+	}
+	return i;
+}
+
+/**
+ * ufshcd_calc_icc_level - calculate the max ICC level
+ * In case regulators are not initialized we'll return 0
+ * @hba: per-adapter instance
+ * @desc_buf: power descriptor buffer to extract ICC levels from.
+ * @len: length of desc_buff
+ *
+ * Returns calculated ICC level
+ */
+static u8 ufshcd_find_max_sup_active_icc_level(struct ufs_hba *hba,
+							u8 *desc_buf, int len)
+{
+	u8 icc_level = 0;
+
+	if (!hba->vreg_info.vcc || !hba->vreg_info.vccq ||
+						!hba->vreg_info.vccq2) {
+		dev_err(hba->dev,
+			"%s: Regulator capability was not set, actvIccLevel=%d",
+							__func__, icc_level);
+		goto out;
+	}
+
+	if (hba->vreg_info.vcc)
+		icc_level = ufshcd_get_max_icc_level(
+				hba->vreg_info.vcc->max_uA,
+				POWER_DESC_MAX_ACTV_ICC_LVLS - 1,
+				&desc_buf[PWR_DESC_ACTIVE_LVLS_VCC_0]);
+
+	if (hba->vreg_info.vccq)
+		icc_level = ufshcd_get_max_icc_level(
+				hba->vreg_info.vccq->max_uA,
+				icc_level,
+				&desc_buf[PWR_DESC_ACTIVE_LVLS_VCCQ_0]);
+
+	if (hba->vreg_info.vccq2)
+		icc_level = ufshcd_get_max_icc_level(
+				hba->vreg_info.vccq2->max_uA,
+				icc_level,
+				&desc_buf[PWR_DESC_ACTIVE_LVLS_VCCQ2_0]);
+out:
+	return icc_level;
+}
+
+static void ufshcd_init_icc_levels(struct ufs_hba *hba)
+{
+	u32 icc_level;
+	int ret;
+	int buff_len = POWER_DESC_MAX_SIZE;
+	u8 desc_buf[POWER_DESC_MAX_SIZE];
+
+	ret = ufshcd_query_descriptor(hba, UPIU_QUERY_OPCODE_READ_DESC,
+			QUERY_DESC_IDN_POWER, 0, 0, desc_buf, &buff_len);
+
+	if (ret || (buff_len < POWER_DESC_MAX_SIZE)) {
+		dev_err(hba->dev,
+			"%s: Failed reading power descriptor.len = %d ret = %d",
+			__func__, buff_len, ret);
+		return;
+	}
+
+	icc_level = ufshcd_find_max_sup_active_icc_level(hba, desc_buf,
+								buff_len);
+
+	ret = ufshcd_query_attr(hba, UPIU_QUERY_OPCODE_WRITE_ATTR,
+			QUERY_ATTR_IDN_ACTIVE_ICC_LVL, 0, 0, &icc_level);
+
+	if (ret)
+		dev_err(hba->dev,
+			"%s: Failed configuring bActiveICCLevel = %d ret = %d",
+			__func__, icc_level , ret);
+}
+
+/**
  * ufshcd_async_scan - asynchronous execution for link startup
  * @data: data pointer to pass to this function
  * @cookie: cookie data
@@ -3201,6 +3329,7 @@ static void ufshcd_async_scan(void *data, async_cookie_t cookie)
 
 	/* If we are in error handling context no need to scan the host */
 	if (!ufshcd_eh_in_progress(hba)) {
+		ufshcd_init_icc_levels(hba);
 		scsi_scan_host(hba->host);
 		pm_runtime_put_sync(hba->dev);
 	}

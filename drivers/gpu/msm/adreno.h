@@ -62,7 +62,6 @@
 #define ADRENO_DEFAULT_PWRSCALE_POLICY  NULL
 #endif
 
-void adreno_debugfs_init(struct kgsl_device *device);
 
 #define ADRENO_ISTORE_START 0x5000 /* Istore offset */
 
@@ -83,6 +82,7 @@ enum adreno_gpurev {
 	ADRENO_REV_A225 = 225,
 	ADRENO_REV_A305 = 305,
 	ADRENO_REV_A305C = 306,
+	ADRENO_REV_A310 = 310,
 	ADRENO_REV_A320 = 320,
 	ADRENO_REV_A330 = 330,
 	ADRENO_REV_A305B = 335,
@@ -583,6 +583,11 @@ static inline int adreno_is_a305c(struct adreno_device *adreno_dev)
 	return (adreno_dev->gpurev == ADRENO_REV_A305C);
 }
 
+static inline int adreno_is_a310(struct adreno_device *adreno_dev)
+{
+	return (adreno_dev->gpurev == ADRENO_REV_A310);
+}
+
 static inline int adreno_is_a320(struct adreno_device *adreno_dev)
 {
 	return (adreno_dev->gpurev == ADRENO_REV_A320);
@@ -896,5 +901,11 @@ static inline void adreno_vbif_start(struct kgsl_device *device,
 		vbif++;
 	}
 }
+
+#ifdef CONFIG_DEBUG_FS
+void adreno_debugfs_init(struct kgsl_device *device);
+#else
+static inline void adreno_debugfs_init(struct kgsl_device *device) { }
+#endif
 
 #endif /*__ADRENO_H */

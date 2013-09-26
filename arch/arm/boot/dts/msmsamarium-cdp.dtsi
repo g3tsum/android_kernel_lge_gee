@@ -118,6 +118,12 @@
 
 	gpio@ce00 { /* GPIO 15 */
 		/* Codec clock */
+		qcom,mode = <1>;           /* Digital output */
+		qcom,output-type = <0>;    /* CMOS */
+		qcom,vin-sel = <2>;        /* PMA8084 S4 = 1.8 V */
+		qcom,out-strength = <1>;   /* Low */
+		qcom,src-sel = <2>;        /* Function 1 - DIVCLK1 */
+		qcom,master-en = <1>;
 	};
 
 	gpio@cf00 { /* GPIO 16 */
@@ -242,4 +248,18 @@
 	qcom,setb-gpios-drv =  <7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7>;
 	qcom,setb-gpios-pull = <0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0>;
 	qcom,setb-gpios-dir =  <2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2>;
+};
+
+&mdss_dsi0 {
+	qcom,dsi-pref-prim-pan = <&dsi_jdi_1080_vid>;
+	qcom,platform-reset-gpio = <&pma8084_gpios 20 1>;
+	qcom,platform-enable-gpio = <&msmgpio 82 0>;
+	qcom,platform-bklight-en-gpio = <&msmgpio 102 0>;
+};
+
+&dsi_jdi_1080_vid {
+	qcom,mdss-dsi-bl-pmic-pwm-frequency = <100>;
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_pwm";
+	qcom,mdss-dsi-bl-pmic-bank-select = <3>;
+	qcom,mdss-dsi-pwm-gpio = <&pma8084_gpios 8 0>;
 };

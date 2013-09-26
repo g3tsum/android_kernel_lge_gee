@@ -23,6 +23,8 @@
 #include <linux/bitops.h>
 
 #include <mach/rpm-regulator.h>
+#include <mach/clk.h>
+#include <mach/msm_iomap.h>
 
 #include "xhci.h"
 
@@ -36,6 +38,8 @@
 #define MSM_HSIC_PWR_EVENT_IRQ_STAT	(MSM_HSIC_BASE + 0xf8858)
 #define MSM_HSIC_PWR_EVNT_IRQ_MASK	(MSM_HSIC_BASE + 0xf885c)
 
+#define TLMM_GPIO_HSIC_STROBE_PAD_CTL	(MSM_TLMM_BASE + 0x2050)
+#define TLMM_GPIO_HSIC_DATA_PAD_CTL	(MSM_TLMM_BASE + 0x2054)
 
 #define GCTL_CORESOFTRESET	BIT(11)
 
@@ -80,8 +84,10 @@ struct mxhci_hsic_hcd {
 	struct clk		*utmi_clk;
 	struct clk		*hsic_clk;
 	struct clk		*cal_clk;
+	struct clk		*system_clk;
 
 	struct regulator	*hsic_vddcx;
+	struct regulator	*hsic_gdsc;
 
 	struct wakeup_source	ws;
 
@@ -118,6 +124,15 @@ static int mxhci_hsic_init_clocks(struct mxhci_hsic_hcd *mxhci, u32 init)
 
 	if (!init)
 		goto disable_all_clks;
+
+	/* 75Mhz system_clk required for normal hsic operation */
+	mxhci->system_clk = devm_clk_get(mxhci->dev, "system_clk");
+	if (IS_ERR(mxhci->system_clk)) {
+		dev_err(mxhci->dev, "failed to get system_clk\n");
+		ret = PTR_ERR(mxhci->system_clk);
+		goto out;
+	}
+	clk_set_rate(mxhci->system_clk, 75000000);
 
 	/* 60Mhz core_clk required for LINK protocol engine */
 	mxhci->core_clk = devm_clk_get(mxhci->dev, "core_clk");
@@ -164,10 +179,16 @@ static int mxhci_hsic_init_clocks(struct mxhci_hsic_hcd *mxhci, u32 init)
 	}
 	clk_set_rate(mxhci->cal_clk, 9600000);
 
+	ret = clk_prepare_enable(mxhci->system_clk);
+	if (ret) {
+		dev_err(mxhci->dev, "failed to enable system_clk\n");
+		goto out;
+	}
+
 	ret = clk_prepare_enable(mxhci->core_clk);
 	if (ret) {
 		dev_err(mxhci->dev, "failed to enable core_clk\n");
-		goto out;
+		goto err_core_clk;
 	}
 
 	ret = clk_prepare_enable(mxhci->hsic_clk);
@@ -208,6 +229,8 @@ err_utmi_clk:
 	clk_disable_unprepare(mxhci->hsic_clk);
 err_hsic_clk:
 	clk_disable_unprepare(mxhci->core_clk);
+err_core_clk:
+	clk_disable_unprepare(mxhci->system_clk);
 out:
 	return ret;
 }
@@ -255,6 +278,33 @@ out:
 	return ret;
 }
 
+/*
+ * Config Global Distributed Switch Controller (GDSC)
+ * to turn on/off HSIC controller
+ */
+static int mxhci_msm_config_gdsc(struct mxhci_hsic_hcd *mxhci, int on)
+{
+	int ret = 0;
+
+	if (!mxhci->hsic_gdsc) {
+		mxhci->hsic_gdsc = devm_regulator_get(mxhci->dev, "hsic-gdsc");
+			if (IS_ERR(mxhci->hsic_gdsc))
+				return PTR_ERR(mxhci->hsic_gdsc);
+	}
+
+	if (on) {
+		ret = regulator_enable(mxhci->hsic_gdsc);
+		if (ret) {
+			dev_err(mxhci->dev, "unable to enable hsic gdsc\n");
+			return ret;
+		}
+	} else {
+		regulator_disable(mxhci->hsic_gdsc);
+	}
+
+	return 0;
+}
+
 static int mxhci_hsic_config_gpios(struct mxhci_hsic_hcd *mxhci)
 {
 	int rc = 0;
@@ -288,7 +338,7 @@ static int mxhci_hsic_ulpi_write(struct mxhci_hsic_hcd *mxhci, u32 val,
 
 	/* poll for write done */
 	timeout = jiffies + usecs_to_jiffies(ULPI_IO_TIMEOUT_USECS);
-	while (readl_relaxed(MSM_HSIC_GUSB2PHYACC) & GUSB2PHYACC_VSTSDONE) {
+	while (!(readl_relaxed(MSM_HSIC_GUSB2PHYACC) & GUSB2PHYACC_VSTSDONE)) {
 		if (time_after(jiffies, timeout)) {
 			dev_err(mxhci->dev, "mxhci_hsic_ulpi_write: timeout\n");
 			return -ETIMEDOUT;
@@ -302,6 +352,7 @@ static int mxhci_hsic_ulpi_write(struct mxhci_hsic_hcd *mxhci, u32 val,
 static void mxhci_hsic_reset(struct mxhci_hsic_hcd *mxhci)
 {
 	u32 reg;
+	int ret;
 	struct usb_hcd *hcd = hsic_to_hcd(mxhci);
 
 	/* start controller reset */
@@ -309,28 +360,46 @@ static void mxhci_hsic_reset(struct mxhci_hsic_hcd *mxhci)
 	reg |= GCTL_CORESOFTRESET;
 	writel_relaxed(reg, MSM_HSIC_GCTL);
 
-	/* reset phy's digital interface with recommended hw prog delays */
+	usleep(1000);
 
-	/* Assert USB2 PHY reset */
-	reg = readl_relaxed(MSM_HSIC_GUSB2PHYCFG);
-	reg |= GUSB2PHYCFG_PHYSOFTRST;
-	writel_relaxed(reg, MSM_HSIC_GUSB2PHYCFG);
+	/* phy reset using asynchronous block reset */
 
-	usleep(100);
+	clk_disable_unprepare(mxhci->cal_clk);
+	clk_disable_unprepare(mxhci->utmi_clk);
+	clk_disable_unprepare(mxhci->hsic_clk);
+	clk_disable_unprepare(mxhci->core_clk);
+	clk_disable_unprepare(mxhci->system_clk);
+	clk_disable_unprepare(mxhci->phy_sleep_clk);
 
-	/* Clear USB2 PHY reset */
-	reg = readl_relaxed(MSM_HSIC_GUSB2PHYCFG);
-	reg &= ~GUSB2PHYCFG_PHYSOFTRST;
-	writel_relaxed(reg, MSM_HSIC_GUSB2PHYCFG);
+	ret = clk_reset(mxhci->hsic_clk, CLK_RESET_ASSERT);
+	if (ret) {
+		dev_err(mxhci->dev, "hsic clk assert failed:%d\n", ret);
+		return;
+	}
+	usleep_range(10000, 12000);
 
-	usleep(100);
+	ret = clk_reset(mxhci->hsic_clk, CLK_RESET_DEASSERT);
+	if (ret)
+		dev_err(mxhci->dev, "hsic clk deassert failed:%d\n",
+				ret);
+	/*
+	 * Required delay between the deassertion and
+	 *	clock enablement.
+	*/
+	ndelay(200);
+	clk_prepare_enable(mxhci->phy_sleep_clk);
+	clk_prepare_enable(mxhci->system_clk);
+	clk_prepare_enable(mxhci->core_clk);
+	clk_prepare_enable(mxhci->hsic_clk);
+	clk_prepare_enable(mxhci->utmi_clk);
+	clk_prepare_enable(mxhci->cal_clk);
 
 	/* After PHY is stable we can take Core out of reset state */
 	reg = readl_relaxed(MSM_HSIC_GCTL);
 	reg &= ~GCTL_CORESOFTRESET;
 	writel_relaxed(reg, MSM_HSIC_GCTL);
 
-	usleep(100);
+	usleep(1000);
 }
 
 static void mxhci_hsic_plat_quirks(struct device *dev, struct xhci_hcd *xhci)
@@ -460,6 +529,7 @@ static int mxhci_hsic_suspend(struct mxhci_hsic_hcd *mxhci)
 
 	init_completion(&mxhci->phy_in_lpm);
 
+	clk_disable_unprepare(mxhci->system_clk);
 	clk_disable_unprepare(mxhci->core_clk);
 	clk_disable_unprepare(mxhci->utmi_clk);
 	clk_disable_unprepare(mxhci->hsic_clk);
@@ -517,6 +587,7 @@ static int mxhci_hsic_resume(struct mxhci_hsic_hcd *mxhci)
 		dev_err(mxhci->dev,
 			"unable to set nominal vddcx voltage (no VDD MIN)\n");
 
+	clk_prepare_enable(mxhci->system_clk);
 	clk_prepare_enable(mxhci->core_clk);
 	clk_prepare_enable(mxhci->utmi_clk);
 	clk_prepare_enable(mxhci->hsic_clk);
@@ -655,6 +726,12 @@ static int mxhci_hsic_probe(struct platform_device *pdev)
 		goto put_hcd;
 	}
 
+	ret = mxhci_msm_config_gdsc(mxhci, 1);
+	if (ret) {
+		dev_err(&pdev->dev, "unable to configure hsic gdsc\n");
+		goto put_hcd;
+	}
+
 	ret = mxhci_hsic_init_clocks(mxhci, 1);
 	if (ret) {
 		dev_err(&pdev->dev, "unable to initialize clocks\n");
@@ -681,6 +758,16 @@ static int mxhci_hsic_probe(struct platform_device *pdev)
 		dev_err(mxhci->dev, " gpio configuarion failed\n");
 		goto deinit_vddcx;
 	}
+
+	/* enable STROBE_PAD_CTL */
+	reg = readl_relaxed(TLMM_GPIO_HSIC_STROBE_PAD_CTL);
+	writel_relaxed(reg | 0x2000000, TLMM_GPIO_HSIC_STROBE_PAD_CTL);
+
+	/* enable DATA_PAD_CTL */
+	reg = readl_relaxed(TLMM_GPIO_HSIC_DATA_PAD_CTL);
+	writel_relaxed(reg | 0x2000000, TLMM_GPIO_HSIC_DATA_PAD_CTL);
+
+	mb();
 
 	/* Enable LPM in Sleep mode and suspend mode */
 	reg = readl_relaxed(MSM_HSIC_CTRL_REG);
@@ -790,6 +877,17 @@ static int mxhci_hsic_remove(struct platform_device *pdev)
 	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
 	struct mxhci_hsic_hcd *mxhci = hcd_to_hsic(hcd);
+	u32 reg;
+
+	/* disable STROBE_PAD_CTL */
+	reg = readl_relaxed(TLMM_GPIO_HSIC_STROBE_PAD_CTL);
+	writel_relaxed(reg & 0xfdffffff, TLMM_GPIO_HSIC_STROBE_PAD_CTL);
+
+	/* disable DATA_PAD_CTL */
+	reg = readl_relaxed(TLMM_GPIO_HSIC_DATA_PAD_CTL);
+	writel_relaxed(reg & 0xfdffffff, TLMM_GPIO_HSIC_DATA_PAD_CTL);
+
+	mb();
 
 	/* If the device was removed no need to call pm_runtime_disable */
 	if (pdev->dev.power.power_state.event != PM_EVENT_INVALID)
@@ -808,6 +906,7 @@ static int mxhci_hsic_remove(struct platform_device *pdev)
 	device_init_wakeup(&pdev->dev, 0);
 	mxhci_hsic_init_vddcx(mxhci, 0);
 	mxhci_hsic_init_clocks(mxhci, 0);
+	mxhci_msm_config_gdsc(mxhci, 0);
 	wakeup_source_trash(&mxhci->ws);
 	usb_put_hcd(hcd);
 

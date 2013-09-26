@@ -17,7 +17,7 @@
 / {
 	model = "Qualcomm MSM KRYPTON SIM";
 	compatible = "qcom,msmkrypton-sim", "qcom,msmkrypton", "qcom,sim";
-	qcom,msm-id = <187 16 0>;
+	qcom,board-id = <16 0>;
 };
 
 &uartdm3{

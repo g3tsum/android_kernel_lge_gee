@@ -45,6 +45,9 @@
 #define HAL_BUFFERFLAG_ENDOFSUBFRAME    0x00000400
 #define HAL_BUFFERFLAG_EOSEQ            0x00200000
 #define HAL_BUFFERFLAG_DROP_FRAME       0x20000000
+#define HAL_BUFFERFLAG_TS_DISCONTINUITY	0x40000000
+#define HAL_BUFFERFLAG_TS_ERROR		0x80000000
+
 
 
 #define HAL_DEBUG_MSG_LOW				0x00000001
@@ -886,8 +889,9 @@ enum hal_event_type {
 };
 
 enum buffer_mode_type {
-	HAL_BUFFER_MODE_STATIC = 0x00000000,
-	HAL_BUFFER_MODE_RING,
+	HAL_BUFFER_MODE_STATIC = 0x001,
+	HAL_BUFFER_MODE_RING = 0x010,
+	HAL_BUFFER_MODE_DYNAMIC = 0x100,
 };
 
 struct hal_buffer_alloc_mode {
@@ -1032,10 +1036,9 @@ struct vidc_hal_session_init_done {
 	struct hal_uncompressed_format_supported uncomp_format;
 	struct hal_interlace_format_supported HAL_format;
 	struct hal_nal_stream_format_supported nal_stream_format;
-/*	struct hal_profile_level_supported profile_level;
-	// allocate and released memory for above. */
 	struct hal_intra_refresh intra_refresh;
 	struct hal_seq_header_info seq_hdr_info;
+	enum buffer_mode_type alloc_mode_out;
 };
 
 struct buffer_requirements {

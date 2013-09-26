@@ -305,6 +305,9 @@ static int dwc3_otg_start_peripheral(struct usb_otg *otg, int on)
 		dev_dbg(otg->phy->dev, "%s: turn on gadget %s\n",
 					__func__, otg->gadget->name);
 
+		usb_phy_notify_connect(dotg->dwc->usb2_phy, USB_SPEED_HIGH);
+		usb_phy_notify_connect(dotg->dwc->usb3_phy, USB_SPEED_SUPER);
+
 		/* Core reset is not required during start peripheral. Only
 		 * DBM reset is required, hence perform only DBM reset here */
 		if (ext_xceiv && ext_xceiv->otg_capability &&
@@ -317,6 +320,8 @@ static int dwc3_otg_start_peripheral(struct usb_otg *otg, int on)
 		dev_dbg(otg->phy->dev, "%s: turn off gadget %s\n",
 					__func__, otg->gadget->name);
 		usb_gadget_vbus_disconnect(otg->gadget);
+		usb_phy_notify_disconnect(dotg->dwc->usb2_phy, USB_SPEED_HIGH);
+		usb_phy_notify_disconnect(dotg->dwc->usb3_phy, USB_SPEED_SUPER);
 	}
 
 	return 0;
@@ -936,18 +941,6 @@ int dwc3_otg_register_phys(struct platform_device *pdev)
 	}
 	dotg->otg.phy->state = OTG_STATE_UNDEFINED;
 
-	dotg->usb3_phy.dev = &pdev->dev;
-	ret = usb_add_phy(&dotg->usb3_phy, USB_PHY_TYPE_USB3);
-	if (ret) {
-		dev_err(&pdev->dev, "can't register transceiver, err: %d\n",
-			ret);
-		goto remove_phy2;
-	}
-	return ret;
-
-remove_phy2:
-	usb_remove_phy(dotg->otg.phy);
-
 	return ret;
 }
 
@@ -955,7 +948,6 @@ void dwc3_otg_deregister_phys(struct platform_device *pdev)
 {
 	dev_dbg(&pdev->dev, "dwc3_otg_deregister_phys\n");
 
-	usb_remove_phy(&the_dotg->usb3_phy);
 	usb_remove_phy(the_dotg->otg.phy);
 }
 

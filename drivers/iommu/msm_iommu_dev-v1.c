@@ -208,10 +208,14 @@ static int msm_iommu_parse_dt(struct platform_device *pdev,
 	ret = of_platform_populate(pdev->dev.of_node,
 				   msm_iommu_v1_ctx_match_table,
 				   NULL, &pdev->dev);
-	if (ret)
+	if (ret) {
 		pr_err("Failed to create iommu context device\n");
+		goto fail;
+	}
 
 	msm_iommu_add_drv(drvdata);
+	return 0;
+
 fail:
 	__put_bus_vote_client(drvdata);
 	return ret;
@@ -281,7 +285,7 @@ static int msm_iommu_probe(struct platform_device *pdev)
 	struct iommu_pmon *pmon_info;
 	struct msm_iommu_drvdata *drvdata;
 	struct resource *r;
-	int ret, needs_alt_core_clk;
+	int ret, needs_alt_core_clk, needs_alt_iface_clk;
 	int global_cfg_irq, global_client_irq;
 
 	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
@@ -328,6 +332,14 @@ static int msm_iommu_probe(struct platform_device *pdev)
 			return PTR_ERR(drvdata->aclk);
 	}
 
+	needs_alt_iface_clk = of_property_read_bool(pdev->dev.of_node,
+						   "qcom,needs-alt-iface-clk");
+	if (needs_alt_iface_clk) {
+		drvdata->aiclk = devm_clk_get(&pdev->dev, "alt_iface_clk");
+		if (IS_ERR(drvdata->aclk))
+			return PTR_ERR(drvdata->aiclk);
+	}
+
 	if (clk_get_rate(drvdata->clk) == 0) {
 		ret = clk_round_rate(drvdata->clk, 1000);
 		clk_set_rate(drvdata->clk, ret);
@@ -336,6 +348,11 @@ static int msm_iommu_probe(struct platform_device *pdev)
 	if (drvdata->aclk && clk_get_rate(drvdata->aclk) == 0) {
 		ret = clk_round_rate(drvdata->aclk, 1000);
 		clk_set_rate(drvdata->aclk, ret);
+	}
+
+	if (drvdata->aiclk && clk_get_rate(drvdata->aiclk) == 0) {
+		ret = clk_round_rate(drvdata->aiclk, 1000);
+		clk_set_rate(drvdata->aiclk, ret);
 	}
 
 	ret = msm_iommu_parse_dt(pdev, drvdata);
