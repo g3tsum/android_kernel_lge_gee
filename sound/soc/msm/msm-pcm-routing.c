@@ -1465,7 +1465,7 @@ static int msm_routing_ext_ec_put(struct snd_kcontrol *kcontrol,
 		break;
 	}
 	mutex_unlock(&routing_lock);
-	snd_soc_dapm_mux_update_power(widget, kcontrol, 1, mux, e);
+	snd_soc_dapm_mux_update_power(widget, kcontrol, mux, e);
 	return ret;
 }
 
