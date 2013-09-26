@@ -448,6 +448,7 @@ struct arm_pmu_platdata multicore_data = {
 	.free_pmu_irq = multicore_free_irq,
 };
 
+#ifndef CONFIG_ARCH_MSM8960
 static inline int get_dt_irq_prop(void)
 {
 	struct device_node *np = NULL;
@@ -461,6 +462,7 @@ static inline int get_dt_irq_prop(void)
 
 	return err;
 }
+#endif
 
 static int cpu_pmu_device_probe(struct platform_device *pdev)
 {
@@ -497,8 +499,10 @@ static int cpu_pmu_device_probe(struct platform_device *pdev)
 	cpu_pmu->plat_device = pdev;
 	cpu_pmu_init(cpu_pmu);
 
+#ifndef CONFIG_ARCH_MSM8960
 	if (get_dt_irq_prop())
 		cpu_pmu->plat_device->dev.platform_data = &multicore_data;
+#endif
 
 	ret = armpmu_register(cpu_pmu, PERF_TYPE_RAW);
 
