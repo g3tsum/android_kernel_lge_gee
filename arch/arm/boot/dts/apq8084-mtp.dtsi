@@ -22,6 +22,12 @@
 	qcom,hdmi_tx@fd922100 {
 		status = "disabled";
 	};
+
+	sound {
+		qcom,model = "apq8084-taiko-mtp-snd-card";
+		qcom,cdc-micbias2-headset-only;
+		qcom,ext-mclk-gpio  = <&msmgpio 47 0>;
+	};
 };
 
 /include/ "dsi-panel-jdi-1080p-video.dtsi"
