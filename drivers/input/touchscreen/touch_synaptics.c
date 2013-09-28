@@ -1343,7 +1343,7 @@ struct touch_device_driver synaptics_ts_driver = {
 	.ic_ctrl	= synaptics_ts_ic_ctrl,
 };
 
-static int __devinit touch_init(void)
+static int touch_init(void)
 {
 	if (touch_debug_mask & DEBUG_TRACE)
 		TOUCH_DEBUG_MSG("\n");
