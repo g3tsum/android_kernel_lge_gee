@@ -195,7 +195,7 @@ pm8821_add_subdevices(const struct pm8821_platform_data *pdata,
 		pdata->mpp_pdata->core_data.base_addr = REG_MPP_BASE;
 		mpp_cell.platform_data = pdata->mpp_pdata;
 		mpp_cell.pdata_size = sizeof(struct pm8xxx_mpp_platform_data);
-		ret = mfd_add_devices(pmic->dev, 0, &mpp_cell, 1, NULL,
+		ret = mfd_add_devices(pmic->dev, 0, &mpp_cell, 1, NULL, NULL
 					irq_base);
 		if (ret) {
 			pr_err("Failed to add mpp subdevice ret=%d\n", ret);
@@ -203,13 +203,13 @@ pm8821_add_subdevices(const struct pm8821_platform_data *pdata,
 		}
 	}
 
-	ret = mfd_add_devices(pmic->dev, 0, &debugfs_cell, 1, NULL, irq_base);
+	ret = mfd_add_devices(pmic->dev, 0, &debugfs_cell, 1, NULL, irq_base, NULL);
 	if (ret) {
 		pr_err("Failed to add debugfs subdevice ret=%d\n", ret);
 		goto bail;
 	}
 
-	ret = mfd_add_devices(pmic->dev, 0, &thermal_alarm_cell, 1, NULL,
+	ret = mfd_add_devices(pmic->dev, 0, &thermal_alarm_cell, 1, NULL, NULL
 				irq_base);
 	if (ret) {
 		pr_err("Failed to add thermal alarm subdevice ret=%d\n",
