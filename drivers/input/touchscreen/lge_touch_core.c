@@ -3447,7 +3447,7 @@ static int touch_probe(struct i2c_client *client, const struct i2c_device_id *id
 	if (ts->pdata->caps->is_id_supported)
 		input_set_abs_params(ts->input_dev, ABS_MT_TRACKING_ID, 0, ts->pdata->caps->max_id, 0, 0);
 #else
-	input_mt_init_slots(ts->input_dev, ts->pdata->caps->max_id);
+	input_mt_init_slots(ts->input_dev, ts->pdata->caps->max_id, 0);
 #endif
 
 #ifdef CUST_G_TOUCH
