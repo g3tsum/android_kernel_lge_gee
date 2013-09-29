@@ -175,7 +175,7 @@ struct pm8xxx_led_data {
 	struct mutex		lock;
 	struct pwm_device	*pwm_dev;
 	int			pwm_channel;
-	boot			is_pwm_enabled;
+	bool			is_pwm_enabled;
 	u32			pwm_period_us;
 	struct pm8xxx_pwm_duty_cycles *pwm_duty_cycles;
 	struct wled_config_data *wled_cfg;
