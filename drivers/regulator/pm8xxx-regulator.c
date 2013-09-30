@@ -3130,6 +3130,7 @@ static int pm8xxx_vreg_probe(struct platform_device *pdev)
 	struct pm8xxx_regulator_core_platform_data *core_data;
 	const struct pm8xxx_regulator_platform_data *pdata;
 	enum pm8xxx_vreg_pin_function pin_fn;
+	struct regulator_config config = { };
 	struct regulator_desc *rdesc;
 	struct pm8xxx_vreg *vreg;
 	unsigned pin_ctrl;
@@ -3268,9 +3269,12 @@ static int pm8xxx_vreg_probe(struct platform_device *pdev)
 	if (rc)
 		goto bail;
 
+	config.dev = &pdev->dev;
+	config.init_data = &pdata->init_data;
+	config.driver_data = vreg;
+
 	if (!core_data->is_pin_controlled) {
-		vreg->rdev = regulator_register(rdesc, &pdev->dev,
-				&(pdata->init_data), vreg, NULL);
+		vreg->rdev = regulator_register(rdesc, &config);
 		if (IS_ERR(vreg->rdev)) {
 			rc = PTR_ERR(vreg->rdev);
 			vreg->rdev = NULL;
@@ -3278,8 +3282,7 @@ static int pm8xxx_vreg_probe(struct platform_device *pdev)
 				vreg->rdesc.name, rc);
 		}
 	} else {
-		vreg->rdev_pc = regulator_register(rdesc, &pdev->dev,
-				&(pdata->init_data), vreg, NULL);
+		vreg->rdev_pc = regulator_register(rdesc, &config);
 		if (IS_ERR(vreg->rdev_pc)) {
 			rc = PTR_ERR(vreg->rdev_pc);
 			vreg->rdev_pc = NULL;

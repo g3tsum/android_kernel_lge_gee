@@ -105,6 +105,7 @@ static int gpio_vreg_probe(struct platform_device *pdev)
 {
 	const struct gpio_regulator_platform_data *pdata;
 	struct gpio_vreg *vreg;
+	struct regulator_config config = { };
 	int rc = 0;
 
 	pdata = pdev->dev.platform_data;
@@ -154,8 +155,11 @@ static int gpio_vreg_probe(struct platform_device *pdev)
 	vreg->desc.type		= REGULATOR_VOLTAGE;
 	vreg->desc.owner	= THIS_MODULE;
 
-	vreg->rdev = regulator_register(&vreg->desc, &pdev->dev,
-					&pdata->init_data, vreg, NULL);
+	config.dev = &pdev->dev;
+	config.init_data = &pdata->init_data;
+	config.driver_data = vreg;
+
+	vreg->rdev = regulator_register(&vreg->desc, &config);
 	if (IS_ERR(vreg->rdev)) {
 		rc = PTR_ERR(vreg->rdev);
 		pr_err("%s: regulator_register failed, rc=%d.\n", vreg->name,
