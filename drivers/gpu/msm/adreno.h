@@ -247,8 +247,26 @@ struct adreno_perfcounters {
 	unsigned int group_count;
 };
 
+/**
+ * adreno_invalid_countabless: Invalid countables that do not work properly
+ * @countables: List of unusable countables
+ * @num_countables: Number of unusable countables
+ */
+struct adreno_invalid_countables {
+	const unsigned int *countables;
+	int num_countables;
+};
+
 #define ADRENO_PERFCOUNTER_GROUP(core, name) { core##_perfcounters_##name, \
 	ARRAY_SIZE(core##_perfcounters_##name), __stringify(name) }
+
+#define ADRENO_PERFCOUNTER_GROUP_OFF(core, name, offset) \
+	[KGSL_PERFCOUNTER_GROUP_##offset] = { core##_perfcounters_##name, \
+	ARRAY_SIZE(core##_perfcounters_##name), __stringify(name) }
+
+#define ADRENO_PERFCOUNTER_INVALID_COUNTABLE(name, off) \
+	[KGSL_PERFCOUNTER_GROUP_##off] = { name##_invalid_countables, \
+				ARRAY_SIZE(name##_invalid_countables) }
 
 /**
  * adreno_regs: List of registers that are used in kgsl driver for all
@@ -359,13 +377,11 @@ struct adreno_gpudev {
 	int ctx_switches_since_last_draw;
 
 	struct adreno_perfcounters *perfcounters;
+	const struct adreno_invalid_countables
+			*invalid_countables;
 
 	/* GPU specific function hooks */
 	int (*ctxt_create)(struct adreno_device *, struct adreno_context *);
-	int (*ctxt_save)(struct adreno_device *, struct adreno_context *);
-	int (*ctxt_restore)(struct adreno_device *, struct adreno_context *);
-	int (*ctxt_draw_workaround)(struct adreno_device *,
-					struct adreno_context *);
 	irqreturn_t (*irq_handler)(struct adreno_device *);
 	void (*irq_control)(struct adreno_device *, int);
 	unsigned int (*irq_pending)(struct adreno_device *);
@@ -750,6 +766,28 @@ static inline int adreno_add_idle_cmds(struct adreno_device *adreno_dev,
 	return cmds - start;
 }
 
+
+/*
+ * adreno_wait_reg_mem() - Add a CP_WAIT_REG_MEM command
+ * @cmds:	Pointer to memory where commands are to be added
+ * @addr:	Regiater address to poll for
+ * @val:	Value to poll for
+ * @mask:	The value against which register value is masked
+ * @interval:	wait interval
+ */
+static inline int adreno_wait_reg_mem(unsigned int *cmds, unsigned int addr,
+				unsigned int val, unsigned int mask,
+				unsigned int interval)
+{
+	unsigned int *start = cmds;
+	*cmds++ = cp_type3_packet(CP_WAIT_REG_MEM, 5);
+	*cmds++ = 0x3; /* Function = Equals */
+	*cmds++ = addr; /* Poll address */
+	*cmds++ = val; /* ref val */
+	*cmds++ = mask;
+	*cmds++ = interval;
+	return cmds - start;
+}
 /*
  * adreno_wait_reg_eq() - Add a CP_WAIT_REG_EQ command
  * @cmds:	Pointer to memory where commands are to be added

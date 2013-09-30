@@ -448,8 +448,13 @@ static int _bif_slave_read_no_retry(struct bif_slave_dev *sdev, u16 addr,
 		rc = bdev->desc->ops->read_slave_registers(bdev, addr, buf,
 							   len);
 		if (rc)
-			pr_err("read_slave_registers failed, rc=%d\n", rc);
-		return rc;
+			pr_debug("read_slave_registers failed, rc=%d\n", rc);
+		else
+			return rc;
+		/*
+		 * Fall back on individual transactions if high level register
+		 * read failed.
+		 */
 	}
 
 	for (i = 0; i < len; i++) {
@@ -521,8 +526,13 @@ static int _bif_slave_write_no_retry(struct bif_slave_dev *sdev, u16 addr,
 		rc = bdev->desc->ops->write_slave_registers(bdev, addr, buf,
 							    len);
 		if (rc)
-			pr_err("write_slave_registers failed, rc=%d\n", rc);
-		return rc;
+			pr_debug("write_slave_registers failed, rc=%d\n", rc);
+		else
+			return rc;
+		/*
+		 * Fall back on individual transactions if high level register
+		 * write failed.
+		 */
 	}
 
 	rc = bdev->desc->ops->bus_transaction(bdev, BIF_TRANS_ERA, addr >> 8);
@@ -2336,6 +2346,12 @@ static int bif_add_secondary_slaves(struct bif_slave_dev *primary_slave)
 			} else if (rc == 1) {
 				sdev->present = true;
 				sdev->bdev->selected_sdev = sdev;
+				rc = bif_parse_slave_data(sdev);
+				if (rc) {
+					pr_err("Failed to parse secondary slave data, rc=%d\n",
+						rc);
+					goto free_slave;
+				}
 			} else {
 				sdev->present = false;
 				sdev->bdev->selected_sdev = NULL;
@@ -2459,6 +2475,11 @@ static int bif_perform_uid_search(struct bif_ctrl_dev *bdev)
 			sdev->present = true;
 			sdev->bdev->selected_sdev = sdev;
 			rc = bif_parse_slave_data(sdev);
+			if (rc) {
+				pr_err("Failed to parse secondary slave data, rc=%d\n",
+					rc);
+				return rc;
+			}
 		} else {
 			pr_err("Slave failed to respond to DILC bus command; its UID is thus unverified.\n");
 			sdev->unique_id_bits_known = 0;

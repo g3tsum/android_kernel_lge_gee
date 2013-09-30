@@ -27,7 +27,7 @@
 #define MDSS_MDP_BUS_FUDGE_FACTOR_IB(val) (((val) / 2) * 3)
 #define MDSS_MDP_BUS_FUDGE_FACTOR_HIGH_IB(val) (val << 1)
 #define MDSS_MDP_BUS_FUDGE_FACTOR_AB(val) (val << 1)
-#define MDSS_MDP_BUS_FLOOR_BW (3200000000ULL >> MDSS_MDP_BUS_FACTOR_SHIFT)
+#define MDSS_MDP_BUS_FLOOR_BW (1600000000ULL >> MDSS_MDP_BUS_FACTOR_SHIFT)
 
 /* 1.25 clock fudge factor */
 #define MDSS_MDP_CLK_FUDGE_FACTOR(val) (((val) * 5) / 4)
@@ -602,20 +602,6 @@ int mdss_mdp_wb_mixer_destroy(struct mdss_mdp_mixer *mixer)
 	mdss_mdp_ctl_perf_commit(ctl->mdata, MDSS_MDP_PERF_UPDATE_ALL);
 
 	return 0;
-}
-
-void mdss_mdp_ctl_splash_start(struct mdss_panel_data *pdata)
-{
-	switch (pdata->panel_info.type) {
-	case MIPI_VIDEO_PANEL:
-	case EDP_PANEL:
-		if (mdss_mdp_scan_cont_splash())
-			mdss_mdp_video_copy_splash_screen(pdata);
-		break;
-	case MIPI_CMD_PANEL:
-	default:
-		break;
-	}
 }
 
 int mdss_mdp_ctl_splash_finish(struct mdss_mdp_ctl *ctl)

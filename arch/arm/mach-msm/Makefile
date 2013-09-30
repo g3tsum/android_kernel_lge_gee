@@ -286,6 +286,7 @@ obj-$(CONFIG_ARCH_MSM8226) += gdsc.o
 obj-$(CONFIG_ARCH_MSM8610) += gdsc.o
 obj-$(CONFIG_ARCH_MPQ8092) += gdsc.o
 obj-$(CONFIG_ARCH_APQ8084) += gdsc.o
+obj-$(CONFIG_ARCH_MSMKRYPTON) += gdsc.o
 obj-$(CONFIG_KRAIT_REGULATOR) += krait-regulator.o  krait-regulator-pmic.o
 obj-$(CONFIG_ARCH_MSMKRYPTON) += board-krypton.o board-krypton-gpiomux.o
 obj-$(CONFIG_ARCH_MSMSAMARIUM) += board-samarium.o board-samarium-gpiomux.o
@@ -427,3 +428,4 @@ obj-$(CONFIG_WALL_CLK) += wallclk.o
 obj-$(CONFIG_WALL_CLK_SYSFS) += wallclk_sysfs.o
 
 obj-$(CONFIG_ARCH_RANDOM) += early_random.o
+obj-$(CONFIG_PERFMAP) += perfmap.o

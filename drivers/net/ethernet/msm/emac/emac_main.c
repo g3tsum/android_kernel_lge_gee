@@ -13,6 +13,7 @@
 /* MSM EMAC Ethernet Controller driver.
  */
 
+#include <linux/if_ether.h>
 #include <linux/if_vlan.h>
 #include <linux/interrupt.h>
 #include <linux/ip.h>
@@ -465,9 +466,12 @@ static void emac_handle_rx(struct emac_adapter *adpt,
 		}
 
 		skb_put(skb, srrd.genr.pkt_len - ETH_FCS_LEN);
-		skb->ip_summed = CHECKSUM_NONE;
 		skb->dev = netdev;
 		skb->protocol = eth_type_trans(skb, skb->dev);
+		if (netdev->features & NETIF_F_RXCSUM)
+			skb->ip_summed = CHECKSUM_UNNECESSARY;
+		else
+			skb_checksum_none_assert(skb);
 
 		if (CHK_HW_FLAG(TS_RX_EN)) {
 			struct skb_shared_hwtstamps *hwts = skb_hwtstamps(skb);
@@ -826,25 +830,20 @@ static irqreturn_t emac_interrupt(int irq, void *data)
 	int max_ints = EMAC_MAX_HANDLED_INTRS;
 	u32 isr, status;
 
+	/* disable the interrupt */
+	emac_reg_w32(hw, EMAC, irq_info->mask_reg, 0);
+	wmb();
+
 	do {
 		isr = emac_reg_r32(hw, EMAC, irq_info->status_reg);
 		status = isr & irq_info->mask;
 
-		if (status == 0) {
-			emac_reg_w32(hw, EMAC, irq_info->status_reg, 0);
-			wmb();
-			if (max_ints != EMAC_MAX_HANDLED_INTRS)
-				return IRQ_HANDLED;
-			return IRQ_NONE;
-		}
+		if (status == 0)
+			break;
 
 		/* ack PHY interrupt */
 		if (status & ISR_GPHY_LINK)
 			emac_hw_ack_phy_intr(hw);
-
-		/* Ack MAC interrupt and disable the interrupt */
-		emac_reg_w32(hw, EMAC, irq_info->status_reg, status | DIS_INT);
-		wmb();
 
 		if (status & ISR_ERROR) {
 			emac_warn(adpt, intr, "isr error status 0x%x\n",
@@ -860,8 +859,6 @@ static irqreturn_t emac_interrupt(int irq, void *data)
 		if ((status & irq_info->rxque->intr)) {
 			if (napi_schedule_prep(&irq_info->rxque->napi)) {
 				irq_info->mask &= ~irq_info->rxque->intr;
-				emac_reg_w32(hw, EMAC, irq_info->mask_reg,
-					     irq_info->mask);
 				__napi_schedule(&irq_info->rxque->napi);
 			}
 		}
@@ -891,7 +888,7 @@ static irqreturn_t emac_interrupt(int irq, void *data)
 	} while (--max_ints > 0);
 
 	/* enable the interrupt */
-	emac_reg_w32(hw, EMAC, irq_info->status_reg, 0);
+	emac_reg_w32(hw, EMAC, irq_info->mask_reg, irq_info->mask);
 	wmb();
 	return IRQ_HANDLED;
 }
@@ -1899,7 +1896,7 @@ static void emac_init_adapter(struct emac_adapter *adpt)
 	adpt->num_rxdescs = EMAC_DEF_RX_DESCS;
 
 	/* mtu */
-	adpt->netdev->mtu = EMAC_MAX_JUMBO_PKT_SIZE;
+	adpt->netdev->mtu = ETH_DATA_LEN;
 	hw->mtu = adpt->netdev->mtu;
 	max_frame = adpt->netdev->mtu + ETH_HLEN + ETH_FCS_LEN + VLAN_HLEN;
 	adpt->rxbuf_size = adpt->netdev->mtu > EMAC_DEF_RX_BUF_SIZE ?

@@ -128,10 +128,51 @@ static struct gpiomux_setting gpio_i2c_config = {
 	.pull = GPIOMUX_PULL_NONE,
 };
 
+static struct gpiomux_setting synaptics_reset_act_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_6MA,
+	.pull = GPIOMUX_PULL_UP,
+};
+
+static struct gpiomux_setting synaptics_reset_sus_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_6MA,
+	.pull = GPIOMUX_PULL_DOWN,
+};
+
+static struct gpiomux_setting synaptics_int_act_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_6MA,
+	.pull = GPIOMUX_PULL_UP,
+};
+
+static struct gpiomux_setting synaptics_int_sus_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_6MA,
+	.pull = GPIOMUX_PULL_DOWN,
+};
+
 static struct gpiomux_setting gpio_uart_config = {
 	.func = GPIOMUX_FUNC_2,
 	.drv  = GPIOMUX_DRV_16MA,
 	.pull = GPIOMUX_PULL_NONE,
+};
+
+static struct msm_gpiomux_config msm_synaptics_configs[] __initdata = {
+	{
+		.gpio = 143,
+		.settings = {
+			[GPIOMUX_ACTIVE] = &synaptics_int_act_cfg,
+			[GPIOMUX_SUSPENDED] = &synaptics_int_sus_cfg,
+		},
+	},
+	{
+		.gpio = 145,
+		.settings = {
+			[GPIOMUX_ACTIVE] = &synaptics_reset_act_cfg,
+			[GPIOMUX_SUSPENDED] = &synaptics_reset_sus_cfg,
+		},
+	},
 };
 
 static struct msm_gpiomux_config msm_blsp_configs[] __initdata = {
@@ -159,6 +200,18 @@ static struct msm_gpiomux_config msm_blsp_configs[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &gpio_uart_config,
 		},
 	},
+	{
+		.gpio      = 61,		/* BLSP1 QUP2 I2C_SDA */
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &gpio_i2c_config,
+		},
+	},
+	{
+		.gpio      = 62,		/* BLSP1 QUP2 I2C_SCL */
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &gpio_i2c_config,
+		},
+	}
 };
 
 static struct gpiomux_setting hsic_act_cfg = {
@@ -192,6 +245,27 @@ static struct gpiomux_setting hdmi_active_2_cfg = {
 	.pull = GPIOMUX_PULL_DOWN,
 };
 
+static struct gpiomux_setting hdmi_active_mux_lpm_cfg = {
+	.func = GPIOMUX_FUNC_1,
+	.drv = GPIOMUX_DRV_8MA,
+	.pull = GPIOMUX_PULL_UP,
+	.dir = GPIOMUX_OUT_HIGH,
+};
+
+static struct gpiomux_setting hdmi_active_mux_en_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_8MA,
+	.pull = GPIOMUX_PULL_UP,
+	.dir = GPIOMUX_OUT_HIGH,
+};
+
+static struct gpiomux_setting hdmi_active_mux_sel_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_DOWN,
+	.dir = GPIOMUX_OUT_LOW,
+};
+
 static struct msm_gpiomux_config msm_hdmi_configs[] __initdata = {
 	{
 		.gpio = 31,
@@ -218,6 +292,27 @@ static struct msm_gpiomux_config msm_hdmi_configs[] __initdata = {
 		.gpio = 34,
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &hdmi_active_2_cfg,
+			[GPIOMUX_SUSPENDED] = &hdmi_suspend_cfg,
+		},
+	},
+	{
+		.gpio = 27,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &hdmi_active_mux_lpm_cfg,
+			[GPIOMUX_SUSPENDED] = &hdmi_suspend_cfg,
+		},
+	},
+	{
+		.gpio = 83,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &hdmi_active_mux_en_cfg,
+			[GPIOMUX_SUSPENDED] = &hdmi_suspend_cfg,
+		},
+	},
+	{
+		.gpio = 85,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &hdmi_active_mux_sel_cfg,
 			[GPIOMUX_SUSPENDED] = &hdmi_suspend_cfg,
 		},
 	},
@@ -349,6 +444,8 @@ void __init apq8084_init_gpiomux(void)
 	}
 
 	msm_gpiomux_install(msm_blsp_configs, ARRAY_SIZE(msm_blsp_configs));
+	msm_gpiomux_install(msm_synaptics_configs,
+					ARRAY_SIZE(msm_synaptics_configs));
 	msm_gpiomux_install(apq8084_hsic_configs,
 			ARRAY_SIZE(apq8084_hsic_configs));
 	msm_gpiomux_install(msm_lcd_configs, ARRAY_SIZE(msm_lcd_configs));
