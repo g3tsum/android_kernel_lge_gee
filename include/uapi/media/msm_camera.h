@@ -27,8 +27,6 @@
 
 #include <linux/msm_ion.h>
 
-#define BIT(nr)   (1UL << (nr))
-
 #define MSM_CAM_IOCTL_MAGIC 'm'
 
 #define MAX_SERVER_PAYLOAD_LENGTH 8192
