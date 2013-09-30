@@ -388,9 +388,8 @@ static void pm8xxx_pwm_calc_period(struct pm8xxx_pwm_chip *chip,
 	int	best_m, best_div, best_clk;
 	unsigned int	last_err, cur_err, min_err;
 	unsigned int	tmp_p, period_n;
-	struct	pm8xxx_pwm_period *period = &pwm->period;
 	struct pm8xxx_pwm_channel_data *cdata =
-			&chip->channels[chip->current_channel]
+			&chip->channels[chip->current_channel];
 
 	if (cdata->banks == PM_PWM_BANK_LO)
 		n = 7;
@@ -858,7 +857,7 @@ int pm8xxx_pwm_enable(struct pwm_chip *pwm_chip, struct pwm_device *pwm)
 		 * PWM mode.
 		 */
 		if (chip->feature_flags & PM8XXX_FEATURE_PWM_ENABLE_SYNC)
-			rc = pm8xxx_lpg_pwm_write(pwm, 3, 5);
+			rc = pm8xxx_lpg_pwm_write(chip, 3, 5);
 
 	} else {
 		_pm8xxx_pwm_enable(chip);
@@ -925,7 +924,7 @@ int pm8xxx_pwm_config_period(struct pwm_device *pwm,
 
 	if (chip->feature_flags & PM8XXX_FEATURE_LPG_SUPPORTED) {
 		pm8xxx_pwm_bank_sel(chip);
-		rc = pm8xxx_lpg_pwm_write(pwm, 4, 7);
+		rc = pm8xxx_lpg_pwm_write(chip, 4, 7);
 	} else {
 		rc = pm8xxx_pwm_write(chip);
 	}
