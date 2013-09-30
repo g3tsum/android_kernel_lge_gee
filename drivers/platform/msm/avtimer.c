@@ -335,7 +335,7 @@ static int dev_avtimer_remove(struct platform_device *pdev)
 
 static struct platform_driver dev_avtimer_driver = {
 	.probe = dev_avtimer_probe,
-	.remove = __exit_p(dev_avtimer_remove),
+	.remove = dev_avtimer_remove,
 	.driver = {.name = "dev_avtimer"}
 };
 
