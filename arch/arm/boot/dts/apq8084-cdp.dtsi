@@ -16,6 +16,12 @@
 	aliases {
 		serial0 = &blsp2_uart1;
 	};
+
+	bt_qca6174 {
+		compatible = "qca,qca6174";
+		qca,bt-reset-gpio = <&pma8084_gpios 4 0>; /* BT_EN */
+		qca,bt-vdd-pa-supply = <&wlan_vreg>;
+	};
 };
 
 &pma8084_mpps {
@@ -86,6 +92,16 @@
 	qcom,platform-reset-gpio = <&msmgpio 96 0>;
 	qcom,platform-enable-gpio = <&msmgpio 137 0>;
 	qcom,platform-bklight-en-gpio = <&msmgpio 86 0>;
+};
+
+&uart6 {
+	status = "ok";
+	qcom,tx-gpio = <&msmgpio 43 0x00>;
+	qcom,rx-gpio = <&msmgpio 44 0x00>;
+	qcom,cts-gpio = <&msmgpio 45 0x00>;
+	qcom,rfr-gpio = <&msmgpio 46 0x00>;
+	qcom,inject-rx-on-wakeup = <1>;
+	qcom,rx-char-to-inject = <0xFD>;
 };
 
 &blsp2_uart1 {

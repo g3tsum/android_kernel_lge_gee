@@ -29,6 +29,9 @@
 #define RMNET_HEADROOM			sizeof(struct QMI_QOS_HDR_S)
 #define RMNET_TAILROOM			MAX_PAD_BYTES(4);
 
+static unsigned int override_data_muxing = 1;
+module_param(override_data_muxing, uint, S_IRUGO | S_IWUSR);
+
 static unsigned int no_rmnet_devs = 1;
 module_param(no_rmnet_devs, uint, S_IRUGO | S_IWUSR);
 
@@ -367,8 +370,8 @@ static struct sk_buff *rmnet_usb_tx_fixup(struct usbnet *dev,
 		qmih->flow_id = skb->mark;
 	 }
 
-	if (dev->data[4])
-		skb = rmnet_usb_data_mux(skb, dev->data[3]);
+	if (!override_data_muxing && dev->data[4])
+		rmnet_usb_data_mux(skb, dev->data[3]);
 
 	if (skb)
 		DBG1("[%s] Tx packet #%lu len=%d mark=0x%x\n",
@@ -411,7 +414,7 @@ static void rmnet_usb_rx_complete(struct urb *rx_urb)
 
 	unet_offset =  dev->driver_info->data * no_rmnet_insts_per_dev;
 
-	if (!rx_urb->status && dev->data[4]) {
+	if (!override_data_muxing && !rx_urb->status && dev->data[4]) {
 		mux_id = rmnet_usb_data_dmux(skb, rx_urb);
 		if (mux_id < 0) {
 			/*resubmit urb and free skb in rx_complete*/
@@ -569,6 +572,30 @@ static int rmnet_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		DBG0("[%s] rmnet_ioctl(): close transport port\n", dev->name);
 		break;
 
+	case RMNET_IOCTL_GET_SUPPORTED_FEATURES:
+		break;
+
+	case RMNET_IOCTL_SET_MRU:
+		if (test_bit(EVENT_DEV_OPEN, &unet->flags))
+			return -EBUSY;
+
+		/* 16K max */
+		if ((size_t)ifr->ifr_ifru.ifru_data > 0x4000)
+			return -EINVAL;
+
+		unet->rx_urb_size = (size_t)ifr->ifr_ifru.ifru_data;
+		DBG0("[%s] rmnet_ioctl(): SET MRU to %u\n", dev->name,
+				unet->rx_urb_size);
+		break;
+
+	case RMNET_IOCTL_GET_MRU:
+		ifr->ifr_ifru.ifru_data = (void *)unet->rx_urb_size;
+		break;
+
+	case RMNET_IOCTL_GET_DRIVER_NAME:
+		rc = copy_to_user(ifr->ifr_ifru.ifru_data, unet->driver_name,
+				strlen(unet->driver_name));
+		break;
 	default:
 		dev_err(&unet->intf->dev, "[%s] error: "
 			"rmnet_ioct called for unsupported cmd[%d]",
