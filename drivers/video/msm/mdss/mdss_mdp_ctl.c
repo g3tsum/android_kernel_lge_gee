@@ -17,6 +17,7 @@
 #include <linux/mutex.h>
 #include <linux/platform_device.h>
 #include <linux/dma-mapping.h>
+#include <linux/delay.h>
 
 #include "mdss_fb.h"
 #include "mdss_mdp.h"
@@ -997,8 +998,11 @@ static void mdss_mdp_ctl_split_display_enable(int enable,
 	MDSS_MDP_REG_WRITE(MDSS_MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTRL, upper);
 	MDSS_MDP_REG_WRITE(MDSS_MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTRL, lower);
 	MDSS_MDP_REG_WRITE(MDSS_MDP_REG_SPLIT_DISPLAY_EN, enable);
-}
 
+	if (main_ctl->mdata->mdp_rev >= MDSS_MDP_HW_REV_103)
+		MDSS_MDP_REG_WRITE(MMSS_MDP_MDP_SSPP_SPARE_0,
+			enable ? 0x1 : 0x0);
+}
 
 int mdss_mdp_ctl_destroy(struct mdss_mdp_ctl *ctl)
 {
@@ -1208,6 +1212,41 @@ int mdss_mdp_ctl_stop(struct mdss_mdp_ctl *ctl)
 	mutex_unlock(&ctl->lock);
 
 	return ret;
+}
+
+/*
+ * mdss_mdp_ctl_reset() - reset mdp ctl path.
+ * @ctl: mdp controller.
+ * this function called when underflow happen,
+ * it will reset mdp ctl path and poll for its completion
+ *
+ * Note: called within atomic context.
+ */
+int mdss_mdp_ctl_reset(struct mdss_mdp_ctl *ctl)
+{
+	u32 status = 1;
+	int cnt = 20;
+
+	mdss_mdp_ctl_write(ctl, MDSS_MDP_REG_CTL_SW_RESET, 1);
+
+	/*
+	 * it takes around 30us to have mdp finish resetting its ctl path
+	 * poll every 50us so that reset should be completed at 1st poll
+	 */
+
+	do {
+		udelay(50);
+		status = mdss_mdp_ctl_read(ctl, MDSS_MDP_REG_CTL_SW_RESET);
+		status &= 0x01;
+		pr_debug("status=%x\n", status);
+		cnt--;
+		if (cnt == 0) {
+			pr_err("timeout\n");
+			return -EAGAIN;
+		}
+	} while (status);
+
+	return 0;
 }
 
 static int mdss_mdp_mixer_setup(struct mdss_mdp_ctl *ctl,
@@ -1499,13 +1538,9 @@ struct mdss_mdp_pipe *mdss_mdp_mixer_stage_pipe(struct mdss_mdp_ctl *ctl,
 	if (!ctl)
 		return NULL;
 
-	if (mutex_lock_interruptible(&ctl->lock))
-		return NULL;
-
 	mixer = mdss_mdp_mixer_get(ctl, mux);
 	if (mixer)
 		pipe = mixer->stage_pipe[stage];
-	mutex_unlock(&ctl->lock);
 
 	return pipe;
 }
@@ -1576,14 +1611,10 @@ int mdss_mdp_mixer_pipe_unstage(struct mdss_mdp_pipe *pipe)
 	pr_debug("unstage pnum=%d stage=%d mixer=%d\n", pipe->num,
 			pipe->mixer_stage, mixer->num);
 
-	if (mutex_lock_interruptible(&ctl->lock))
-		return -EINTR;
-
 	if (pipe == mixer->stage_pipe[pipe->mixer_stage]) {
 		mixer->params_changed++;
 		mixer->stage_pipe[pipe->mixer_stage] = NULL;
 	}
-	mutex_unlock(&ctl->lock);
 
 	return 0;
 }
@@ -1788,10 +1819,17 @@ int mdss_mdp_display_commit(struct mdss_mdp_ctl *ctl, void *arg)
 
 	/* postprocessing setup, including dspp */
 	mdss_mdp_pp_setup_locked(ctl);
+
+	if (sctl && ctl->mdata->mdp_rev >= MDSS_MDP_HW_REV_103) {
+		ctl->flush_bits |= sctl->flush_bits;
+		sctl->flush_bits = 0;
+	}
+
 	mdss_mdp_ctl_write(ctl, MDSS_MDP_REG_CTL_FLUSH, ctl->flush_bits);
-	if (sctl) {
+	if (sctl && sctl->flush_bits) {
 		mdss_mdp_ctl_write(sctl, MDSS_MDP_REG_CTL_FLUSH,
 			sctl->flush_bits);
+		sctl->flush_bits = 0;
 	}
 	wmb();
 	ctl->flush_bits = 0;

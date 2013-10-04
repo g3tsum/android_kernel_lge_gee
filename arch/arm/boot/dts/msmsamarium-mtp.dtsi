@@ -24,6 +24,52 @@
 		startup-delay-us = <500>;
 		enable-active-high;
 	};
+
+	i2c@f9928000 { /* BLSP1 QUP6 */
+		nfc-nci@0e {
+			compatible = "qcom,nfc-nci";
+			reg = <0x0e>;
+			qcom,irq-gpio = <&msmgpio 59 0x00>;
+			qcom,dis-gpio = <&msmgpio 60 0x00>;
+			qcom,clk-src = "BBCLK2";
+			qcom,clk-en-gpio = <&msmgpio 0 0x00>;
+			interrupt-parent = <&msmgpio>;
+			interrupts = <59 0>;
+			qcom,clk-gpio = <&pma8084_gpios 12 0>;
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		input-name = "gpio-keys";
+
+		camera_snapshot {
+			label = "camera_snapshot";
+			gpios = <&pma8084_gpios 3 0x1>;
+			linux,input-type = <1>;
+			linux,code = <0x2fe>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+
+		camera_focus {
+			label = "camera_focus";
+			gpios = <&pma8084_gpios 4 0x1>;
+			linux,input-type = <1>;
+			linux,code = <0x210>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+
+		vol_up {
+			label = "volume_up";
+			gpios = <&pma8084_gpios 5 0x1>;
+			linux,input-type = <1>;
+			linux,code = <115>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+	};
 };
 
 &blsp1_uart1 {
@@ -108,7 +154,7 @@
 	};
 
 	gpio@c900 { /* GPIO 10 */
-		/* NFC clock request */
+		/* NFC power request */
 	};
 
 	gpio@ca00 { /* GPIO 11 */
@@ -116,7 +162,12 @@
 	};
 
 	gpio@cb00 { /* GPIO 12 */
-		/* NFC power request */
+		/* NFC clk request */
+		qcom,mode = <0>;		/* QPNP_PIN_MODE_DIG_IN */
+		qcom,pull = <5>;		/* QPNP_PIN_PULL_NO */
+		qcom,vin-sel = <2>;		/* QPNP_PIN_VIN2 */
+		qcom,src-sel = <2>;		/* QPNP_PIN_SEL_FUNC_1 */
+		qcom,master-en = <1>;
 	};
 
 	gpio@cc00 { /* GPIO 13 */

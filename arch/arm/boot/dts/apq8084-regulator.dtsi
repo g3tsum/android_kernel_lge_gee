@@ -236,6 +236,8 @@
 			regulator-min-microvolt = <1800000>;
 			regulator-max-microvolt = <1800000>;
 			qcom,init-voltage = <1800000>;
+			proxy-supply = <&pma8084_l12>;
+			qcom,proxy-consumer-enable;
 			status = "okay";
 		};
 		pma8084_l12_ao: regulator-l12-ao {
@@ -516,11 +518,19 @@
 		gpio = <&pma8084_gpios 20 0>;
 	};
 
-	hdmi_vreg: hdmi_vreg {
+	vbus_det_vreg: hdmi_vreg: hdmi_vreg {
 		compatible = "regulator-fixed";
 		regulator-name = "hdmi_vreg";
 		startup-delay-us = <400>;
 		enable-active-high;
 		gpio = <&pma8084_mpps 3 0>;
+	};
+
+	usb1_vreg: usb1_vreg {
+		compatible = "regulator-fixed";
+		regulator-name = "usb1_vreg";
+		startup-delay-us = <63000>; /* the on time of NX5P1000 */
+		enable-active-high;
+		gpio = <&pma8084_gpios 9 0>;
 	};
 };

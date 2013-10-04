@@ -213,6 +213,18 @@ static struct msm_gpiomux_config msm_blsp_configs[] __initdata = {
 		},
 	},
 	{
+		.gpio      = 29,		/* BLSP1 QUP4 I2C_SDA */
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &gpio_i2c_config,
+		},
+	},
+	{
+		.gpio      = 30,		/* BLSP1 QUP4 I2C_SCL */
+		.settings = {
+			[GPIOMUX_SUSPENDED] = &gpio_i2c_config,
+		},
+	},
+	{
 		.gpio      = 51,		/* BLSP2 UART1 TX */
 		.settings = {
 			[GPIOMUX_SUSPENDED] = &gpio_uart_config,
@@ -263,19 +275,6 @@ static struct msm_gpiomux_config msm_blsp1_uart6_configs[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &gpio_uart_config,
 		},
 	},
-};
-
-static struct gpiomux_setting hsic_act_cfg = {
-	.func = GPIOMUX_FUNC_1,
-	.drv = GPIOMUX_DRV_8MA,
-	.pull = GPIOMUX_PULL_NONE,
-};
-
-static struct gpiomux_setting hsic_sus_cfg = {
-	.func = GPIOMUX_FUNC_GPIO,
-	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_DOWN,
-	.dir = GPIOMUX_OUT_LOW,
 };
 
 static struct gpiomux_setting hdmi_suspend_cfg = {
@@ -369,6 +368,33 @@ static struct msm_gpiomux_config msm_hdmi_configs[] __initdata = {
 	},
 };
 
+static struct gpiomux_setting hsic_act_cfg = {
+	.func = GPIOMUX_FUNC_1,
+	.drv = GPIOMUX_DRV_8MA,
+	.pull = GPIOMUX_PULL_NONE,
+};
+
+static struct gpiomux_setting hsic_sus_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_DOWN,
+	.dir = GPIOMUX_OUT_LOW,
+};
+
+static struct gpiomux_setting hsic_wakeup_act_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_8MA,
+	.pull = GPIOMUX_PULL_DOWN,
+	.dir = GPIOMUX_IN,
+};
+
+static struct gpiomux_setting hsic_wakeup_sus_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_DOWN,
+	.dir = GPIOMUX_IN,
+};
+
 static struct msm_gpiomux_config apq8084_hsic_configs[] = {
 	{
 		.gpio = 134,               /*HSIC_STROBE */
@@ -382,6 +408,13 @@ static struct msm_gpiomux_config apq8084_hsic_configs[] = {
 		.settings = {
 			[GPIOMUX_ACTIVE] = &hsic_act_cfg,
 			[GPIOMUX_SUSPENDED] = &hsic_sus_cfg,
+		},
+	},
+	{
+		.gpio = 107,              /* wake up */
+		.settings = {
+			[GPIOMUX_ACTIVE] = &hsic_wakeup_act_cfg,
+			[GPIOMUX_SUSPENDED] = &hsic_wakeup_sus_cfg,
 		},
 	},
 };
@@ -484,6 +517,28 @@ static struct msm_gpiomux_config msm_wlan_configs[] __initdata = {
 	},
 };
 
+static struct gpiomux_setting sd_card_det_active_config = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_NONE,
+	.dir = GPIOMUX_IN,
+};
+
+static struct gpiomux_setting sd_card_det_sleep_config = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_UP,
+	.dir = GPIOMUX_IN,
+};
+
+static struct msm_gpiomux_config sd_card_det __initdata = {
+	.gpio = 122,
+	.settings = {
+		[GPIOMUX_ACTIVE]    = &sd_card_det_active_config,
+		[GPIOMUX_SUSPENDED] = &sd_card_det_sleep_config,
+	},
+};
+
 void __init apq8084_init_gpiomux(void)
 {
 	int rc;
@@ -507,4 +562,6 @@ void __init apq8084_init_gpiomux(void)
 			ARRAY_SIZE(apq8084_pri_ter_auxpcm_configs));
 	msm_gpiomux_install(msm_hdmi_configs, ARRAY_SIZE(msm_hdmi_configs));
 	msm_gpiomux_install(msm_wlan_configs, ARRAY_SIZE(msm_wlan_configs));
+
+	msm_gpiomux_install(&sd_card_det, 1);
 }

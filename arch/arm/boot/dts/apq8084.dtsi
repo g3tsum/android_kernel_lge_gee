@@ -35,6 +35,19 @@
 			reg = <0 0 0 0x1100000>;
 			label = "qseecom_mem";
                 };
+
+		fb_mem: fb_region {
+			linux,contiguous-region;
+			reg = <0 0 0 0x1000000>;
+			label = "fb_mem";
+			linux,memory-limit = <0xffffffff>;
+		};
+
+		secure_mem: secure_region {
+			linux,contiguous-region;
+			reg = <0 0 0 0xfc00000>;
+			label = "secure_mem";
+		};
         };
 };
 
@@ -386,6 +399,22 @@
 		qcom,i2c-src-freq = <50000000>;
 		qcom,sda-gpio = <&msmgpio 10 0>;
 		qcom,scl-gpio = <&msmgpio 11 0>;
+		qcom,master-id = <86>;
+	};
+
+	i2c@f9926000 { /* BLSP-1 QUP-4 */
+		cell-index = <3>;
+		compatible = "qcom,i2c-qup";
+		reg = <0xf9926000 0x1000>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg-names = "qup_phys_addr";
+		interrupts = <0 98 0>;
+		interrupt-names = "qup_err_intr";
+		qcom,i2c-bus-freq = <400000>;
+		qcom,i2c-src-freq = <19200000>;
+		qcom,sda-gpio = <&msmgpio 29 0>;
+		qcom,scl-gpio = <&msmgpio 30 0>;
 		qcom,master-id = <86>;
 	};
 
@@ -1325,6 +1354,14 @@
 		qcom,dwc-usb3-msm-dbm-eps = <4>;
 		qcom,otg-capability;
 		qcom,misc-ref = <&pma8084_misc>;
+		qcom,restore-sec-cfg-for-scm-dev-id = <9>;
+
+		qcom,msm-bus,name = "usb3";
+		qcom,msm-bus,num-cases = <2>;
+		qcom,msm-bus,num-paths = <1>;
+		qcom,msm-bus,vectors-KBps =
+				<61 512 0 0>,
+				<61 512 240000 960000>;
 
 		dwc3@f9200000 {
 			compatible = "synopsys,dwc3";
@@ -1339,6 +1376,7 @@
 
 	android_usb {
 		compatible = "qcom,android-usb";
+		qcom,android-usb-swfi-latency = <1>;
 	};
 
 	hsphy0: hsphy@f92f8800 {
@@ -1378,9 +1416,15 @@
 	xhci_hsic_host: qcom,xhci-msm-hsic@0xf9c00000 {
 		compatible = "qcom,xhci-msm-hsic";
 		reg = <0xf9c00000 0xfc000>;
-		interrupts =<0 32 0>,
-			   <0 29 0>;
-		interrupt-names = "core_irq", "pwr_event_irq";
+		#address-cells = <0>;
+		interrupt-parent = <&xhci_hsic_host>;
+		interrupts = <0 1 2>;
+		#interrupt-cells = <1>;
+		interrupt-map-mask = <0xffffffff>;
+		interrupt-map = <0 &intc 0 32 0
+				1 &intc 0 29 0
+				2 &msmgpio 107 0x4>;
+		interrupt-names = "core_irq", "pwr_event_irq", "wakeup_irq";
 		hsic-vdd-dig-supply = <&pma8084_s2_corner>;
 		hsic-gdsc-supply = <&gdsc_usb_hsic>;
 		hsic,strobe-gpio = <&msmgpio 134 0x00>;
@@ -1568,6 +1612,10 @@
 		qcom,core-limit-temp = <80>;
 		qcom,core-temp-hysteresis = <10>;
 		qcom,core-control-mask = <0xe>;
+		qcom,hotplug-temp = <110>;
+		qcom,hotplug-temp-hysteresis = <20>;
+		qcom,cpu-sensors = "tsens_tz_sensor5", "tsens_tz_sensor6",
+				"tsens_tz_sensor7", "tsens_tz_sensor8";
 		qcom,vdd-restriction-temp = <5>;
 		qcom,vdd-restriction-temp-hysteresis = <10>;
 		qcom,pmic-sw-mode-temp = <85>;
@@ -1601,9 +1649,14 @@
 		reg = <0xfdc00000 0xff000>;
 		interrupts = <0 44 0>;
 		qcom,hfi = "venus";
-		qcom,has-ocmem;
+		qcom,ocmem-size = <524288>; /* 512 * 1024*/
 		qcom,max-hw-load = <1281600>; /* Full 4k @ 30 + 1080p @ 30 */
 		qcom,vidc-ns-map = <0x40000000 0x40000000>;
+		venus-supply = <&gdsc_venus>;
+		venus-core0-supply = <&gdsc_venus_core0>;
+		venus-core1-supply = <&gdsc_venus_core1>;
+		qcom,clock-names= "core_clk", "core0_clk", "core1_clk", "iface_clk", "bus_clk", "mem_clk";
+		qcom,clock-configs = <0x3 0x0 0x0 0x0 0x0 0x0>;
 		qcom,load-freq-tbl = <979200 465000000>,
 			<783360 465000000>,
 			<489600 266670000>,
@@ -1704,14 +1757,14 @@
 			"MIC BIAS2 External", "ANCRight Headset Mic",
 			"AMIC4", "MIC BIAS2 External",
 			"MIC BIAS2 External", "ANCLeft Headset Mic",
-			"DMIC1", "MIC BIAS1 External",
-			"MIC BIAS1 External", "Digital Mic1",
-			"DMIC2", "MIC BIAS1 External",
-			"MIC BIAS1 External", "Digital Mic2",
-			"DMIC3", "MIC BIAS3 External",
-			"MIC BIAS3 External", "Digital Mic3",
-			"DMIC4", "MIC BIAS4 External",
-			"MIC BIAS4 External", "Digital Mic4",
+			"DMIC1", "MIC BIAS3 External",
+			"MIC BIAS3 External", "Digital Mic1",
+			"DMIC2", "MIC BIAS4 External",
+			"MIC BIAS4 External", "Digital Mic2",
+			"DMIC3", "MIC BIAS1 External",
+			"MIC BIAS1 External", "Digital Mic3",
+			"DMIC4", "MIC BIAS1 External",
+			"MIC BIAS1 External", "Digital Mic4",
 			"DMIC5", "MIC BIAS3 External",
 			"MIC BIAS3 External", "Digital Mic5",
 			"DMIC6", "MIC BIAS3 External",
@@ -1722,7 +1775,7 @@
 		qcom,prim-auxpcm-gpio-clk  = <&msmgpio 87 0>;
 		qcom,prim-auxpcm-gpio-sync = <&msmgpio 88 0>;
 		qcom,prim-auxpcm-gpio-din  = <&msmgpio 89 0>;
-		qcom,prim-auxpcm-gpio-dout = <&msmgpio 89 0>;
+		qcom,prim-auxpcm-gpio-dout = <&msmgpio 90 0>;
 		qcom,prim-auxpcm-gpio-set = "prim-gpio-prim";
 		qcom,sec-auxpcm-gpio-clk  = <&msmgpio 82 0>;
 		qcom,sec-auxpcm-gpio-sync = <&msmgpio 83 0>;

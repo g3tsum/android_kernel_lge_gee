@@ -42,11 +42,6 @@
 	/* PMA8084 S2 + S12 = 2 phase VDD_CX supply */
 	rpm-regulator-smpa2 {
 		status = "okay";
-		pma8084_s2: regulator-s2 {
-			regulator-min-microvolt = <550000>;
-			regulator-max-microvolt = <1260000>;
-			status = "okay";
-		};
 		pma8084_s2_corner: regulator-s2-corner {
 			regulator-name = "8084_s2_corner";
 			qcom,set = <3>;
@@ -118,11 +113,6 @@
 
 	rpm-regulator-smpa7 {
 		status = "okay";
-		pma8084_s7: regulator-s7 {
-			regulator-min-microvolt = <815000>;
-			regulator-max-microvolt = <1050000>;
-			status = "okay";
-		};
 		pma8084_s7_corner: regulator-s7-corner {
 			compatible = "qcom,rpm-regulator-smd";
 			regulator-name = "8084_s7_corner";
@@ -457,47 +447,47 @@
 	};
 };
 
-/* QPNP controlled regulators: */
+/* SPM controlled regulators: */
 &spmi_bus {
 	qcom,pma8084@1 {
-		pma8084_s8: regulator@2900 {
+		pma8084_s8: spm-regulator@2900 {
+			compatible = "qcom,spm-regulator";
+			reg = <0x2900 0x100>;
+			regulator-name = "8084_s8";
 			regulator-min-microvolt = <500000>;
 			regulator-max-microvolt = <1250000>;
-			qcom,enable-time = <500>;
-			qcom,pull-down-enable = <1>;
-			regulator-always-on;
-			qcom,system-load = <100000>;
-			status = "okay";
+			qcom,cpu-num = <0>;
+			qcom,mode = "pwm";
 		};
 
-		pma8084_s9: regulator@2c00 {
+		pma8084_s9: spm-regulator@2c00 {
+			compatible = "qcom,spm-regulator";
+			reg = <0x2c00 0x100>;
+			regulator-name = "8084_s9";
 			regulator-min-microvolt = <500000>;
 			regulator-max-microvolt = <1250000>;
-			qcom,enable-time = <500>;
-			qcom,pull-down-enable = <1>;
-			regulator-always-on;
-			qcom,system-load = <100000>;
-			status = "okay";
+			qcom,cpu-num = <1>;
+			qcom,mode = "pwm";
 		};
 
-		pma8084_s10: regulator@2f00 {
+		pma8084_s10: spm-regulator@2f00 {
+			compatible = "qcom,spm-regulator";
+			reg = <0x2f00 0x100>;
+			regulator-name = "8084_s10";
 			regulator-min-microvolt = <500000>;
 			regulator-max-microvolt = <1250000>;
-			qcom,enable-time = <500>;
-			qcom,pull-down-enable = <1>;
-			regulator-always-on;
-			qcom,system-load = <100000>;
-			status = "okay";
+			qcom,cpu-num = <2>;
+			qcom,mode = "pwm";
 		};
 
-		pma8084_s11: regulator@3200 {
+		pma8084_s11: spm-regulator@3200 {
+			compatible = "qcom,spm-regulator";
+			reg = <0x3200 0x100>;
+			regulator-name = "8084_s11";
 			regulator-min-microvolt = <500000>;
 			regulator-max-microvolt = <1250000>;
-			qcom,enable-time = <500>;
-			qcom,pull-down-enable = <1>;
-			regulator-always-on;
-			qcom,system-load = <100000>;
-			status = "okay";
+			qcom,cpu-num = <3>;
+			qcom,mode = "pwm";
 		};
 	};
 };

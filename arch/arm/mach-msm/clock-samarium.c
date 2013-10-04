@@ -183,6 +183,8 @@ static DEFINE_VDD_REGULATORS(vdd_dig, VDD_DIG_NUM, 1, vdd_corner, NULL);
 #define BLSP1_QUP2_I2C_APPS_CMD_RCGR                       (0x06E0)
 #define BLSP1_QUP3_I2C_APPS_CMD_RCGR                       (0x0760)
 #define BLSP1_QUP4_I2C_APPS_CMD_RCGR                       (0x07E0)
+#define BLSP1_QUP6_I2C_APPS_CMD_RCGR                       (0x08E0)
+#define BLSP1_QUP6_I2C_APPS_CBCR                           (0x08C8)
 #define BLSP2_QUP1_I2C_APPS_CMD_RCGR                       (0x09A0)
 #define BLSP2_QUP2_I2C_APPS_CMD_RCGR                       (0x0A20)
 #define BLSP2_QUP3_I2C_APPS_CMD_RCGR                       (0x0AA0)
@@ -413,6 +415,7 @@ static DEFINE_CLK_BRANCH_VOTER(xo_pil_pronto_clk, &xo.c);
 static DEFINE_CLK_BRANCH_VOTER(xo_ehci_host_clk, &xo.c);
 static DEFINE_CLK_BRANCH_VOTER(xo_lpm_clk, &xo.c);
 
+DEFINE_CLK_RPM_SMD_XO_BUFFER_PINCTRL(cxo_d1_pin, cxo_d1_a_pin, BB_CLK2_ID);
 
 static unsigned int soft_vote_gpll0;
 
@@ -494,6 +497,12 @@ static struct clk_freq_tbl ftbl_gcc_blsp1_2_qup1_4_spi_apps_clk[] = {
 	F(  19200000,         xo,    1,    0,     0),
 	F(  25000000,      gpll0,   12,    1,     2),
 	F(  50000000,      gpll0,   12,    0,     0),
+	F_END
+};
+
+static struct clk_freq_tbl ftbl_gcc_blsp1_qup1_6_i2c_apps_clk[] = {
+	F(  19200000,         xo,   1,    0,    0),
+	F(  50000000,      gpll0,  12,    0,    0),
 	F_END
 };
 
@@ -592,6 +601,20 @@ static struct rcg_clk blsp1_qup4_spi_apps_clk_src = {
 		.ops = &clk_ops_rcg_mnd,
 		VDD_DIG_FMAX_MAP2(LOW, 25000000, NOMINAL, 50000000),
 		CLK_INIT(blsp1_qup4_spi_apps_clk_src.c),
+	},
+};
+
+static struct rcg_clk blsp1_qup6_i2c_apps_clk_src = {
+	.cmd_rcgr_reg = BLSP1_QUP6_I2C_APPS_CMD_RCGR,
+	.set_rate = set_rate_hid,
+	.freq_tbl = ftbl_gcc_blsp1_qup1_6_i2c_apps_clk,
+	.current_freq = &rcg_dummy_freq,
+	.base = &virt_bases[GCC_BASE],
+	.c = {
+		.dbg_name = "blsp1_qup6_i2c_apps_clk_src",
+		.ops = &clk_ops_rcg,
+		VDD_DIG_FMAX_MAP1(LOW, 50000000),
+		CLK_INIT(blsp1_qup6_i2c_apps_clk_src.c),
 	},
 };
 
@@ -857,6 +880,8 @@ static struct rcg_clk ce1_clk_src = {
 		CLK_INIT(ce1_clk_src.c),
 	},
 };
+
+static DEFINE_CLK_VOTER(scm_ce1_clk_src, &ce1_clk_src.c, 171430000);
 
 static struct clk_freq_tbl ftbl_gcc_pdm2_clk[] = {
 	F(  60000000,      gpll0,   10,    0,     0),
@@ -1138,6 +1163,18 @@ static struct branch_clk gcc_blsp1_qup4_spi_apps_clk = {
 		.parent = &blsp1_qup4_spi_apps_clk_src.c,
 		.ops = &clk_ops_branch,
 		CLK_INIT(gcc_blsp1_qup4_spi_apps_clk.c),
+	},
+};
+
+static struct branch_clk gcc_blsp1_qup6_i2c_apps_clk = {
+	.cbcr_reg = BLSP1_QUP6_I2C_APPS_CBCR,
+	.has_sibling = 0,
+	.base = &virt_bases[GCC_BASE],
+	.c = {
+		.dbg_name = "gcc_blsp1_qup6_i2c_apps_clk",
+		.parent = &blsp1_qup6_i2c_apps_clk_src.c,
+		.ops = &clk_ops_branch,
+		CLK_INIT(gcc_blsp1_qup6_i2c_apps_clk.c),
 	},
 };
 
@@ -2942,6 +2979,7 @@ static struct measure_mux_entry measure_mux[] = {
 	{&gcc_blsp1_qup4_spi_apps_clk.c,	GCC_BASE, 0x0098},
 	{&gcc_blsp1_qup4_i2c_apps_clk.c,	GCC_BASE, 0x0099},
 	{&gcc_blsp1_uart4_apps_clk.c,	GCC_BASE, 0x009a},
+	{&gcc_blsp1_qup6_i2c_apps_clk.c,	GCC_BASE, 0x00a2},
 	{&gcc_blsp2_ahb_clk.c,	GCC_BASE, 0x00a8},
 	{&gcc_blsp2_qup1_spi_apps_clk.c,	GCC_BASE, 0x00aa},
 	{&gcc_blsp2_qup1_i2c_apps_clk.c,	GCC_BASE, 0x00ab},
@@ -3343,7 +3381,8 @@ static struct clk_lookup msm_clocks_samarium[] = {
 
 	/* measure */
 	CLK_LOOKUP("measure", measure_clk.c, "debug"),
-
+	/* NFC */
+	CLK_LOOKUP("ref_clk",            cxo_d1_a_pin.c, "3-000e"),
 	/* RPM and voter */
 	CLK_LOOKUP("xo", xo_otg_clk.c, "msm_otg"),
 	CLK_LOOKUP("xo", xo_pil_lpass_clk.c, "fe200000.qcom,lpass"),
@@ -3470,6 +3509,8 @@ static struct clk_lookup msm_clocks_samarium[] = {
 	CLK_LOOKUP("core_a_clk", qdss_a_clk.c, "fc360000.cti"),
 	CLK_LOOKUP("core_a_clk", qdss_a_clk.c, "fd828018.hwevent"),
 
+	CLK_LOOKUP("osr_clk", div_clk1.c, "msm-dai-q6-dev.16384"),
+
 	/* BLSP */
 	CLK_LOOKUP("iface_clk", gcc_blsp1_ahb_clk.c, "f991f000.serial"),
 	CLK_LOOKUP("iface_clk", gcc_blsp1_ahb_clk.c, "f9924000.i2c"),
@@ -3485,6 +3526,9 @@ static struct clk_lookup msm_clocks_samarium[] = {
 	CLK_LOOKUP("", gcc_blsp1_qup3_spi_apps_clk.c, ""),
 	CLK_LOOKUP("", gcc_blsp1_qup4_i2c_apps_clk.c, ""),
 	CLK_LOOKUP("", gcc_blsp1_qup4_spi_apps_clk.c, ""),
+	/* I2C Clocks nfc */
+	CLK_LOOKUP("iface_clk", gcc_blsp1_ahb_clk.c, "f9928000.i2c"),
+	CLK_LOOKUP("core_clk", gcc_blsp1_qup6_i2c_apps_clk.c, "f9928000.i2c"),
 	CLK_LOOKUP("", gcc_blsp1_uart1_apps_clk.c, ""),
 	CLK_LOOKUP("core_clk", gcc_blsp1_uart2_apps_clk.c, "f991e000.serial"),
 	CLK_LOOKUP("core_clk", gcc_blsp1_uart3_apps_clk.c, "f991f000.serial"),
@@ -3514,6 +3558,12 @@ static struct clk_lookup msm_clocks_samarium[] = {
 	CLK_LOOKUP("core_clk", gcc_sdcc3_apps_clk.c, "msm_sdcc.3"),
 	CLK_LOOKUP("iface_clk", gcc_sdcc4_ahb_clk.c, "msm_sdcc.4"),
 	CLK_LOOKUP("core_clk", gcc_sdcc4_apps_clk.c, "msm_sdcc.4"),
+
+	/* SCM PAS */
+	CLK_LOOKUP("core_clk",     gcc_ce1_clk.c,         "scm"),
+	CLK_LOOKUP("iface_clk",    gcc_ce1_ahb_clk.c,     "scm"),
+	CLK_LOOKUP("bus_clk",      gcc_ce1_axi_clk.c,     "scm"),
+	CLK_LOOKUP("core_clk_src", scm_ce1_clk_src.c,     "scm"),
 
 	/* Misc GCC branch */
 	CLK_LOOKUP("", ce1_clk_src.c, ""),
