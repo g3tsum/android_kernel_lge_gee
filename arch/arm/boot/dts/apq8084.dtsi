@@ -170,6 +170,20 @@
 		status = "disabled";
 	};
 
+	blsp2_uart0: uart@f995d000 {
+		compatible = "qcom,msm-lsuart-v14";
+		reg = <0xf995d000 0x1000>;
+		interrupts = <0 113 0>;
+		status = "disabled";
+
+		qcom,msm-bus,name = "blsp2_uart0";
+		qcom,msm-bus,num-cases = <2>;
+		qcom,msm-bus,num-paths = <1>;
+		qcom,msm-bus,vectors-KBps =
+				<84 512 0 0>,
+				<84 512 500 800>;
+	};
+
 	serial@f991f000 {
 		compatible = "qcom,msm-lsuart-v14";
 		reg = <0xf991f000 0x1000>;
@@ -200,6 +214,20 @@
 		qcom,msm-bus,vectors-KBps =
 				<86 512 0 0>,
 				<86 512 500 800>;
+	};
+
+	blsp2_uart4: uart@f9961000 { /* BLSP2 UART4 */
+		compatible = "qcom,msm-lsuart-v14";
+		reg = <0xf9961000 0x1000>;
+		interrupts = <0 117 0>;
+		status = "disabled";
+
+		qcom,msm-bus,name = "blsp2_uart4";
+		qcom,msm-bus,num-cases = <2>;
+		qcom,msm-bus,num-paths = <1>;
+		qcom,msm-bus,vectors-KBps =
+				<84 512 0 0>,
+				<84 512 500 800>;
 	};
 
 	qcom,cache_erp {
@@ -2046,7 +2074,7 @@
 &gdsc_oxili_gx {
 	qcom,clock-names = "core_clk";
 	status = "ok";
-	parent-supply = <&pma8084_s6>;
+	parent-supply = <&pma8084_s6_corner>;
 };
 
 &gdsc_oxili_cx {
