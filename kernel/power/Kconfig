@@ -45,15 +45,6 @@ config WAKELOCK_STAT
 	---help---
 	  Report wake lock stats in /proc/wakelocks
 
-config USER_WAKELOCK
-	bool "Userspace wake locks"
-	depends on PM_SLEEP
-	default y
-	select HAS_EARLYSUSPEND
-	---help---
-	  Call early suspend handlers when the user requested sleep state
-	  changes.
-
 config HIBERNATE_CALLBACKS
 	bool
 

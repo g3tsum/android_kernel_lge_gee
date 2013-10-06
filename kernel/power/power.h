@@ -290,6 +290,7 @@ static inline suspend_state_t pm_autosleep_state(void) { return PM_SUSPEND_ON; }
 /* kernel/power/earlysuspend.c */
 void request_suspend_state(suspend_state_t state);
 suspend_state_t get_suspend_state(void);
+#endif
 
 #ifdef CONFIG_WAKELOCK
 /* kernel/power/wakelock.c */
