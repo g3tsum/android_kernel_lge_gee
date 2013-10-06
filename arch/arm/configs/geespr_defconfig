@@ -1736,7 +1736,7 @@ CONFIG_SERIAL_MSM_HSL_CONSOLE=y
 #
 # Diag Support
 #
-CONFIG_DIAG_CHAR=y
+CONFIG_DIAG_CHAR=n
 
 #
 # DIAG traffic over USB
