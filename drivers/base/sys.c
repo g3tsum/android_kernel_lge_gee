@@ -25,6 +25,9 @@
 
 #include "base.h"
 
+/* /sys/devices/system */
+static struct kset *system_kset;
+
 #define to_sysdev(k) container_of(k, struct sys_device, kobj)
 #define to_sysdev_attr(a) container_of(a, struct sysdev_attribute, attr)
 
