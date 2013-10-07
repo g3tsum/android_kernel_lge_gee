@@ -312,15 +312,16 @@ static ssize_t state_show(struct kobject *kobj, struct kobj_attribute *attr,
 
 static suspend_state_t decode_state(const char *buf, size_t n)
 {
-#ifdef CONFIG_SUSPEND
-	suspend_state_t state = PM_SUSPEND_MIN;
 #ifdef CONFIG_EARLYSUSPEND
 	suspend_state_t state = PM_SUSPEND_ON;
 #else
+#ifdef CONFIG_SUSPEND
+	suspend_state_t state = PM_SUSPEND_MIN;
+#else
 	suspend_state_t state = PM_SUSPEND_STANDBY;
 #endif
-	const char * const *s;
 #endif
+	const char * const *s;
 	char *p;
 	int len;
 
@@ -332,19 +333,17 @@ static suspend_state_t decode_state(const char *buf, size_t n)
 		return PM_SUSPEND_MAX;
 
 #ifdef CONFIG_SUSPEND
-	for (s = &pm_states[state]; state < PM_SUSPEND_MAX; s++, state++)
+	for (s = &pm_states[state]; state < PM_SUSPEND_MAX; s++, state++) {
 		if (*s && len == strlen(*s) && !strncmp(buf, *s, len))
 			return state;
 #ifdef CONFIG_EARLYSUSPEND
 			if (state == PM_SUSPEND_ON || valid_state(state)) {
-				error = 0;
 				request_suspend_state(state);
 				break;
 			}
 #else
-			error = pm_suspend(state);
+			pm_suspend(state);
 #endif
-		}
 	}
 #endif
 
