@@ -105,17 +105,21 @@
 
 #define MSM_PMEM_ADSP_SIZE         0x7800000
 #define MSM_PMEM_AUDIO_SIZE        0x4CF000
-#define MSM_PMEM_SIZE              0x4000000 /* 64 Mbytes */
+#ifdef CONFIG_FB_MSM_HDMI_AS_PRIMARY
+#define MSM_PMEM_SIZE 0x4000000 /* 64 Mbytes */
+#else
+#define MSM_PMEM_SIZE 0x4000000 /* 64 Mbytes */
+#endif
 
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 #define HOLE_SIZE		0x20000
+#define MSM_ION_MFC_META_SIZE  0x40000 /* 256 Kbytes */
 #define MSM_CONTIG_MEM_SIZE  0x65000
 #ifdef CONFIG_MSM_IOMMU
-
-#define MSM_ION_MM_SIZE		0x3800000
+#define MSM_ION_MM_SIZE		0x4800000
 #define MSM_ION_SF_SIZE		0
 #define MSM_ION_QSECOM_SIZE	0x780000 /* (7.5MB) */
-#define MSM_ION_HEAP_NUM	7
+#define MSM_ION_HEAP_NUM	8
 #else
 #define MSM_ION_MM_SIZE		MSM_PMEM_ADSP_SIZE
 #define MSM_ION_SF_SIZE		MSM_PMEM_SIZE
@@ -123,7 +127,7 @@
 #define MSM_ION_HEAP_NUM	8
 #endif
 #define MSM_ION_MM_FW_SIZE	(0x200000 - HOLE_SIZE) /* (2MB - 128KB) */
-#define MSM_ION_MFC_SIZE	SZ_8K
+#define MSM_ION_MFC_SIZE	(SZ_8K + MSM_ION_MFC_META_SIZE)
 #define MSM_ION_AUDIO_SIZE	MSM_PMEM_AUDIO_SIZE
 #else
 #define MSM_CONTIG_MEM_SIZE  0x110C000
@@ -135,10 +139,21 @@
 #define MAX_FIXED_AREA_SIZE	0x10000000
 #define MSM_MM_FW_SIZE		(0x200000 - HOLE_SIZE)
 #define APQ8064_FW_START	APQ8064_FIXED_AREA_START
+#define MSM_ION_ADSP_SIZE	SZ_8M
 
-/* PCIe power enable pmic gpio */
+#define QFPROM_RAW_FEAT_CONFIG_ROW0_MSB     (MSM_QFPROM_BASE + 0x23c)
+#define QFPROM_RAW_OEM_CONFIG_ROW0_LSB      (MSM_QFPROM_BASE + 0x220)
+
+/* PCIE AXI address space */
+#define PCIE_AXI_BAR_PHYS   0x08000000
+#define PCIE_AXI_BAR_SIZE   SZ_128M
+
+/* PCIe pmic gpios */
+#define PCIE_WAKE_N_PMIC_GPIO 12
 #define PCIE_PWR_EN_PMIC_GPIO 13
 #define PCIE_RST_N_PMIC_MPP 1
+#define PCIE_WAKE_N_PMIC_GPIO_HRD 22
+#define PCIE_PWR_EN_PMIC_GPIO_HRD 23
 
 static bool mako_charger_mode;
 
@@ -249,6 +264,15 @@ static struct platform_device ion_mm_heap_device = {
 	}
 };
 
+static struct platform_device ion_adsp_heap_device = {
+	.name = "ion-adsp-heap-device",
+	.id = -1,
+	.dev = {
+		.dma_mask = &msm_dmamask,
+		.coherent_dma_mask = DMA_BIT_MASK(32),
+	}
+};
+
 /**
  * These heaps are listed in the order they will be allocated. Due to
  * video hardware restrictions and content protection the FW heap has to
@@ -274,7 +298,7 @@ struct ion_platform_heap apq8064_heaps[] = {
 			.size	= MSM_ION_MM_SIZE,
 			.memory_type = ION_EBI_TYPE,
 			.extra_data = (void *) &cp_mm_apq8064_ion_pdata,
-			.priv	= &ion_mm_heap_device.dev,
+			.priv	= &ion_mm_heap_device.dev
 		},
 		{
 			.id	= ION_MM_FIRMWARE_HEAP_ID,
@@ -323,6 +347,15 @@ struct ion_platform_heap apq8064_heaps[] = {
 			.memory_type = ION_EBI_TYPE,
 			.extra_data = (void *) &co_apq8064_ion_pdata,
 		},
+		{
+			.id     = ION_ADSP_HEAP_ID,
+			.type   = ION_HEAP_TYPE_DMA,
+			.name   = ION_ADSP_HEAP_NAME,
+			.size   = MSM_ION_ADSP_SIZE,
+			.memory_type = ION_EBI_TYPE,
+			.extra_data = (void *) &co_apq8064_ion_pdata,
+			.priv = &ion_adsp_heap_device.dev,
+		},
 #endif
 };
 
@@ -363,17 +396,17 @@ static void __init apq8064_reserve_fixed_area(unsigned long fixed_area_size)
 }
 
 /**
-  * Reserve memory for ION. Also handle special case
-  * for video heaps (MM,FW, and MFC). Video requires heaps MM and MFC to be
-  * at a higher address than FW in addition to not more than 256MB away from the
-  * base address of the firmware. In addition the MM heap must be
-  * adjacent to the FW heap for content protection purposes.
-  */
+ * Reserve memory for ION. Also handle special case
+ * for video heaps (MM,FW, and MFC). Video requires heaps MM and MFC to be
+ * at a higher address than FW in addition to not more than 256MB away from the
+ * base address of the firmware. In addition the MM heap must be
+ * adjacent to the FW heap for content protection purposes.
+ */
 static void __init reserve_ion_memory(void)
 {
 #if defined(CONFIG_ION_MSM) && defined(CONFIG_MSM_MULTIMEDIA_USE_ION)
 	unsigned int i;
-	int ret;
+	unsigned int ret;
 	unsigned int fixed_size = 0;
 	unsigned int fixed_low_size, fixed_middle_size, fixed_high_size;
 	unsigned long fixed_low_start, fixed_middle_start, fixed_high_start;
@@ -381,6 +414,7 @@ static void __init reserve_ion_memory(void)
 	unsigned int low_use_cma = 0;
 	unsigned int middle_use_cma = 0;
 	unsigned int high_use_cma = 0;
+
 
 	fixed_low_size = 0;
 	fixed_middle_size = 0;
@@ -390,50 +424,33 @@ static void __init reserve_ion_memory(void)
 
 	for (i = 0; i < apq8064_ion_pdata.nr; ++i) {
 		struct ion_platform_heap *heap =
-						&(apq8064_ion_pdata.heaps[i]);
-		int align = SZ_4K;
-		int iommu_map_all = 0;
-		int adjacent_mem_id = INVALID_HEAP_ID;
+			&(apq8064_ion_pdata.heaps[i]);
 		int use_cma = 0;
+
 
 		if (heap->extra_data) {
 			int fixed_position = NOT_FIXED;
 
-			switch ((int) heap->type) {
+			switch ((int)heap->type) {
 			case ION_HEAP_TYPE_CP:
-				fixed_position = ((struct ion_cp_heap_pdata *)
-					heap->extra_data)->fixed_position;
-				align = ((struct ion_cp_heap_pdata *)
-						heap->extra_data)->align;
-				iommu_map_all =
-					((struct ion_cp_heap_pdata *)
-					heap->extra_data)->iommu_map_all;
 				if (((struct ion_cp_heap_pdata *)
 					heap->extra_data)->is_cma) {
 					heap->size = ALIGN(heap->size,
-							cma_alignment);
+						cma_alignment);
 					use_cma = 1;
 				}
+				fixed_position = ((struct ion_cp_heap_pdata *)
+					heap->extra_data)->fixed_position;
 				break;
 			case ION_HEAP_TYPE_DMA:
-					use_cma = 1;
+				use_cma = 1;
 				/* Purposely fall through here */
 			case ION_HEAP_TYPE_CARVEOUT:
 				fixed_position = ((struct ion_co_heap_pdata *)
 					heap->extra_data)->fixed_position;
-				adjacent_mem_id = ((struct ion_co_heap_pdata *)
-					heap->extra_data)->adjacent_mem_id;
 				break;
 			default:
 				break;
-			}
-
-			if (iommu_map_all) {
-				if (heap->size & (SZ_64K-1)) {
-					heap->size = ALIGN(heap->size, SZ_64K);
-					pr_info("Heap %s not aligned to 64K. Adjusting size to %x\n",
-						heap->name, heap->size);
-				}
 			}
 
 			if (fixed_position != NOT_FIXED)
@@ -460,6 +477,7 @@ static void __init reserve_ion_memory(void)
 					heap->size,
 					0,
 					0xb0000000);
+
 			}
 		}
 	}
@@ -475,8 +493,8 @@ static void __init reserve_ion_memory(void)
 
 	fixed_low_start = APQ8064_FIXED_AREA_START;
 	if (low_use_cma) {
-		BUG_ON(!IS_ALIGNED(fixed_low_start, cma_alignment));
 		BUG_ON(!IS_ALIGNED(fixed_low_size + HOLE_SIZE, cma_alignment));
+		BUG_ON(!IS_ALIGNED(fixed_low_start, cma_alignment));
 	} else {
 		BUG_ON(!IS_ALIGNED(fixed_low_size + HOLE_SIZE, SECTION_SIZE));
 		ret = memblock_remove(fixed_low_start,
@@ -504,8 +522,6 @@ static void __init reserve_ion_memory(void)
 		ret = memblock_remove(fixed_high_start, fixed_high_size);
 		BUG_ON(ret);
 	}
-
-
 
 	for (i = 0; i < apq8064_ion_pdata.nr; ++i) {
 		struct ion_platform_heap *heap = &(apq8064_ion_pdata.heaps[i]);
@@ -537,14 +553,14 @@ static void __init reserve_ion_memory(void)
 				heap->base = fixed_middle_start;
 				if (middle_use_cma) {
 					ret = dma_declare_contiguous(
-						&ion_mm_heap_device.dev,
+						heap->priv,
 						heap->size,
 						fixed_middle_start,
 						0xa0000000);
 					WARN_ON(ret);
 				}
 				pdata->secure_base = fixed_middle_start
-							- HOLE_SIZE;
+								- HOLE_SIZE;
 				pdata->secure_size = HOLE_SIZE + heap->size;
 				break;
 			case FIXED_HIGH:
@@ -589,47 +605,6 @@ static struct reserve_info apq8064_reserve_info __initdata = {
 	.paddr_to_memtype = apq8064_paddr_to_memtype,
 };
 
-static int apq8064_memory_bank_size(void)
-{
-	return 1<<29;
-}
-
-static void __init locate_unstable_memory(void)
-{
-	struct membank *mb = &meminfo.bank[meminfo.nr_banks - 1];
-	unsigned long bank_size;
-	unsigned long low, high;
-
-	bank_size = apq8064_memory_bank_size();
-	low = meminfo.bank[0].start;
-	high = mb->start + mb->size;
-
-	/* Check if 32 bit overflow occured */
-	if (high < mb->start)
-		high = -PAGE_SIZE;
-
-	low &= ~(bank_size - 1);
-
-	if (high - low <= bank_size)
-		goto no_dmm;
-
-#ifdef CONFIG_ENABLE_DMM
-	apq8064_reserve_info.low_unstable_address = mb->start -
-					MIN_MEMORY_BLOCK_SIZE + mb->size;
-	apq8064_reserve_info.max_unstable_size = MIN_MEMORY_BLOCK_SIZE;
-
-	apq8064_reserve_info.bank_size = bank_size;
-	pr_info("low unstable address %lx max size %lx bank size %lx\n",
-		apq8064_reserve_info.low_unstable_address,
-		apq8064_reserve_info.max_unstable_size,
-		apq8064_reserve_info.bank_size);
-	return;
-#endif
-no_dmm:
-	apq8064_reserve_info.low_unstable_address = high;
-	apq8064_reserve_info.max_unstable_size = 0;
-}
-
 static char prim_panel_name[PANEL_NAME_MAX_LEN];
 static char ext_panel_name[PANEL_NAME_MAX_LEN];
 static int __init prim_display_setup(char *param)
@@ -654,21 +629,9 @@ static void __init apq8064_reserve(void)
 	lge_reserve();
 }
 
-static void __init place_movable_zone(void)
-{
-#ifdef CONFIG_ENABLE_DMM
-	movable_reserved_start = apq8064_reserve_info.low_unstable_address;
-	movable_reserved_size = apq8064_reserve_info.max_unstable_size;
-	pr_info("movable zone start %lx size %lx\n",
-		movable_reserved_start, movable_reserved_size);
-#endif
-}
-
 static void __init apq8064_early_reserve(void)
 {
 	reserve_info = &apq8064_reserve_info;
-	locate_unstable_memory();
-	place_movable_zone();
 }
 #ifdef CONFIG_USB_EHCI_MSM_HSIC
 /* Bandwidth requests (zero) if no vote placed */
