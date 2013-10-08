@@ -216,73 +216,6 @@ struct clk_ops clk_ops_gen_mux = {
 	.get_parent = mux_get_parent,
 };
 
-static DEFINE_SPINLOCK(mux_reg_lock);
-
-static int mux_reg_enable(struct mux_clk *clk)
-{
-	u32 regval;
-	unsigned long flags;
-
-	spin_lock_irqsave(&mux_reg_lock, flags);
-	regval = readl_relaxed(*clk->base + clk->offset);
-	regval |= clk->en_mask;
-	writel_relaxed(regval, *clk->base + clk->offset);
-	/* Ensure enable request goes through before returning */
-	mb();
-	spin_unlock_irqrestore(&mux_reg_lock, flags);
-
-	return 0;
-}
-
-static void mux_reg_disable(struct mux_clk *clk)
-{
-	u32 regval;
-	unsigned long flags;
-
-	spin_lock_irqsave(&mux_reg_lock, flags);
-	regval = readl_relaxed(*clk->base + clk->offset);
-	regval &= ~clk->en_mask;
-	writel_relaxed(regval, *clk->base + clk->offset);
-	spin_unlock_irqrestore(&mux_reg_lock, flags);
-}
-
-static int mux_reg_set_mux_sel(struct mux_clk *clk, int sel)
-{
-	u32 regval;
-	unsigned long flags;
-
-	spin_lock_irqsave(&mux_reg_lock, flags);
-	regval = readl_relaxed(*clk->base + clk->offset);
-	regval &= ~(clk->mask << clk->shift);
-	regval |= (sel & clk->mask) << clk->shift;
-	writel_relaxed(regval, *clk->base + clk->offset);
-	/* Ensure switch request goes through before returning */
-	mb();
-	spin_unlock_irqrestore(&mux_reg_lock, flags);
-
-	return 0;
-}
-
-static int mux_reg_get_mux_sel(struct mux_clk *clk)
-{
-	u32 regval = readl_relaxed(*clk->base + clk->offset);
-	return !!((regval >> clk->shift) & clk->mask);
-}
-
-static bool mux_reg_is_enabled(struct mux_clk *clk)
-{
-	u32 regval = readl_relaxed(*clk->base + clk->offset);
-	return !!(regval & clk->en_mask);
-}
-
-struct clk_mux_ops mux_reg_ops = {
-	.enable = mux_reg_enable,
-	.disable = mux_reg_disable,
-	.set_mux_sel = mux_reg_set_mux_sel,
-	.get_mux_sel = mux_reg_get_mux_sel,
-	.is_enabled = mux_reg_is_enabled,
-};
-
 /* ==================== Divider clock ==================== */
 
 static long __div_round_rate(struct div_data *data, unsigned long rate,
@@ -494,11 +427,20 @@ static int slave_div_set_rate(struct clk *c, unsigned long rate)
 	return 0;
 }
 
+static unsigned long slave_div_get_rate(struct clk *c)
+{
+	struct div_clk *d = to_div_clk(c);
+	if (!d->data.div)
+		return 0;
+	return clk_get_rate(c->parent) / d->data.div;
+}
+
 struct clk_ops clk_ops_slave_div = {
 	.enable = div_enable,
 	.disable = div_disable,
 	.round_rate = slave_div_round_rate,
 	.set_rate = slave_div_set_rate,
+	.get_rate = slave_div_get_rate,
 	.handoff = div_handoff,
 };
 
@@ -524,6 +466,11 @@ static int ext_set_rate(struct clk *c, unsigned long rate)
 	return clk_set_rate(c->parent, rate);
 }
 
+static unsigned long ext_get_rate(struct clk *c)
+{
+	return clk_get_rate(c->parent);
+}
+
 static int ext_set_parent(struct clk *c, struct clk *p)
 {
 	return clk_set_parent(c->parent, p);
@@ -540,6 +487,7 @@ struct clk_ops clk_ops_ext = {
 	.handoff = ext_handoff,
 	.round_rate = ext_round_rate,
 	.set_rate = ext_set_rate,
+	.get_rate = ext_get_rate,
 	.set_parent = ext_set_parent,
 };
 

@@ -112,10 +112,10 @@ enum uic_link_state {
 	UIC_LINK_HIBERN8_STATE	= 2, /* Link is in Hibernate state */
 };
 
-#define ufshcd_is_link_off(hba) ((hba)->uic_link_state & UIC_LINK_OFF_STATE)
-#define ufshcd_is_link_active(hba) ((hba)->uic_link_state & \
+#define ufshcd_is_link_off(hba) ((hba)->uic_link_state == UIC_LINK_OFF_STATE)
+#define ufshcd_is_link_active(hba) ((hba)->uic_link_state == \
 				    UIC_LINK_ACTIVE_STATE)
-#define ufshcd_is_link_hibern8(hba) ((hba)->uic_link_state & \
+#define ufshcd_is_link_hibern8(hba) ((hba)->uic_link_state == \
 				    UIC_LINK_HIBERN8_STATE)
 #define ufshcd_set_link_off(hba) ((hba)->uic_link_state = UIC_LINK_OFF_STATE)
 #define ufshcd_set_link_active(hba) ((hba)->uic_link_state = \
@@ -210,6 +210,8 @@ struct ufs_stats {
 struct debugfs_files {
 	struct dentry *debugfs_root;
 	struct dentry *tag_stats;
+	struct dentry *show_hba;
+	struct dentry *host_regs;
 };
 #endif
 

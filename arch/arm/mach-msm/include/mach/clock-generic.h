@@ -52,6 +52,8 @@ struct mux_clk {
 	/* Fields not used by helper function. */
 	void *const __iomem *base;
 	u32		offset;
+	u32		en_offset;
+	int		en_reg;
 	u32		mask;
 	u32		shift;
 	u32		en_mask;
@@ -66,7 +68,6 @@ static inline struct mux_clk *to_mux_clk(struct clk *c)
 }
 
 extern struct clk_ops clk_ops_gen_mux;
-extern struct clk_mux_ops mux_reg_ops;
 
 /* ==================== Divider clock ==================== */
 

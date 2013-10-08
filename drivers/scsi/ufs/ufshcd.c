@@ -181,7 +181,7 @@ static int ufshcd_clear_tm_cmd(struct ufs_hba *hba, int tag);
 static int ufshcd_read_sdev_qdepth(struct ufs_hba *hba,
 					struct scsi_device *sdev);
 static void ufshcd_hba_exit(struct ufs_hba *hba);
-
+static int ufshcd_probe_hba(struct ufs_hba *hba);
 static inline void ufshcd_enable_irq(struct ufs_hba *hba)
 {
 	if (!hba->is_irq_enabled) {
@@ -3331,7 +3331,6 @@ out:
 static int ufshcd_host_reset_and_restore(struct ufs_hba *hba)
 {
 	int err;
-	async_cookie_t cookie;
 	unsigned long flags;
 
 	/* Reset the host controller */
@@ -3344,10 +3343,9 @@ static int ufshcd_host_reset_and_restore(struct ufs_hba *hba)
 		goto out;
 
 	/* Establish the link again and restore the device */
-	cookie = async_schedule(ufshcd_async_scan, hba);
-	/* wait for async scan to be completed */
-	async_synchronize_cookie(++cookie);
-	if (hba->ufshcd_state != UFSHCD_STATE_OPERATIONAL)
+	err = ufshcd_probe_hba(hba);
+
+	if (!err && (hba->ufshcd_state != UFSHCD_STATE_OPERATIONAL))
 		err = -EIO;
 out:
 	if (err)
@@ -3579,13 +3577,13 @@ static void ufshcd_init_icc_levels(struct ufs_hba *hba)
 }
 
 /**
- * ufshcd_async_scan - asynchronous execution for link startup
- * @data: data pointer to pass to this function
- * @cookie: cookie data
+ * ufshcd_probe_hba - probe hba to detect device and initialize
+ * @hba: per-adapter instance
+ *
+ * Execute link-startup and verify device initialization
  */
-static void ufshcd_async_scan(void *data, async_cookie_t cookie)
+static int ufshcd_probe_hba(struct ufs_hba *hba)
 {
-	struct ufs_hba *hba = (struct ufs_hba *)data;
 	int ret;
 
 	ret = ufshcd_link_startup(hba);
@@ -3623,10 +3621,24 @@ out:
 	 * If we failed to initialize the device or the device is not
 	 * present, turn off the power/clocks etc.
 	 */
-	if (ret && !ufshcd_eh_in_progress(hba) && !hba->pm_op_in_progress)
+	if (ret && !ufshcd_eh_in_progress(hba) && !hba->pm_op_in_progress) {
+		pm_runtime_put_sync(hba->dev);
 		ufshcd_hba_exit(hba);
+	}
 
-	return;
+	return ret;
+}
+
+/**
+ * ufshcd_async_scan - asynchronous execution for probing hba
+ * @data: data pointer to pass to this function
+ * @cookie: cookie data
+ */
+static void ufshcd_async_scan(void *data, async_cookie_t cookie)
+{
+	struct ufs_hba *hba = (struct ufs_hba *)data;
+
+	ufshcd_probe_hba(hba);
 }
 
 static struct scsi_host_template ufshcd_driver_template = {
@@ -4075,9 +4087,6 @@ static int ufshcd_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	enum ufs_dev_pwr_mode req_dev_pwr_mode;
 	enum uic_link_state req_link_state;
 
-	if (!hba)
-		return 0;
-
 	hba->pm_op_in_progress = 1;
 	pm_lvl = ufshcd_is_runtime_pm(pm_op) ? hba->rpm_lvl : hba->spm_lvl;
 	req_dev_pwr_mode = ufs_get_pm_lvl_to_dev_pwr_mode(pm_lvl);
@@ -4193,9 +4202,6 @@ static int ufshcd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	int ret;
 	enum uic_link_state old_link_state;
 
-	if (!hba)
-		return 0;
-
 	hba->pm_op_in_progress = 1;
 	old_link_state = hba->uic_link_state;
 	/* Make sure clocks are enabled before accessing controller */
@@ -4282,6 +4288,9 @@ int ufshcd_system_suspend(struct ufs_hba *hba)
 {
 	int ret = 0;
 
+	if (!hba || !hba->is_powered)
+		goto out;
+
 	if (pm_runtime_suspended(hba->dev)) {
 		if (hba->rpm_lvl == hba->spm_lvl)
 			/*
@@ -4320,8 +4329,11 @@ EXPORT_SYMBOL(ufshcd_system_suspend);
 
 int ufshcd_system_resume(struct ufs_hba *hba)
 {
-	if (pm_runtime_suspended(hba->dev))
-		/* Let the runtime resume take care of resuming it */
+	if (!hba || !hba->is_powered || pm_runtime_suspended(hba->dev))
+		/*
+		 * Let the runtime resume take care of resuming
+		 * if runtime suspended.
+		 */
 		return 0;
 	else
 		return ufshcd_resume(hba, UFS_SYSTEM_PM);
@@ -4338,7 +4350,10 @@ EXPORT_SYMBOL(ufshcd_system_resume);
  */
 int ufshcd_runtime_suspend(struct ufs_hba *hba)
 {
-	return ufshcd_suspend(hba, UFS_RUNTIME_PM);
+	if (!hba || !hba->is_powered)
+		return 0;
+	else
+		return ufshcd_suspend(hba, UFS_RUNTIME_PM);
 }
 EXPORT_SYMBOL(ufshcd_runtime_suspend);
 
@@ -4365,7 +4380,10 @@ EXPORT_SYMBOL(ufshcd_runtime_suspend);
  */
 int ufshcd_runtime_resume(struct ufs_hba *hba)
 {
-	return ufshcd_resume(hba, UFS_RUNTIME_PM);
+	if (!hba || !hba->is_powered)
+		return 0;
+	else
+		return ufshcd_resume(hba, UFS_RUNTIME_PM);
 }
 EXPORT_SYMBOL(ufshcd_runtime_resume);
 
