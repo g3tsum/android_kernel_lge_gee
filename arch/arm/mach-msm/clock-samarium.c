@@ -151,12 +151,6 @@ static DEFINE_VDD_REGULATORS(vdd_dig, VDD_DIG_NUM, 1, vdd_corner, NULL);
 #define GPLL4_STATUS                                       (0x1DDC)
 #define MSS_CFG_AHB_CBCR                                   (0x0280)
 #define MSS_Q6_BIMC_AXI_CBCR                               (0x0284)
-#define USB_HS_HSIC_BCR                                    (0x0400)
-#define USB_HSIC_AHB_CBCR                                  (0x0408)
-#define USB_HSIC_SYSTEM_CMD_RCGR                           (0x041C)
-#define USB_HSIC_SYSTEM_CBCR                               (0x040C)
-#define USB_HSIC_IO_CAL_CMD_RCGR                           (0x0458)
-#define USB_HSIC_IO_CAL_CBCR                               (0x0414)
 #define USB_HS_BCR                                         (0x0480)
 #define USB_HS_SYSTEM_CBCR                                 (0x0484)
 #define USB_HS_AHB_CBCR                                    (0x0488)
@@ -183,8 +177,6 @@ static DEFINE_VDD_REGULATORS(vdd_dig, VDD_DIG_NUM, 1, vdd_corner, NULL);
 #define BLSP1_QUP2_I2C_APPS_CMD_RCGR                       (0x06E0)
 #define BLSP1_QUP3_I2C_APPS_CMD_RCGR                       (0x0760)
 #define BLSP1_QUP4_I2C_APPS_CMD_RCGR                       (0x07E0)
-#define BLSP1_QUP6_I2C_APPS_CMD_RCGR                       (0x08E0)
-#define BLSP1_QUP6_I2C_APPS_CBCR                           (0x08C8)
 #define BLSP2_QUP1_I2C_APPS_CMD_RCGR                       (0x09A0)
 #define BLSP2_QUP2_I2C_APPS_CMD_RCGR                       (0x0A20)
 #define BLSP2_QUP3_I2C_APPS_CMD_RCGR                       (0x0AA0)
@@ -415,7 +407,6 @@ static DEFINE_CLK_BRANCH_VOTER(xo_pil_pronto_clk, &xo.c);
 static DEFINE_CLK_BRANCH_VOTER(xo_ehci_host_clk, &xo.c);
 static DEFINE_CLK_BRANCH_VOTER(xo_lpm_clk, &xo.c);
 
-DEFINE_CLK_RPM_SMD_XO_BUFFER_PINCTRL(cxo_d1_pin, cxo_d1_a_pin, BB_CLK2_ID);
 
 static unsigned int soft_vote_gpll0;
 
@@ -460,7 +451,7 @@ static struct pll_vote_clk gpll4 = {
 	.status_mask = BIT(17),
 	.base = &virt_bases[GCC_BASE],
 	.c = {
-		.rate = 400000000,
+		.rate = 768000000,
 		.parent = &xo.c,
 		.dbg_name = "gpll4",
 		.ops = &clk_ops_pll_vote,
@@ -497,12 +488,6 @@ static struct clk_freq_tbl ftbl_gcc_blsp1_2_qup1_4_spi_apps_clk[] = {
 	F(  19200000,         xo,    1,    0,     0),
 	F(  25000000,      gpll0,   12,    1,     2),
 	F(  50000000,      gpll0,   12,    0,     0),
-	F_END
-};
-
-static struct clk_freq_tbl ftbl_gcc_blsp1_qup1_6_i2c_apps_clk[] = {
-	F(  19200000,         xo,   1,    0,    0),
-	F(  50000000,      gpll0,  12,    0,    0),
 	F_END
 };
 
@@ -601,20 +586,6 @@ static struct rcg_clk blsp1_qup4_spi_apps_clk_src = {
 		.ops = &clk_ops_rcg_mnd,
 		VDD_DIG_FMAX_MAP2(LOW, 25000000, NOMINAL, 50000000),
 		CLK_INIT(blsp1_qup4_spi_apps_clk_src.c),
-	},
-};
-
-static struct rcg_clk blsp1_qup6_i2c_apps_clk_src = {
-	.cmd_rcgr_reg = BLSP1_QUP6_I2C_APPS_CMD_RCGR,
-	.set_rate = set_rate_hid,
-	.freq_tbl = ftbl_gcc_blsp1_qup1_6_i2c_apps_clk,
-	.current_freq = &rcg_dummy_freq,
-	.base = &virt_bases[GCC_BASE],
-	.c = {
-		.dbg_name = "blsp1_qup6_i2c_apps_clk_src",
-		.ops = &clk_ops_rcg,
-		VDD_DIG_FMAX_MAP1(LOW, 50000000),
-		CLK_INIT(blsp1_qup6_i2c_apps_clk_src.c),
 	},
 };
 
@@ -902,7 +873,19 @@ static struct rcg_clk pdm2_clk_src = {
 	},
 };
 
-static struct clk_freq_tbl ftbl_gcc_sdcc1_4_apps_clk[] = {
+static struct clk_freq_tbl ftbl_gcc_sdcc1_apps_clk[] = {
+	F(    144000,         xo,   16,    3,    25),
+	F(    400000,         xo,   12,    1,     4),
+	F(  20000000,      gpll0,   15,    1,     2),
+	F(  25000000,      gpll0,   12,    1,     2),
+	F(  50000000,      gpll0,   12,    0,     0),
+	F( 100000000,      gpll0,    6,    0,     0),
+	F( 192000000,      gpll4,    4,    0,     0),
+	F( 384000000,      gpll4,    2,    0,     0),
+	F_END
+};
+
+static struct clk_freq_tbl ftbl_gcc_sdcc2_4_apps_clk[] = {
 	F(    144000,         xo,   16,    3,    25),
 	F(    400000,         xo,   12,    1,     4),
 	F(  20000000,      gpll0,   15,    1,     2),
@@ -910,14 +893,13 @@ static struct clk_freq_tbl ftbl_gcc_sdcc1_4_apps_clk[] = {
 	F(  50000000,      gpll0,   12,    0,     0),
 	F( 100000000,      gpll0,    6,    0,     0),
 	F( 200000000,      gpll0,    3,    0,     0),
-	F( 400000000,      gpll4,    1,    0,     0),
 	F_END
 };
 
 static struct rcg_clk sdcc1_apps_clk_src = {
 	.cmd_rcgr_reg = SDCC1_APPS_CMD_RCGR,
 	.set_rate = set_rate_mnd,
-	.freq_tbl = ftbl_gcc_sdcc1_4_apps_clk,
+	.freq_tbl = ftbl_gcc_sdcc1_apps_clk,
 	.current_freq = &rcg_dummy_freq,
 	.base = &virt_bases[GCC_BASE],
 	.c = {
@@ -931,7 +913,7 @@ static struct rcg_clk sdcc1_apps_clk_src = {
 static struct rcg_clk sdcc2_apps_clk_src = {
 	.cmd_rcgr_reg = SDCC2_APPS_CMD_RCGR,
 	.set_rate = set_rate_mnd,
-	.freq_tbl = ftbl_gcc_sdcc1_4_apps_clk,
+	.freq_tbl = ftbl_gcc_sdcc2_4_apps_clk,
 	.current_freq = &rcg_dummy_freq,
 	.base = &virt_bases[GCC_BASE],
 	.c = {
@@ -945,7 +927,7 @@ static struct rcg_clk sdcc2_apps_clk_src = {
 static struct rcg_clk sdcc3_apps_clk_src = {
 	.cmd_rcgr_reg = SDCC3_APPS_CMD_RCGR,
 	.set_rate = set_rate_mnd,
-	.freq_tbl = ftbl_gcc_sdcc1_4_apps_clk,
+	.freq_tbl = ftbl_gcc_sdcc2_4_apps_clk,
 	.current_freq = &rcg_dummy_freq,
 	.base = &virt_bases[GCC_BASE],
 	.c = {
@@ -959,7 +941,7 @@ static struct rcg_clk sdcc3_apps_clk_src = {
 static struct rcg_clk sdcc4_apps_clk_src = {
 	.cmd_rcgr_reg = SDCC4_APPS_CMD_RCGR,
 	.set_rate = set_rate_mnd,
-	.freq_tbl = ftbl_gcc_sdcc1_4_apps_clk,
+	.freq_tbl = ftbl_gcc_sdcc2_4_apps_clk,
 	.current_freq = &rcg_dummy_freq,
 	.base = &virt_bases[GCC_BASE],
 	.c = {
@@ -1005,44 +987,6 @@ static struct rcg_clk usb_hs_system_clk_src = {
 		.ops = &clk_ops_rcg,
 		VDD_DIG_FMAX_MAP2(LOW, 37500000, NOMINAL, 75000000),
 		CLK_INIT(usb_hs_system_clk_src.c),
-	},
-};
-
-static struct clk_freq_tbl ftbl_gcc_usb_hsic_io_cal_clk[] = {
-	F(   9600000,         xo,    2,    0,     0),
-	F_END
-};
-
-static struct rcg_clk usb_hsic_io_cal_clk_src = {
-	.cmd_rcgr_reg = USB_HSIC_IO_CAL_CMD_RCGR,
-	.set_rate = set_rate_hid,
-	.freq_tbl = ftbl_gcc_usb_hsic_io_cal_clk,
-	.current_freq = &rcg_dummy_freq,
-	.base = &virt_bases[GCC_BASE],
-	.c = {
-		.dbg_name = "usb_hsic_io_cal_clk_src",
-		.ops = &clk_ops_rcg,
-		VDD_DIG_FMAX_MAP1(LOW, 9600000),
-		CLK_INIT(usb_hsic_io_cal_clk_src.c),
-	},
-};
-
-static struct clk_freq_tbl ftbl_gcc_usb_hsic_system_clk[] = {
-	F(  75000000,      gpll0,    8,    0,     0),
-	F_END
-};
-
-static struct rcg_clk usb_hsic_system_clk_src = {
-	.cmd_rcgr_reg = USB_HSIC_SYSTEM_CMD_RCGR,
-	.set_rate = set_rate_hid,
-	.freq_tbl = ftbl_gcc_usb_hsic_system_clk,
-	.current_freq = &rcg_dummy_freq,
-	.base = &virt_bases[GCC_BASE],
-	.c = {
-		.dbg_name = "usb_hsic_system_clk_src",
-		.ops = &clk_ops_rcg,
-		VDD_DIG_FMAX_MAP2(LOW, 60000000, NOMINAL, 75000000),
-		CLK_INIT(usb_hsic_system_clk_src.c),
 	},
 };
 
@@ -1163,18 +1107,6 @@ static struct branch_clk gcc_blsp1_qup4_spi_apps_clk = {
 		.parent = &blsp1_qup4_spi_apps_clk_src.c,
 		.ops = &clk_ops_branch,
 		CLK_INIT(gcc_blsp1_qup4_spi_apps_clk.c),
-	},
-};
-
-static struct branch_clk gcc_blsp1_qup6_i2c_apps_clk = {
-	.cbcr_reg = BLSP1_QUP6_I2C_APPS_CBCR,
-	.has_sibling = 0,
-	.base = &virt_bases[GCC_BASE],
-	.c = {
-		.dbg_name = "gcc_blsp1_qup6_i2c_apps_clk",
-		.parent = &blsp1_qup6_i2c_apps_clk_src.c,
-		.ops = &clk_ops_branch,
-		CLK_INIT(gcc_blsp1_qup6_i2c_apps_clk.c),
 	},
 };
 
@@ -1693,42 +1625,6 @@ static struct branch_clk gcc_usb_hs_system_clk = {
 	},
 };
 
-static struct branch_clk gcc_usb_hsic_ahb_clk = {
-	.cbcr_reg = USB_HSIC_AHB_CBCR,
-	.has_sibling = 1,
-	.base = &virt_bases[GCC_BASE],
-	.c = {
-		.dbg_name = "gcc_usb_hsic_ahb_clk",
-		.ops = &clk_ops_branch,
-		CLK_INIT(gcc_usb_hsic_ahb_clk.c),
-	},
-};
-
-static struct branch_clk gcc_usb_hsic_io_cal_clk = {
-	.cbcr_reg = USB_HSIC_IO_CAL_CBCR,
-	.has_sibling = 0,
-	.base = &virt_bases[GCC_BASE],
-	.c = {
-		.dbg_name = "gcc_usb_hsic_io_cal_clk",
-		.parent = &usb_hsic_io_cal_clk_src.c,
-		.ops = &clk_ops_branch,
-		CLK_INIT(gcc_usb_hsic_io_cal_clk.c),
-	},
-};
-
-static struct branch_clk gcc_usb_hsic_system_clk = {
-	.cbcr_reg = USB_HSIC_SYSTEM_CBCR,
-	.bcr_reg = USB_HS_HSIC_BCR,
-	.has_sibling = 0,
-	.base = &virt_bases[GCC_BASE],
-	.c = {
-		.dbg_name = "gcc_usb_hsic_system_clk",
-		.parent = &usb_hsic_system_clk_src.c,
-		.ops = &clk_ops_branch,
-		CLK_INIT(gcc_usb_hsic_system_clk.c),
-	},
-};
-
 static struct pll_vote_clk mmpll0 = {
 	.en_reg = (void __iomem *)MMSS_PLL_VOTE_APCS,
 	.en_mask = BIT(0),
@@ -2070,6 +1966,16 @@ static struct rcg_clk mmss_gp1_clk_src = {
 };
 
 static struct clk_freq_tbl ftbl_camss_mclk0_2_clk[] = {
+	F_MM(   4800000,         xo,    4,    0,     0),
+	F_MM(   6000000,      gpll0,   10,    1,    10),
+	F_MM(   8000000,      gpll0,   15,    1,     5),
+	F_MM(   9600000,         xo,    2,    0,     0),
+	F_MM(  16000000,      gpll0, 12.5,    1,     3),
+	F_MM(  19200000,         xo,    1,    0,     0),
+	F_MM(  24000000,      gpll0,    5,    1,     5),
+	F_MM(  32000000,     mmpll0,    5,    1,     5),
+	F_MM(  48000000,      gpll0, 12.5,    0,     0),
+	F_MM(  64000000,     mmpll0, 12.5,    0,     0),
 	F_MM(  66670000,      gpll0,    9,    0,     0),
 	F_END
 };
@@ -2904,7 +2810,7 @@ static struct branch_clk venus0_axi_clk = {
 
 static struct branch_clk venus0_ocmemnoc_clk = {
 	.cbcr_reg = VENUS0_OCMEMNOC_CBCR,
-	.has_sibling = 1,
+	.has_sibling = 0,
 	.base = &virt_bases[MMSS_BASE],
 	.c = {
 		.dbg_name = "venus0_ocmemnoc_clk",
@@ -2950,9 +2856,6 @@ static struct measure_mux_entry measure_mux[] = {
 
 	{&gcc_mss_cfg_ahb_clk.c,	GCC_BASE, 0x0030},
 	{&gcc_mss_q6_bimc_axi_clk.c,	GCC_BASE, 0x0031},
-	{&gcc_usb_hsic_ahb_clk.c,	GCC_BASE, 0x0058},
-	{&gcc_usb_hsic_system_clk.c,	GCC_BASE, 0x0059},
-	{&gcc_usb_hsic_io_cal_clk.c,	GCC_BASE, 0x005b},
 	{&gcc_usb_hs_system_clk.c,	GCC_BASE, 0x0060},
 	{&gcc_usb_hs_ahb_clk.c,	GCC_BASE, 0x0061},
 	{&gcc_usb2a_phy_sleep_clk.c,	GCC_BASE, 0x0063},
@@ -2979,7 +2882,6 @@ static struct measure_mux_entry measure_mux[] = {
 	{&gcc_blsp1_qup4_spi_apps_clk.c,	GCC_BASE, 0x0098},
 	{&gcc_blsp1_qup4_i2c_apps_clk.c,	GCC_BASE, 0x0099},
 	{&gcc_blsp1_uart4_apps_clk.c,	GCC_BASE, 0x009a},
-	{&gcc_blsp1_qup6_i2c_apps_clk.c,	GCC_BASE, 0x00a2},
 	{&gcc_blsp2_ahb_clk.c,	GCC_BASE, 0x00a8},
 	{&gcc_blsp2_qup1_spi_apps_clk.c,	GCC_BASE, 0x00aa},
 	{&gcc_blsp2_qup1_i2c_apps_clk.c,	GCC_BASE, 0x00ab},
@@ -3381,8 +3283,7 @@ static struct clk_lookup msm_clocks_samarium[] = {
 
 	/* measure */
 	CLK_LOOKUP("measure", measure_clk.c, "debug"),
-	/* NFC */
-	CLK_LOOKUP("ref_clk",            cxo_d1_a_pin.c, "3-000e"),
+
 	/* RPM and voter */
 	CLK_LOOKUP("xo", xo_otg_clk.c, "msm_otg"),
 	CLK_LOOKUP("xo", xo_pil_lpass_clk.c, "fe200000.qcom,lpass"),
@@ -3526,9 +3427,6 @@ static struct clk_lookup msm_clocks_samarium[] = {
 	CLK_LOOKUP("", gcc_blsp1_qup3_spi_apps_clk.c, ""),
 	CLK_LOOKUP("", gcc_blsp1_qup4_i2c_apps_clk.c, ""),
 	CLK_LOOKUP("", gcc_blsp1_qup4_spi_apps_clk.c, ""),
-	/* I2C Clocks nfc */
-	CLK_LOOKUP("iface_clk", gcc_blsp1_ahb_clk.c, "f9928000.i2c"),
-	CLK_LOOKUP("core_clk", gcc_blsp1_qup6_i2c_apps_clk.c, "f9928000.i2c"),
 	CLK_LOOKUP("", gcc_blsp1_uart1_apps_clk.c, ""),
 	CLK_LOOKUP("core_clk", gcc_blsp1_uart2_apps_clk.c, "f991e000.serial"),
 	CLK_LOOKUP("core_clk", gcc_blsp1_uart3_apps_clk.c, "f991f000.serial"),
@@ -3590,9 +3488,6 @@ static struct clk_lookup msm_clocks_samarium[] = {
 	CLK_LOOKUP("", gcc_usb2a_phy_sleep_clk.c, ""),
 	CLK_LOOKUP("iface_clk", gcc_usb_hs_ahb_clk.c, "msm_otg"),
 	CLK_LOOKUP("core_clk", gcc_usb_hs_system_clk.c, "msm_otg"),
-	CLK_LOOKUP("", gcc_usb_hsic_ahb_clk.c, ""),
-	CLK_LOOKUP("", gcc_usb_hsic_io_cal_clk.c, ""),
-	CLK_LOOKUP("", gcc_usb_hsic_system_clk.c, ""),
 
 	/* MM sensor clocks */
 	CLK_LOOKUP("cam_src_clk", mclk0_clk_src.c, "6e.qcom,camera"),
@@ -3761,6 +3656,7 @@ static struct clk_lookup msm_clocks_samarium[] = {
 	CLK_LOOKUP("core_clk", mdss_axi_clk.c, "fd928000.qcom,iommu"),
 	CLK_LOOKUP("iface_clk", camss_vfe_vfe_ahb_clk.c, "fda44000.qcom,iommu"),
 	CLK_LOOKUP("core_clk", camss_vfe_vfe_axi_clk.c, "fda44000.qcom,iommu"),
+	CLK_LOOKUP("alt_iface_clk", camss_ahb_clk.c,  "fda44000.qcom,iommu"),
 	CLK_LOOKUP("alt_core_clk", camss_top_ahb_clk.c, "fda44000.qcom,iommu"),
 	CLK_LOOKUP("iface_clk", venus0_ahb_clk.c, "fdc84000.qcom,iommu"),
 	CLK_LOOKUP("alt_core_clk", venus0_vcodec0_clk.c, "fdc84000.qcom,iommu"),
@@ -3769,6 +3665,7 @@ static struct clk_lookup msm_clocks_samarium[] = {
 					 "fda64000.qcom,iommu"),
 	CLK_LOOKUP("core_clk", camss_jpeg_jpeg_axi_clk.c,
 					 "fda64000.qcom,iommu"),
+	CLK_LOOKUP("alt_iface_clk", camss_ahb_clk.c,  "fda64000.qcom,iommu"),
 	CLK_LOOKUP("alt_core_clk", camss_top_ahb_clk.c, "fda64000.qcom,iommu"),
 };
 

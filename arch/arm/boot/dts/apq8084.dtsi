@@ -62,6 +62,7 @@
 /include/ "apq8084-pm.dtsi"
 /include/ "apq8084-bus.dtsi"
 /include/ "apq8084-iommu-domains.dtsi"
+/include/ "apq8084-camera.dtsi"
 
 &soc {
 	#address-cells = <1>;
@@ -1474,6 +1475,13 @@
 		hsic,strobe-gpio = <&msmgpio 134 0x00>;
 		hsic,data-gpio = <&msmgpio 135 0x00>;
 		qcom,vdd-voltage-level = <1 5 7>;
+
+		qcom,msm-bus,name = "hsic";
+		qcom,msm-bus,num-cases = <2>;
+		qcom,msm-bus,num-paths = <1>;
+		qcom,msm-bus,vectors-KBps =
+				<85 512 0 0>,
+			<85 512 40000 160000>;
 	};
 
 	qcom,ocmem@fdd00000 {
@@ -1627,6 +1635,11 @@
 		qcom,bark-time = <11000>;
 		qcom,pet-time = <10000>;
 		qcom,ipi-ping;
+	};
+
+	qcom,tz-log@fe805720 {
+		compatible = "qcom,tz-log";
+		reg = <0xfe805720 0x1000>;
 	};
 
 	qcom,msm-rng@f9bff000{

@@ -154,6 +154,8 @@ static DEFINE_VDD_REGULATORS(vdd_dig, VDD_DIG_NUM, 1, vdd_corner, NULL);
 #define USB30_MOCK_UTMI_CBCR                               (0x03D0)
 #define USB30_MASTER_CMD_RCGR                              (0x03D4)
 #define USB30_MOCK_UTMI_CMD_RCGR                           (0x03E8)
+#define USB3_PHY_BCR                                       (0x03FC)
+#define USB3_PHY_COM_BCR                                   (0x1B88)
 #define USB3_PIPE_CBCR                                     (0x1B90)
 #define USB3_AUX_CBCR                                      (0x1B94)
 #define USB3_PIPE_CMD_RCGR                                 (0x1B98)
@@ -243,6 +245,8 @@ static DEFINE_VDD_REGULATORS(vdd_dig, VDD_DIG_NUM, 1, vdd_corner, NULL);
 #define PCIE_AXI_MSTR_CBCR                                 (0x1C2C)
 #define PCIE_PIPE_CMD_RCGR                                 (0x1C14)
 #define PCIE_AUX_CMD_RCGR                                  (0x1E00)
+#define PCIE_GPIO_LDO_EN                                   (0x1E40)
+#define USB_SS_LDO_EN                                      (0x1E44)
 #define Q6SS_AHB_LFABIF_CBCR                               (0x22000)
 #define Q6SS_AHBM_CBCR                                     (0x22004)
 
@@ -883,6 +887,48 @@ DEFINE_CLK_RPM_SMD(bimc_clk, bimc_a_clk, RPM_MEM_CLK_TYPE, BIMC_ID, NULL);
 
 DEFINE_CLK_RPM_SMD(cnoc_clk, cnoc_a_clk, RPM_BUS_CLK_TYPE, CNOC_ID, NULL);
 
+static struct gate_clk gcc_pcie_gpio_ldo = {
+	.en_reg = PCIE_GPIO_LDO_EN,
+	.en_mask = BIT(0),
+	.base = &virt_bases[GCC_BASE],
+	.c = {
+		.dbg_name = "gcc_pcie_gpio_ldo",
+		.ops = &clk_ops_gate,
+		CLK_INIT(gcc_pcie_gpio_ldo.c),
+	},
+};
+
+static struct reset_clk gcc_usb3_phy_com_reset = {
+	.reset_reg = USB3_PHY_COM_BCR,
+	.base = &virt_bases[GCC_BASE],
+	.c = {
+		.dbg_name = "gcc_usb3_phy_com_reset",
+		.ops = &clk_ops_rst,
+		CLK_INIT(gcc_usb3_phy_com_reset.c),
+	},
+};
+
+static struct reset_clk gcc_usb3_phy_reset = {
+	.reset_reg = USB3_PHY_BCR,
+	.base = &virt_bases[GCC_BASE],
+	.c = {
+		.dbg_name = "gcc_usb3_phy_reset",
+		.ops = &clk_ops_rst,
+		CLK_INIT(gcc_usb3_phy_reset.c),
+	},
+};
+
+static struct gate_clk gcc_usb_ss_ldo = {
+	.en_reg = USB_SS_LDO_EN,
+	.en_mask = BIT(0),
+	.base = &virt_bases[GCC_BASE],
+	.c = {
+		.dbg_name = "gcc_usb_ss_ldo",
+		.ops = &clk_ops_gate,
+		CLK_INIT(gcc_usb_ss_ldo.c),
+	},
+};
+
 DEFINE_CLK_RPM_SMD(ipa_clk, ipa_a_clk, RPM_IPA_CLK_TYPE, IPA_ID, NULL);
 
 DEFINE_CLK_RPM_SMD(pnoc_clk, pnoc_a_clk, RPM_BUS_CLK_TYPE, PNOC_ID, NULL);
@@ -1402,7 +1448,7 @@ static struct branch_clk gcc_usb3_pipe_clk = {
 static struct branch_clk gcc_usb30_master_clk = {
 	.cbcr_reg = USB30_MASTER_CBCR,
 	.bcr_reg = USB_30_BCR,
-	.has_sibling = 1,
+	.has_sibling = 0,
 	.base = &virt_bases[GCC_BASE],
 	.c = {
 		.dbg_name = "gcc_usb30_master_clk",
@@ -2027,6 +2073,10 @@ static struct clk_lookup msm_clocks_krypton[] = {
 	CLK_LOOKUP("",	gcc_usb30_sleep_clk.c,	""),
 
 	CLK_LOOKUP("",	ce1_clk_src.c,	""),
+	CLK_LOOKUP("",  gcc_usb3_phy_com_reset.c,       ""),
+	CLK_LOOKUP("",  gcc_usb3_phy_reset.c,   ""),
+	CLK_LOOKUP("",  gcc_pcie_gpio_ldo.c,   ""),
+	CLK_LOOKUP("",  gcc_usb_ss_ldo.c,   ""),
 };
 
 static void __init reg_init(void)
