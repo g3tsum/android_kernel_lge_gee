@@ -1906,6 +1906,11 @@ static struct clk_lookup msm_clocks_krypton[] = {
 
 	/* IPA */
 	CLK_LOOKUP("core_clk",        ipa_clk.c, "fd4c0000.qcom,ipa"),
+	CLK_DUMMY("core_src_clk", ipa_clk_src.c, "fd4c0000.qcom,ipa", OFF),
+	CLK_DUMMY("bus_clk",  gcc_sys_noc_ipa_axi_clk.c, "fd4c0000.qcom,ipa", OFF),
+	CLK_DUMMY("iface_clk",  gcc_ipa_cnoc_clk.c, "fd4c0000.qcom,ipa", OFF),
+	CLK_DUMMY("inactivity_clk",  gcc_ipa_sleep_clk.c, "fd4c0000.qcom,ipa", OFF),
+
 
 	CLK_LOOKUP("core_clk", gcc_blsp1_qup1_i2c_apps_clk.c, ""),
 	CLK_LOOKUP("core_clk", gcc_blsp1_qup1_spi_apps_clk.c, ""),
@@ -2065,12 +2070,15 @@ static struct clk_lookup msm_clocks_krypton[] = {
 	CLK_LOOKUP("",	gcc_pcie_cfg_ahb_clk.c,	""),
 	CLK_LOOKUP("",	gcc_pcie_pipe_clk.c,	""),
 	CLK_LOOKUP("",	gcc_pcie_sleep_clk.c,	""),
-	CLK_LOOKUP("",	gcc_sys_noc_usb3_axi_clk.c,	""),
+	CLK_LOOKUP("iface_clk",	gcc_sys_noc_usb3_axi_clk.c,
+		   "f9200000.qcom,ssusb"),
 	CLK_LOOKUP("",	gcc_usb3_aux_clk.c,	""),
 	CLK_LOOKUP("",	gcc_usb3_pipe_clk.c,	""),
-	CLK_LOOKUP("",	gcc_usb30_master_clk.c,	""),
-	CLK_LOOKUP("",	gcc_usb30_mock_utmi_clk.c,	""),
-	CLK_LOOKUP("",	gcc_usb30_sleep_clk.c,	""),
+	CLK_LOOKUP("core_clk",	gcc_usb30_master_clk.c,
+		   "f9200000.qcom,ssusb"),
+	CLK_LOOKUP("utmi_clk",	gcc_usb30_mock_utmi_clk.c,
+		   "f9200000.qcom,ssusb"),
+	CLK_LOOKUP("sleep_clk",	gcc_usb30_sleep_clk.c,	"f9200000.qcom,ssusb"),
 
 	CLK_LOOKUP("",	ce1_clk_src.c,	""),
 	CLK_LOOKUP("",  gcc_usb3_phy_com_reset.c,       ""),

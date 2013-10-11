@@ -84,6 +84,10 @@
 #define CHG_STAT_ACTIVE_HIGH_BIT	BIT(1)
 #define CHG_STAT_IRQ_ONLY_BIT		BIT(4)
 
+#define CHG_19_REG			0x19
+#define BATT_MISSING_ALGO_BIT		BIT(2)
+#define BATT_MISSING_THERM_BIT		BIT(1)
+
 #define VFLOAT_REG			0x1E
 
 /* Irq Config registers */
@@ -210,6 +214,7 @@ struct smb135x_chg {
 	bool				usb_present;
 	bool				dc_present;
 
+	bool				bmd_algo_disabled;
 	int				vfloat_mv;
 	int				safety_time;
 	int				resume_delta_mv;
@@ -1088,7 +1093,7 @@ static int cold_soft_handler(struct smb135x_chg *chip, u8 rt_stat)
 static int battery_missing_handler(struct smb135x_chg *chip, u8 rt_stat)
 {
 	pr_debug("rt_stat = 0x%02x\n", rt_stat);
-	chip->batt_present = !!rt_stat;
+	chip->batt_present = !rt_stat;
 	return 0;
 }
 static int vbat_low_handler(struct smb135x_chg *chip, u8 rt_stat)
@@ -1828,6 +1833,17 @@ static int smb135x_hw_init(struct smb135x_chg *chip)
 		}
 	}
 
+	/* battery missing detection */
+	rc = smb135x_masked_write(chip, CHG_19_REG,
+			BATT_MISSING_ALGO_BIT | BATT_MISSING_THERM_BIT,
+			chip->bmd_algo_disabled ? BATT_MISSING_THERM_BIT :
+						BATT_MISSING_ALGO_BIT);
+	if (rc < 0) {
+		dev_err(chip->dev, "Couldn't set batt_missing config = %d\n",
+									rc);
+		return rc;
+	}
+
 	smb135x_charging(chip, chip->chg_enabled);
 
 	/* interrupt enabling - active low */
@@ -1968,6 +1984,9 @@ static int smb_parse_dt(struct smb135x_chg *chip)
 		return -EINVAL;
 	}
 
+	chip->bmd_algo_disabled = of_property_read_bool(node,
+						"qcom,bmd-algo-disabled");
+
 	chip->dc_psy_type = -EINVAL;
 	dc_psy_type = of_get_property(node, "qcom,dc-psy-type", NULL);
 	if (dc_psy_type) {
@@ -2015,7 +2034,7 @@ static int smb135x_charger_probe(struct i2c_client *client,
 	int rc;
 	struct smb135x_chg *chip;
 	struct power_supply *usb_psy;
-	u8 version;
+	u8 version, reg = 0;
 
 	usb_psy = power_supply_get_by_name("usb");
 	if (!usb_psy) {
@@ -2032,6 +2051,13 @@ static int smb135x_charger_probe(struct i2c_client *client,
 	chip->client = client;
 	chip->dev = &client->dev;
 	chip->usb_psy = usb_psy;
+
+	/* probe the device to check if its actually connected */
+	rc = smb135x_read(chip, CFG_4_REG, &reg);
+	if (rc) {
+		pr_err("Failed to detect SMB135x, device may be absent\n");
+		return -ENODEV;
+	}
 
 	rc = smb_parse_dt(chip);
 	if (rc < 0) {

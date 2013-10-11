@@ -23,6 +23,7 @@
 #include "adreno_a4xx.h"
 #include "a4xx_reg.h"
 #include "adreno_a3xx_trace.h"
+#include "adreno_cp_parser.h"
 
 /*
  * Set of registers to dump for A3XX on postmortem and snapshot.
@@ -90,6 +91,87 @@ const unsigned int a330_registers[] = {
 };
 
 const unsigned int a330_registers_count = ARRAY_SIZE(a330_registers) / 2;
+
+/*
+ * Define registers for a3xx that contain addresses used by the
+ * cp parser logic
+ */
+const unsigned int a3xx_cp_addr_regs[ADRENO_CP_ADDR_MAX] = {
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_ADDRESS_0,
+				A3XX_VSC_PIPE_DATA_ADDRESS_0),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_LENGTH_0,
+				A3XX_VSC_PIPE_DATA_LENGTH_0),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_ADDRESS_1,
+				A3XX_VSC_PIPE_DATA_ADDRESS_1),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_LENGTH_1,
+				A3XX_VSC_PIPE_DATA_LENGTH_1),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_ADDRESS_2,
+				A3XX_VSC_PIPE_DATA_ADDRESS_2),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_LENGTH_2,
+				A3XX_VSC_PIPE_DATA_LENGTH_2),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_ADDRESS_3,
+				A3XX_VSC_PIPE_DATA_ADDRESS_3),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_LENGTH_3,
+				A3XX_VSC_PIPE_DATA_LENGTH_3),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_ADDRESS_4,
+				A3XX_VSC_PIPE_DATA_ADDRESS_4),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_LENGTH_4,
+				A3XX_VSC_PIPE_DATA_LENGTH_4),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_ADDRESS_5,
+				A3XX_VSC_PIPE_DATA_ADDRESS_5),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_LENGTH_5,
+				A3XX_VSC_PIPE_DATA_LENGTH_5),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_ADDRESS_6,
+				A3XX_VSC_PIPE_DATA_ADDRESS_6),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_LENGTH_6,
+				A3XX_VSC_PIPE_DATA_LENGTH_6),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_ADDRESS_7,
+				A3XX_VSC_PIPE_DATA_ADDRESS_7),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_PIPE_DATA_LENGTH_7,
+				A3XX_VSC_PIPE_DATA_LENGTH_7),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_0,
+				A3XX_VFD_FETCH_INSTR_1_0),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_1,
+				A3XX_VFD_FETCH_INSTR_1_1),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_2,
+				A3XX_VFD_FETCH_INSTR_1_2),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_3,
+				A3XX_VFD_FETCH_INSTR_1_3),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_4,
+				A3XX_VFD_FETCH_INSTR_1_4),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_5,
+				A3XX_VFD_FETCH_INSTR_1_5),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_6,
+				A3XX_VFD_FETCH_INSTR_1_6),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_7,
+				A3XX_VFD_FETCH_INSTR_1_7),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_8,
+				A3XX_VFD_FETCH_INSTR_1_8),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_9,
+				A3XX_VFD_FETCH_INSTR_1_9),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_10,
+				A3XX_VFD_FETCH_INSTR_1_A),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_11,
+				A3XX_VFD_FETCH_INSTR_1_B),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_12,
+				A3XX_VFD_FETCH_INSTR_1_C),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_13,
+				A3XX_VFD_FETCH_INSTR_1_D),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_14,
+				A3XX_VFD_FETCH_INSTR_1_E),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VFD_FETCH_INSTR_1_15,
+				A3XX_VFD_FETCH_INSTR_1_F),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_VSC_SIZE_ADDRESS,
+				A3XX_VSC_SIZE_ADDRESS),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_SP_VS_PVT_MEM_ADDR,
+				A3XX_SP_VS_PVT_MEM_ADDR_REG),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_SP_FS_PVT_MEM_ADDR,
+				A3XX_SP_FS_PVT_MEM_ADDR_REG),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_SP_VS_OBJ_START_REG,
+				A3XX_SP_VS_OBJ_START_REG),
+	ADRENO_REG_DEFINE(ADRENO_CP_ADDR_SP_FS_OBJ_START_REG,
+				A3XX_SP_FS_OBJ_START_REG),
+};
 
 /* Simple macro to facilitate bit setting in the gmem2sys and sys2gmem
  * functions.
@@ -3127,6 +3209,20 @@ done:
 	adreno_dispatcher_irq_fault(device);
 }
 
+static void a3xx_gpu_idle_callback(struct adreno_device *adreno_dev,
+					int irq)
+{
+	struct kgsl_device *device = &adreno_dev->dev;
+
+	if (device->requested_state == KGSL_STATE_NONE) {
+		kgsl_pwrctrl_request_state(device, KGSL_STATE_NAP);
+		queue_work(device->work_queue, &device->idle_check_ws);
+	}
+
+	mod_timer_pending(&device->idle_timer,
+		jiffies + device->pwrctrl.interval_timeout);
+}
+
 /*
  * a3xx_cp_callback() - CP interrupt handler
  * @adreno_dev: Adreno device pointer
@@ -3139,7 +3235,6 @@ static void a3xx_cp_callback(struct adreno_device *adreno_dev, int irq)
 {
 	struct kgsl_device *device = &adreno_dev->dev;
 
-	device->pwrctrl.irq_last = 1;
 	queue_work(device->work_queue, &device->ts_expired_ws);
 	adreno_dispatcher_schedule(device);
 }
@@ -3463,7 +3558,8 @@ uint64_t a3xx_perfcounter_read(struct adreno_device *adreno_dev,
 #define A3XX_IRQ_CALLBACK(_c) { .func = _c }
 
 #define A3XX_INT_MASK \
-	((1 << A3XX_INT_RBBM_AHB_ERROR) |        \
+	((1 << A3XX_INT_RBBM_GPU_IDLE) |         \
+	 (1 << A3XX_INT_RBBM_AHB_ERROR) |        \
 	 (1 << A3XX_INT_RBBM_ATB_BUS_OVERFLOW) | \
 	 (1 << A3XX_INT_CP_T0_PACKET_IN_IB) |    \
 	 (1 << A3XX_INT_CP_OPCODE_ERROR) |       \
@@ -3479,7 +3575,7 @@ uint64_t a3xx_perfcounter_read(struct adreno_device *adreno_dev,
 static struct {
 	void (*func)(struct adreno_device *, int);
 } a3xx_irq_funcs[] = {
-	A3XX_IRQ_CALLBACK(NULL),               /* 0 - RBBM_GPU_IDLE */
+	A3XX_IRQ_CALLBACK(a3xx_gpu_idle_callback), /* 0 - RBBM_GPU_IDLE */
 	A3XX_IRQ_CALLBACK(a3xx_err_callback),  /* 1 - RBBM_AHB_ERROR */
 	A3XX_IRQ_CALLBACK(a3xx_err_callback),  /* 2 - RBBM_REG_TIMEOUT */
 	A3XX_IRQ_CALLBACK(a3xx_err_callback),  /* 3 - RBBM_ME_MS_TIMEOUT */

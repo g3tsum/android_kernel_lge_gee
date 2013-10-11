@@ -25,17 +25,6 @@
 	};
 };
 
-&pma8084_mpps {
-	mpp@a200 { /* MPP 3 */
-		/* ext_5v enable */
-		qcom,mode = <1>;
-		qcom,invert = <0>;
-		qcom,vin-sel = <2>;
-		qcom,src-sel = <0>;
-		qcom,master-en = <1>;
-	};
-};
-
 &soc {
 	sound {
 		qcom,model = "apq8084-taiko-cdp-snd-card";
@@ -83,6 +72,14 @@
 		qcom,panel-maxx = <1079>;
 		qcom,panel-maxy = <2084>;
 		qcom,key-codes = <158 139 102 217>;
+	};
+
+	spi_eth_vreg: spi_eth_vreg {
+		compatible = "regulator-fixed";
+		regulator-name = "spi_eth_vreg";
+		startup-delay-us = <60>;
+		enable-active-high;
+		gpio = <&msmgpio 39 0>;
 	};
 };
 
@@ -446,6 +443,12 @@
 		qcom,cdc-micbias1-ext-cap;
 		qcom,cdc-micbias3-ext-cap;
 		qcom,cdc-micbias4-ext-cap;
+
+		cdc-vdd-spkdrv-supply = <&hdmi_vreg>;
+		qcom,cdc-vdd-spkdrv-voltage = <5000000 5000000>;
+		qcom,cdc-vdd-spkdrv-current = <1250000>;
+
+		qcom,cdc-on-demand-supplies = "cdc-vdd-spkdrv";
 	};
 };
 

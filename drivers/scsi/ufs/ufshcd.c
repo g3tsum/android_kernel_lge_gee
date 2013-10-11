@@ -100,6 +100,19 @@ print_hex_dump(KERN_ERR, prefix_str, DUMP_PREFIX_OFFSET, 16, 4, buf, len, false)
 /* Interrupt aggregation default timeout, unit: 40us */
 #define INT_AGGR_DEF_TO	0x02
 
+static u32 ufs_query_desc_max_size[] = {
+	QUERY_DESC_DEVICE_MAX_SIZE,
+	QUERY_DESC_CONFIGURAION_MAX_SIZE,
+	QUERY_DESC_UNIT_MAX_SIZE,
+	QUERY_DESC_RFU_MAX_SIZE,
+	QUERY_DESC_INTERCONNECT_MAX_SIZE,
+	QUERY_DESC_STRING_MAX_SIZE,
+	QUERY_DESC_RFU_MAX_SIZE,
+	QUERY_DESC_GEOMETRY_MAZ_SIZE,
+	QUERY_DESC_POWER_MAX_SIZE,
+	QUERY_DESC_RFU_MAX_SIZE,
+};
+
 enum {
 	UFSHCD_MAX_CHANNEL	= 0,
 	UFSHCD_MAX_ID		= 1,
@@ -178,10 +191,14 @@ static void ufshcd_tmc_handler(struct ufs_hba *hba);
 static void ufshcd_async_scan(void *data, async_cookie_t cookie);
 static int ufshcd_reset_and_restore(struct ufs_hba *hba);
 static int ufshcd_clear_tm_cmd(struct ufs_hba *hba, int tag);
-static int ufshcd_read_sdev_qdepth(struct ufs_hba *hba,
-					struct scsi_device *sdev);
 static void ufshcd_hba_exit(struct ufs_hba *hba);
 static int ufshcd_probe_hba(struct ufs_hba *hba);
+static inline int ufshcd_read_unit_desc_param(struct ufs_hba *hba,
+					      int lun,
+					      enum unit_desc_param param_offset,
+					      u8 *param_read_buf,
+					      u32 param_size);
+
 static inline void ufshcd_enable_irq(struct ufs_hba *hba)
 {
 	if (!hba->is_irq_enabled) {
@@ -1572,6 +1589,116 @@ out:
 }
 
 /**
+ * ufshcd_read_desc_param - read the specified descriptor parameter
+ * @hba: Pointer to adapter instance
+ * @desc_id: descriptor idn value
+ * @desc_index: descriptor index
+ * @param_offset: offset of the parameter to read
+ * @param_read_buf: pointer to buffer where parameter would be read
+ * @param_size: sizeof(param_read_buf)
+ *
+ * Return 0 in case of success, non-zero otherwise
+ */
+static int ufshcd_read_desc_param(struct ufs_hba *hba,
+				  enum desc_idn desc_id,
+				  int desc_index,
+				  u32 param_offset,
+				  u8 *param_read_buf,
+				  u32 param_size)
+{
+	int ret;
+	u8 *desc_buf;
+	u32 buff_len;
+	bool is_kmalloc = true;
+
+	/* safety checks */
+	if (desc_id >= QUERY_DESC_IDN_MAX)
+		return -EINVAL;
+
+	buff_len = ufs_query_desc_max_size[desc_id];
+	if ((param_offset + param_size) > buff_len)
+		return -EINVAL;
+
+	if (!param_offset && (param_size == buff_len)) {
+		/* memory space already available to hold full descriptor */
+		desc_buf = param_read_buf;
+		is_kmalloc = false;
+	} else {
+		/* allocate memory to hold full descriptor */
+		desc_buf = kmalloc(buff_len, GFP_KERNEL);
+		if (!desc_buf)
+			return -ENOMEM;
+	}
+
+	ret = ufshcd_query_descriptor(hba, UPIU_QUERY_OPCODE_READ_DESC,
+				      desc_id, desc_index, 0, desc_buf,
+				      &buff_len);
+
+	if (ret || (buff_len < ufs_query_desc_max_size[desc_id]) ||
+	    (desc_buf[QUERY_DESC_LENGTH_OFFSET] !=
+	     ufs_query_desc_max_size[desc_id])
+	    || (desc_buf[QUERY_DESC_DESC_TYPE_OFFSET] != desc_id)) {
+		dev_err(hba->dev, "%s: Failed reading descriptor. desc_id %d param_offset %d buff_len %d ret %d",
+			__func__, desc_id, param_offset, buff_len, ret);
+		if (!ret)
+			ret = -EINVAL;
+
+		goto out;
+	}
+
+	if (is_kmalloc)
+		memcpy(param_read_buf, &desc_buf[param_offset], param_size);
+out:
+	if (is_kmalloc)
+		kfree(desc_buf);
+	return ret;
+}
+
+static inline int ufshcd_read_desc(struct ufs_hba *hba,
+				   enum desc_idn desc_id,
+				   int desc_index,
+				   u8 *buf,
+				   u32 size)
+{
+	return ufshcd_read_desc_param(hba, desc_id, desc_index, 0, buf, size);
+}
+
+static inline int ufshcd_read_power_desc(struct ufs_hba *hba,
+					 u8 *buf,
+					 u32 size)
+{
+	return ufshcd_read_desc(hba, QUERY_DESC_IDN_POWER, 0, buf, size);
+}
+
+/**
+ * ufshcd_read_unit_desc_param - read the specified unit descriptor parameter
+ * @hba: Pointer to adapter instance
+ * @lun: lun id
+ * @param_offset: offset of the parameter to read
+ * @param_read_buf: pointer to buffer where parameter would be read
+ * @param_size: sizeof(param_read_buf)
+ *
+ * Return 0 in case of success, non-zero otherwise
+ */
+static inline int ufshcd_read_unit_desc_param(struct ufs_hba *hba,
+					      int lun,
+					      enum unit_desc_param param_offset,
+					      u8 *param_read_buf,
+					      u32 param_size)
+{
+	/*
+	 * Unit descriptors are only available for general purpose LUs (LUN id
+	 * from 0 to 7) and RPMB Well known LU.
+	 */
+	if (lun != UFS_UPIU_RPMB_WLUN && (lun >= UFS_UPIU_MAX_GENERAL_LUN))
+		return -EOPNOTSUPP;
+
+	return ufshcd_read_desc_param(hba, QUERY_DESC_IDN_UNIT, lun,
+				      param_offset, param_read_buf, param_size);
+}
+
+
+/**
  * ufshcd_memory_alloc - allocate memory for host memory space data structures
  * @hba: per adapter instance
  *
@@ -1926,6 +2053,9 @@ static int ufshcd_config_max_pwr_mode(struct ufs_hba *hba)
 	u32 lanes[] = {1, 1};
 	u32 gear[] = {1, 1};
 	u8 pwr[] = {FASTAUTO_MODE, FASTAUTO_MODE};
+	struct ufs_pa_layer_attr dev_max_params = { 0 };
+	struct ufs_pa_layer_attr dev_required_params = { 0 };
+	u32 hs_rate = PA_HS_MODE_B;
 	int ret;
 
 	if (hba->quirks & UFSHCD_QUIRK_BROKEN_PWR_MODE_CHANGE)
@@ -1953,6 +2083,30 @@ static int ufshcd_config_max_pwr_mode(struct ufs_hba *hba)
 		pwr[TX] = SLOWAUTO_MODE;
 	}
 
+	if (hba->vops->pwr_change_notify) {
+
+		/* storing the device max capabilities */
+		dev_max_params.gear_rx = gear[RX];
+		dev_max_params.gear_tx = gear[TX];
+		dev_max_params.lane_rx = lanes[RX];
+		dev_max_params.lane_tx = lanes[TX];
+		dev_max_params.pwr_rx = pwr[RX];
+		dev_max_params.pwr_tx = pwr[TX];
+		dev_max_params.hs_rate = hs_rate;
+
+		hba->vops->pwr_change_notify(hba,
+		     PRE_CHANGE, &dev_max_params, &dev_required_params);
+
+		/* restoring the min-max preferences to configure the device */
+		gear[RX] = dev_required_params.gear_rx;
+		gear[TX] = dev_required_params.gear_tx;
+		lanes[RX] = dev_required_params.lane_rx;
+		lanes[TX] = dev_required_params.lane_tx;
+		pwr[RX] = dev_required_params.pwr_rx;
+		pwr[TX] = dev_required_params.pwr_tx;
+		hs_rate = dev_required_params.hs_rate;
+	}
+
 	/*
 	 * Configure attributes for power mode change with below.
 	 * - PA_RXGEAR, PA_ACTIVERXDATALANES, PA_RXTERMINATION,
@@ -1961,21 +2115,32 @@ static int ufshcd_config_max_pwr_mode(struct ufs_hba *hba)
 	 */
 	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_RXGEAR), gear[RX]);
 	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_ACTIVERXDATALANES), lanes[RX]);
-	if (pwr[RX] == FASTAUTO_MODE)
+	if (pwr[RX] == FASTAUTO_MODE || pwr[RX] == FAST_MODE)
 		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_RXTERMINATION), TRUE);
+	else
+		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_RXTERMINATION), FALSE);
 
 	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_TXGEAR), gear[TX]);
 	ufshcd_dme_set(hba, UIC_ARG_MIB(PA_ACTIVETXDATALANES), lanes[TX]);
-	if (pwr[TX] == FASTAUTO_MODE)
+	if (pwr[TX] == FASTAUTO_MODE || pwr[TX] == FAST_MODE)
 		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_TXTERMINATION), TRUE);
+	else
+		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_TXTERMINATION), FALSE);
 
-	if (pwr[RX] == FASTAUTO_MODE || pwr[TX] == FASTAUTO_MODE)
-		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_HSSERIES), PA_HS_MODE_B);
+	if ((pwr[RX] == FASTAUTO_MODE || pwr[TX] == FASTAUTO_MODE ||
+	     pwr[RX] == FAST_MODE || pwr[TX] == FAST_MODE) &&
+	     hs_rate == PA_HS_MODE_B)
+		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_HSSERIES), hs_rate);
 
 	ret = ufshcd_uic_change_pwr_mode(hba, pwr[RX] << 4 | pwr[TX]);
-	if (ret)
+	if (ret) {
 		dev_err(hba->dev,
 			"pwr_mode: power mode change failed %d\n", ret);
+	} else {
+		if (hba->vops->pwr_change_notify)
+			hba->vops->pwr_change_notify(hba,
+				POST_CHANGE, NULL, &dev_required_params);
+	}
 
 	return ret;
 }
@@ -2257,7 +2422,8 @@ static int ufshcd_verify_dev_init(struct ufs_hba *hba)
 static int ufshcd_slave_alloc(struct scsi_device *sdev)
 {
 	struct ufs_hba *hba;
-	int lun_qdepth;
+	u8 lun_qdepth;
+	int ret;
 
 	hba = shost_priv(sdev->host);
 	sdev->tagged_supported = 1;
@@ -2275,8 +2441,12 @@ static int ufshcd_slave_alloc(struct scsi_device *sdev)
 	/* try read capactiy (10) first as rc_16 is optional in UFS spec. */
 	sdev->try_rc_10_first = 1;
 
-	lun_qdepth = ufshcd_read_sdev_qdepth(hba, sdev);
-	if (lun_qdepth <= 0)
+	ret = ufshcd_read_unit_desc_param(hba,
+					  ufshcd_scsi_to_upiu_lun(sdev->lun),
+					  UNIT_DESC_PARAM_LU_Q_DEPTH,
+					  &lun_qdepth,
+					  sizeof(lun_qdepth));
+	if (!ret || !lun_qdepth)
 		/* eventually, we can figure out the real queue depth */
 		lun_qdepth = hba->nutrs;
 	else
@@ -3433,38 +3603,6 @@ static int ufshcd_eh_host_reset_handler(struct scsi_cmnd *cmd)
 }
 
 /**
- * ufshcd_read_sdev_qdepth - read the lun command queue depth
- * @hba: Pointer to adapter instance
- * @sdev: pointer to SCSI device
- *
- * Return in case of success the lun's queue depth else error.
- */
-static int ufshcd_read_sdev_qdepth(struct ufs_hba *hba,
-				struct scsi_device *sdev)
-{
-	int ret;
-	int buff_len = UNIT_DESC_MAX_SIZE;
-	u8 desc_buf[UNIT_DESC_MAX_SIZE];
-
-	ret = ufshcd_query_descriptor(hba, UPIU_QUERY_OPCODE_READ_DESC,
-			QUERY_DESC_IDN_UNIT, sdev->lun, 0, desc_buf, &buff_len);
-
-	if (ret || (buff_len < UNIT_DESC_PARAM_LU_Q_DEPTH)) {
-		dev_err(hba->dev,
-			"%s:Failed reading unit descriptor. len = %d ret = %d"
-			, __func__, buff_len, ret);
-		if (!ret)
-			ret = -EINVAL;
-
-		goto out;
-	}
-
-	ret = desc_buf[UNIT_DESC_PARAM_LU_Q_DEPTH] & 0xFF;
-out:
-	return ret;
-}
-
-/**
  * ufshcd_get_max_icc_level - calculate the ICC level
  * @sup_curr_uA: max. current supported by the regulator
  * @start_scan: row at the desc table to start scan from
@@ -3551,13 +3689,12 @@ static void ufshcd_init_icc_levels(struct ufs_hba *hba)
 {
 	u32 icc_level;
 	int ret;
-	int buff_len = POWER_DESC_MAX_SIZE;
-	u8 desc_buf[POWER_DESC_MAX_SIZE];
+	int buff_len = QUERY_DESC_POWER_MAX_SIZE;
+	u8 desc_buf[QUERY_DESC_POWER_MAX_SIZE];
 
-	ret = ufshcd_query_descriptor(hba, UPIU_QUERY_OPCODE_READ_DESC,
-			QUERY_DESC_IDN_POWER, 0, 0, desc_buf, &buff_len);
+	ret = ufshcd_read_power_desc(hba, desc_buf, buff_len);
 
-	if (ret || (buff_len < POWER_DESC_MAX_SIZE)) {
+	if (ret) {
 		dev_err(hba->dev,
 			"%s: Failed reading power descriptor.len = %d ret = %d",
 			__func__, buff_len, ret);
@@ -3806,7 +3943,8 @@ out:
 	return ret;
 }
 
-static int ufshcd_setup_clocks(struct ufs_hba *hba, bool on)
+static int __ufshcd_setup_clocks(struct ufs_hba *hba, bool on,
+				 bool skip_ref_clk)
 {
 	int ret = 0;
 	struct ufs_clk_info *clki;
@@ -3817,6 +3955,9 @@ static int ufshcd_setup_clocks(struct ufs_hba *hba, bool on)
 
 	list_for_each_entry(clki, head, list) {
 		if (!IS_ERR_OR_NULL(clki->clk)) {
+			if (skip_ref_clk && !strcmp(clki->name, "ref_clk"))
+				continue;
+
 			if (on && !clki->enabled) {
 				ret = clk_prepare_enable(clki->clk);
 				if (ret) {
@@ -3840,6 +3981,11 @@ out:
 		}
 	}
 	return ret;
+}
+
+static int ufshcd_setup_clocks(struct ufs_hba *hba, bool on)
+{
+	return  __ufshcd_setup_clocks(hba, on, false);
 }
 
 static int ufshcd_init_clocks(struct ufs_hba *hba)
@@ -4160,8 +4306,11 @@ disable_clks:
 			goto set_link_active;
 	}
 
-	/* freeze the hardware by turning off the clocks */
-	ufshcd_setup_clocks(hba, false);
+	if (!ufshcd_is_link_active(hba))
+		ufshcd_setup_clocks(hba, false);
+	else
+		/* If link is active, device ref_clk can't be switched off */
+		__ufshcd_setup_clocks(hba, false, true);
 
 	/*
 	 * Disable the host irq as host controller as there won't be any
