@@ -90,6 +90,8 @@ source "drivers/media/Kconfig"
 
 source "drivers/video/Kconfig"
 
+source "drivers/gpu/Kconfig"
+
 source "sound/Kconfig"
 
 source "drivers/hid/Kconfig"

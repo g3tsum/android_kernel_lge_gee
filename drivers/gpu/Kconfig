@@ -1,0 +1,12 @@
+config COMMON_ION
+	tristate "Common ION (For non QCOM)"
+	default n
+	depends on !ARCH_MSM
+	---help---
+	  Common ION driver for devices that are not MSM.
+
+config MSM_ION
+	tristate "MSM ION"
+	default n
+	depends on ARCH_MSM
+	  ION driver for MSM
