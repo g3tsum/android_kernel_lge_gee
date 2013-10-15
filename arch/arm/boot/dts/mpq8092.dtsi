@@ -31,6 +31,7 @@
 /include/ "msm-gdsc.dtsi"
 /include/ "mpq8092-ion.dtsi"
 /include/ "apq8084-smp2p.dtsi"
+/include/ "mpq8092-pinctrl.dtsi"
 
 &soc {
 	#address-cells = <1>;
@@ -147,24 +148,17 @@
 		qcom,master-id = <86>;
 	};
 
-	serial@f991f000 {
+	blsp1_uart2: serial@f991f000 {
 		compatible = "qcom,msm-lsuart-v14";
 		reg = <0xf991f000 0x1000>;
 		interrupts = <0 109 0>;
 		status = "disabled";
 	};
 
-	serial@f9922000 {
+	blsp1_uart5: serial@f9922000 {
 		compatible = "qcom,msm-lsuart-v14";
 		reg = <0xf9922000 0x1000>;
 		interrupts = <0 112 0>;
-		status = "disabled";
-	};
-
-	serial@f995e000 {
-		compatible = "qcom,msm-lsuart-v14";
-		reg = <0xf995e000 0x1000>;
-		interrupts = <0 114 0>;
 		status = "disabled";
 	};
 
@@ -323,7 +317,8 @@
 
 	memory_hole: qcom,msm-mem-hole {
 		compatible = "qcom,msm-mem-hole";
-		qcom,memblock-remove = <0x0d200000 0x02c00000>; /* Address and Size of Hole */
+		qcom,memblock-remove = <0x0d400000 0x02400000
+					0x0FA00000 0x00600000>;
 	};
 
 	qcom,ipc-spinlock@fd484000 {
@@ -409,6 +404,23 @@
 		compatible = "qcom,tz-log";
 		reg = <0xfe805720 0x1000>;
 	};
+
+	rpm_bus: qcom,rpm-smd {
+			compatible = "qcom,rpm-smd";
+			rpm-channel-name = "rpm_requests";
+			rpm-channel-type = <15>; /* SMD_APPS_RPM */
+			rpm-standalone; /* TODO: remove this after bring up */
+	};
+
+	qcom,venus@fdce0000 {
+		compatible = "qcom,pil-venus";
+		reg = <0xfdce0000 0x4000>,
+		      <0xfdc80000 0x400>;
+		reg-names = "wrapper_base", "vbif_base";
+		vdd-supply = <&gdsc_venus>;
+
+		qcom,firmware-name = "venus";
+	};
 };
 
 &gdsc_venus {
@@ -447,5 +459,6 @@
 	status = "ok";
 };
 
+/include/ "msm-pma8084-rpm-regulator.dtsi"
 /include/ "msm-pma8084.dtsi"
 /include/ "mpq8092-regulator.dtsi"

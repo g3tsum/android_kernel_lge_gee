@@ -77,11 +77,32 @@
 
 #define KGSL_LOG_LEVEL_DEFAULT 3
 
+/*
+ * The default values for the simpleondemand governor are 90 and 5,
+ * we use different values here.
+ * They have to be tuned and compare with the tz governor anyway.
+ */
+static struct devfreq_simple_ondemand_data adreno_ondemand_data = {
+	.upthreshold = 80,
+	.downdifferential = 20,
+};
+
+static struct devfreq_msm_adreno_tz_data adreno_tz_data = {
+	.device_id = KGSL_DEVICE_3D0,
+};
+
+static const struct devfreq_governor_data adreno_governors[] = {
+	{ .name = "simple_ondemand", .data = &adreno_ondemand_data },
+	{ .name = "msm-adreno-tz", .data = &adreno_tz_data },
+};
+
 static const struct kgsl_functable adreno_functable;
 
 static struct adreno_device device_3d0 = {
 	.dev = {
 		KGSL_DEVICE_COMMON_INIT(device_3d0.dev),
+		.pwrscale = KGSL_PWRSCALE_INIT(adreno_governors,
+					ARRAY_SIZE(adreno_governors)),
 		.name = DEVICE_3D0_NAME,
 		.id = KGSL_DEVICE_3D0,
 		.mh = {
@@ -614,6 +635,33 @@ int adreno_perfcounter_put(struct adreno_device *adreno_dev,
 	return -EINVAL;
 }
 
+/**
+ * adreno_perfcounter_restore() - Restore performance counters
+ * @adreno_dev: adreno device to configure
+ *
+ * Load the physical performance counters with 64 bit value which are
+ * saved on GPU power collapse.
+ */
+static inline void adreno_perfcounter_restore(struct adreno_device *adreno_dev)
+{
+	if (adreno_dev->gpudev->perfcounter_restore)
+		adreno_dev->gpudev->perfcounter_restore(adreno_dev);
+}
+
+/**
+ * adreno_perfcounter_save() - Save performance counters
+ * @adreno_dev: adreno device to configure
+ *
+ * Save the performance counter values before GPU power collapse.
+ * The saved values are restored on restart.
+ * This ensures physical counters are coherent across power-collapse.
+ */
+static inline void adreno_perfcounter_save(struct adreno_device *adreno_dev)
+{
+	if (adreno_dev->gpudev->perfcounter_save)
+		adreno_dev->gpudev->perfcounter_save(adreno_dev);
+}
+
 static irqreturn_t adreno_irq_handler(struct kgsl_device *device)
 {
 	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
@@ -633,11 +681,11 @@ static void adreno_cleanup_pt(struct kgsl_device *device,
 
 	kgsl_mmu_unmap(pagetable, &device->memstore);
 
-	kgsl_mmu_unmap(pagetable, &adreno_dev->profile.shared_buffer);
-
 	kgsl_mmu_unmap(pagetable, &adreno_dev->pwron_fixup);
 
 	kgsl_mmu_unmap(pagetable, &device->mmu.setstate_memory);
+
+	kgsl_mmu_unmap(pagetable, &adreno_dev->profile.shared_buffer);
 }
 
 static int adreno_setup_pt(struct kgsl_device *device,
@@ -649,6 +697,12 @@ static int adreno_setup_pt(struct kgsl_device *device,
 
 	result = kgsl_mmu_map_global(pagetable, &rb->buffer_desc);
 
+	/*
+	 * ALERT: Order of these mapping is important to
+	 * Keep the most used entries like memptrs, memstore
+	 * and mmu setstate memory by TLB prefetcher.
+	 */
+
 	if (!result)
 		result = kgsl_mmu_map_global(pagetable, &rb->memptrs_desc);
 
@@ -657,16 +711,15 @@ static int adreno_setup_pt(struct kgsl_device *device,
 
 	if (!result)
 		result = kgsl_mmu_map_global(pagetable,
-			&adreno_dev->profile.shared_buffer);
-
-	if (!result)
-		result = kgsl_mmu_map_global(pagetable,
 			&adreno_dev->pwron_fixup);
-
 
 	if (!result)
 		result = kgsl_mmu_map_global(pagetable,
 			&device->mmu.setstate_memory);
+
+	if (!result)
+		result = kgsl_mmu_map_global(pagetable,
+			&adreno_dev->profile.shared_buffer);
 
 	if (result) {
 		/* On error clean up what we have wrought */
@@ -679,8 +732,8 @@ static int adreno_setup_pt(struct kgsl_device *device,
 	 * For the IOMMU, this will be used to restrict access to the
 	 * mapped registers.
 	 */
-	device->mh.mpu_range = device->mmu.setstate_memory.gpuaddr +
-				device->mmu.setstate_memory.size;
+	device->mh.mpu_range = adreno_dev->profile.shared_buffer.gpuaddr +
+				adreno_dev->profile.shared_buffer.size;
 
 	return 0;
 }
@@ -1628,9 +1681,6 @@ adreno_probe(struct platform_device *pdev)
 	if (status != 0)
 		goto error;
 
-	/* Identify the specific GPU */
-	adreno_identify_gpu(adreno_dev);
-
 	status = kgsl_device_platform_probe(device);
 	if (status)
 		goto error_close_rb;
@@ -1644,8 +1694,7 @@ adreno_probe(struct platform_device *pdev)
 
 	adreno_ft_init_sysfs(device);
 
-	kgsl_pwrscale_init(device);
-	kgsl_pwrscale_attach_policy(device, ADRENO_DEFAULT_PWRSCALE_POLICY);
+	kgsl_pwrscale_init(&pdev->dev, CONFIG_MSM_ADRENO_DEFAULT_GOVERNOR);
 
 	device->flags &= ~KGSL_FLAGS_SOFT_RESET;
 	pdata = kgsl_device_get_drvdata(device);
@@ -1675,7 +1724,6 @@ static int adreno_remove(struct platform_device *pdev)
 	adreno_coresight_remove(pdev);
 	adreno_profile_close(device);
 
-	kgsl_pwrscale_detach_policy(device);
 	kgsl_pwrscale_close(device);
 
 	adreno_dispatcher_close(adreno_dev);
@@ -1704,6 +1752,9 @@ static int adreno_init(struct kgsl_device *device)
 
 	/* Power up the device */
 	kgsl_pwrctrl_enable(device);
+
+	/* Identify the specific GPU */
+	adreno_identify_gpu(adreno_dev);
 
 	if (adreno_ringbuffer_read_pm4_ucode(device)) {
 		KGSL_DRV_ERR(device, "Reading pm4 microcode failed %s\n",
@@ -1824,6 +1875,9 @@ static int adreno_start(struct kgsl_device *device)
 		adreno_dev->gpudev->soft_reset(adreno_dev);
 	}
 
+	/* Restore performance counter registers with saved values */
+	adreno_perfcounter_restore(adreno_dev);
+
 	/* Start the GPU */
 	adreno_dev->gpudev->start(adreno_dev);
 
@@ -1880,6 +1934,9 @@ static int adreno_stop(struct kgsl_device *device)
 	del_timer_sync(&device->idle_timer);
 
 	adreno_ocmem_gmem_free(adreno_dev);
+
+	/* Save physical performance counter values before GPU power down*/
+	adreno_perfcounter_save(adreno_dev);
 
 	/* Power down the device */
 	kgsl_pwrctrl_disable(device);
@@ -2410,8 +2467,14 @@ int adreno_soft_reset(struct kgsl_device *device)
 	/* Make sure we are totally awake */
 	kgsl_pwrctrl_enable(device);
 
+	/* save physical performance counter values before GPU soft reset */
+	adreno_perfcounter_save(adreno_dev);
+
 	/* Reset the GPU */
 	adreno_dev->gpudev->soft_reset(adreno_dev);
+
+	/* Restore physical performance counter values after soft reset */
+	adreno_perfcounter_restore(adreno_dev);
 
 	/* Reinitialize the GPU */
 	adreno_dev->gpudev->start(adreno_dev);
@@ -2878,6 +2941,7 @@ static void adreno_power_stats(struct kgsl_device *device,
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 	unsigned int cycles = 0;
 
+	memset(stats, 0, sizeof(*stats));
 	/*
 	 * Get the busy cycles counted since the counter was last reset.
 	 * If we're not currently active, there shouldn't have been
@@ -2886,22 +2950,8 @@ static void adreno_power_stats(struct kgsl_device *device,
 	if (device->state == KGSL_STATE_ACTIVE)
 		cycles = adreno_dev->gpudev->busy_cycles(adreno_dev);
 
-	/*
-	 * In order to calculate idle you have to have run the algorithm
-	 * at least once to get a start time.
-	 */
-	if (pwr->time != 0) {
-		s64 tmp = ktime_to_us(ktime_get());
-		stats->total_time = tmp - pwr->time;
-		pwr->time = tmp;
-		stats->busy_time = adreno_ticks_to_us(cycles, device->pwrctrl.
-				pwrlevels[device->pwrctrl.active_pwrlevel].
-				gpu_freq);
-	} else {
-		stats->total_time = 0;
-		stats->busy_time = 0;
-		pwr->time = ktime_to_us(ktime_get());
-	}
+	stats->busy_time = adreno_ticks_to_us(cycles,
+					      kgsl_pwrctrl_active_freq(pwr));
 }
 
 void adreno_irqctrl(struct kgsl_device *device, int state)

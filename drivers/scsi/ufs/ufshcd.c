@@ -1395,7 +1395,7 @@ static inline void ufshcd_init_query(struct ufs_hba *hba,
  *
  * Returns 0 for success, non-zero in case of failure
  */
-static int ufshcd_query_flag(struct ufs_hba *hba, enum query_opcode opcode,
+int ufshcd_query_flag(struct ufs_hba *hba, enum query_opcode opcode,
 			enum flag_idn idn, bool *flag_res)
 {
 	struct ufs_query_req *request = NULL;
@@ -1461,7 +1461,7 @@ out_unlock:
  *
  * Returns 0 for success, non-zero in case of failure
 */
-static int ufshcd_query_attr(struct ufs_hba *hba, enum query_opcode opcode,
+int ufshcd_query_attr(struct ufs_hba *hba, enum query_opcode opcode,
 			enum attr_idn idn, u8 index, u8 selector, u32 *attr_val)
 {
 	struct ufs_query_req *request = NULL;
@@ -1526,7 +1526,7 @@ out:
  * The buf_len parameter will contain, on return, the length parameter
  * received on the response.
  */
-static int ufshcd_query_descriptor(struct ufs_hba *hba,
+int ufshcd_query_descriptor(struct ufs_hba *hba,
 			enum query_opcode opcode, enum attr_idn idn, u8 index,
 			u8 selector, u8 *desc_buf, int *buf_len)
 {
@@ -2059,7 +2059,7 @@ static int ufshcd_config_max_pwr_mode(struct ufs_hba *hba)
 	int ret;
 
 	if (hba->quirks & UFSHCD_QUIRK_BROKEN_PWR_MODE_CHANGE)
-		return 0;
+		msleep(1000);
 
 	/* Get the connected lane count */
 	ufshcd_dme_get(hba, UIC_ARG_MIB(PA_CONNECTEDRXDATALANES), &lanes[RX]);
@@ -2141,6 +2141,9 @@ static int ufshcd_config_max_pwr_mode(struct ufs_hba *hba)
 			hba->vops->pwr_change_notify(hba,
 				POST_CHANGE, NULL, &dev_required_params);
 	}
+
+	if (hba->quirks & UFSHCD_QUIRK_BROKEN_PWR_MODE_CHANGE)
+		msleep(1000);
 
 	return ret;
 }
@@ -3729,7 +3732,6 @@ static int ufshcd_probe_hba(struct ufs_hba *hba)
 
 	/* UniPro link is active now */
 	ufshcd_set_link_active(hba);
-	ufshcd_config_max_pwr_mode(hba);
 
 	ret = ufshcd_verify_dev_init(hba);
 	if (ret)
@@ -3743,6 +3745,8 @@ static int ufshcd_probe_hba(struct ufs_hba *hba)
 	ufshcd_set_ufs_dev_active(hba);
 	ufshcd_force_reset_auto_bkops(hba);
 	hba->ufshcd_state = UFSHCD_STATE_OPERATIONAL;
+
+	ufshcd_config_max_pwr_mode(hba);
 
 	/*
 	 * If we are in error handling context or in power management callbacks

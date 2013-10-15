@@ -28,6 +28,7 @@ endif
 
 obj-y += acpuclock.o
 obj-$(CONFIG_ARCH_MSM_KRAIT) += clock-krait.o
+obj-$(CONFIG_HW_PERF_EVENTS) += perf_trace_counters.o
 obj-$(CONFIG_ARCH_MSM7X27) += acpuclock-7627.o acpuclock-8625q.o clock-pll.o
 obj-$(CONFIG_ARCH_MSM_KRAIT) += msm-krait-l2-accessors.o perf_event_msm_krait_l2.o
 obj-$(CONFIG_ARCH_MSM_KRAIT) += krait-scm.o
@@ -87,6 +88,7 @@ obj-$(CONFIG_MSM_PIL_DSPS) += pil-dsps.o
 obj-$(CONFIG_MSM_PIL_GSS) += pil-gss.o
 obj-$(CONFIG_MSM_PIL_PRONTO) += pil-pronto.o
 obj-$(CONFIG_MSM_PIL_VENUS) += pil-venus.o
+obj-$(CONFIG_MSM_PIL_VPU) += pil-vpu.o
 obj-$(CONFIG_ARCH_QSD8X50) += sirc.o
 obj-$(CONFIG_ARCH_FSM9XXX) += sirc-fsm9xxx.o
 obj-$(CONFIG_MSM_FIQ_SUPPORT) += fiq_glue.o
@@ -294,7 +296,7 @@ obj-$(CONFIG_ARCH_MSMSAMARIUM) += clock-local2.o clock-pll.o clock-rpm.o clock-s
 obj-$(CONFIG_ARCH_MSM9625) += board-9625.o board-9625-gpiomux.o
 obj-$(CONFIG_ARCH_MSM9625) += clock-local2.o clock-pll.o clock-9625.o clock-rpm.o clock-voter.o acpuclock-9625.o acpuclock-cortex.o
 obj-$(CONFIG_ARCH_MPQ8092) += board-8092.o board-8092-gpiomux.o
-obj-$(CONFIG_ARCH_MPQ8092) += clock-8092.o
+obj-$(CONFIG_ARCH_MPQ8092) += clock-local2.o clock-pll.o clock-rpm.o clock-voter.o clock-8092.o
 obj-$(CONFIG_ARCH_MSM8226) += board-8226.o board-8226-gpiomux.o
 obj-$(CONFIG_ARCH_MSM8226) += clock-local2.o clock-pll.o clock-8226.o clock-rpm.o clock-voter.o clock-mdss-8974.o
 obj-$(CONFIG_ARCH_MSM8226) += acpuclock-8226.o acpuclock-cortex.o

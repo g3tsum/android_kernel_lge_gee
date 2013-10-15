@@ -37,6 +37,17 @@
 				(RIGHT_BIT_POS))
 
 /* Config registers */
+#define CFG_3_REG			0x03
+#define CHG_ITERM_50MA			0x08
+#define CHG_ITERM_100MA			0x10
+#define CHG_ITERM_150MA			0x18
+#define CHG_ITERM_200MA			0x20
+#define CHG_ITERM_250MA			0x28
+#define CHG_ITERM_300MA			0x00
+#define CHG_ITERM_500MA			0x30
+#define CHG_ITERM_600MA			0x38
+#define CHG_ITERM_MASK			SMB135X_MASK(5, 3)
+
 #define CFG_4_REG			0x04
 #define CHG_INHIBIT_MASK		SMB135X_MASK(7, 6)
 #define CHG_INHIBIT_50MV_VAL		0x00
@@ -215,11 +226,14 @@ struct smb135x_chg {
 	bool				dc_present;
 
 	bool				bmd_algo_disabled;
+	bool				iterm_disabled;
+	int				iterm_ma;
 	int				vfloat_mv;
 	int				safety_time;
 	int				resume_delta_mv;
 	struct dentry			*debug_root;
 	int				usb_current_arr_size;
+	u8				irq_cfg_mask[3];
 
 	/* psy */
 	struct power_supply		*usb_psy;
@@ -414,6 +428,7 @@ static enum power_supply_property smb135x_battery_properties[] = {
 	POWER_SUPPLY_PROP_CHARGING_ENABLED,
 	POWER_SUPPLY_PROP_CHARGE_TYPE,
 	POWER_SUPPLY_PROP_CAPACITY,
+	POWER_SUPPLY_PROP_HEALTH,
 	POWER_SUPPLY_PROP_TECHNOLOGY,
 };
 
@@ -514,6 +529,24 @@ static int smb135x_get_prop_batt_capacity(struct smb135x_chg *chip)
 	}
 
 	return DEFAULT_BATT_CAPACITY;
+}
+
+static int smb135x_get_prop_batt_health(struct smb135x_chg *chip)
+{
+	union power_supply_propval ret = {0, };
+
+	if (chip->batt_hot)
+		ret.intval = POWER_SUPPLY_HEALTH_OVERHEAT;
+	else if (chip->batt_cold)
+		ret.intval = POWER_SUPPLY_HEALTH_COLD;
+	else if (chip->batt_warm)
+		ret.intval = POWER_SUPPLY_HEALTH_WARM;
+	else if (chip->batt_cool)
+		ret.intval = POWER_SUPPLY_HEALTH_COOL;
+	else
+		ret.intval = POWER_SUPPLY_HEALTH_GOOD;
+
+	return ret.intval;
 }
 
 static int smb135x_enable_volatile_writes(struct smb135x_chg *chip)
@@ -862,6 +895,9 @@ static int smb135x_battery_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_CAPACITY:
 		val->intval = smb135x_get_prop_batt_capacity(chip);
 		break;
+	case POWER_SUPPLY_PROP_HEALTH:
+		val->intval = smb135x_get_prop_batt_health(chip);
+		break;
 	case POWER_SUPPLY_PROP_TECHNOLOGY:
 		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
 		break;
@@ -1064,6 +1100,12 @@ static int smb135x_regulator_init(struct smb135x_chg *chip)
 	}
 
 	return rc;
+}
+
+static void smb135x_regulator_deinit(struct smb135x_chg *chip)
+{
+	if (chip->otg_vreg.rdev)
+		regulator_unregister(chip->otg_vreg.rdev);
 }
 
 static int hot_hard_handler(struct smb135x_chg *chip, u8 rt_stat)
@@ -1631,6 +1673,29 @@ static int force_irq_set(void *data, u64 val)
 }
 DEFINE_SIMPLE_ATTRIBUTE(force_irq_ops, NULL, force_irq_set, "0x%02llx\n");
 
+static int force_rechg_set(void *data, u64 val)
+{
+	int rc;
+	struct smb135x_chg *chip = data;
+
+	rc = smb135x_masked_write(chip, CFG_14_REG, EN_CHG_INHIBIT_BIT, 0);
+	if (rc)
+		dev_err(chip->dev,
+			"Couldn't disable charge-inhibit rc=%d\n", rc);
+	/* delay for charge-inhibit to take affect */
+	msleep(500);
+	rc |= smb135x_charging(chip, false);
+	rc |= smb135x_charging(chip, true);
+	rc |= smb135x_masked_write(chip, CFG_14_REG, EN_CHG_INHIBIT_BIT,
+						EN_CHG_INHIBIT_BIT);
+	if (rc)
+		dev_err(chip->dev,
+			"Couldn't enable charge-inhibit rc=%d\n", rc);
+
+	return rc;
+}
+DEFINE_SIMPLE_ATTRIBUTE(force_rechg_ops, NULL, force_rechg_set, "0x%02llx\n");
+
 #ifdef DEBUG
 static void dump_regs(struct smb135x_chg *chip)
 {
@@ -1780,9 +1845,8 @@ static int smb135x_hw_init(struct smb135x_chg *chip)
 	 */
 	rc = smb135x_masked_write(chip, CFG_14_REG,
 			CHG_EN_BY_PIN_BIT | CHG_EN_ACTIVE_LOW_BIT
-			| PRE_TO_FAST_REQ_CMD_BIT | DISABLE_CURRENT_TERM_BIT
-			| DISABLE_AUTO_RECHARGE_BIT | EN_CHG_INHIBIT_BIT,
-			EN_CHG_INHIBIT_BIT);
+			| PRE_TO_FAST_REQ_CMD_BIT | DISABLE_AUTO_RECHARGE_BIT
+			| EN_CHG_INHIBIT_BIT, EN_CHG_INHIBIT_BIT);
 	if (rc < 0) {
 		dev_err(chip->dev, "Couldn't set cfg 14 rc=%d\n", rc);
 		return rc;
@@ -1798,6 +1862,56 @@ static int smb135x_hw_init(struct smb135x_chg *chip)
 		if (rc < 0) {
 			dev_err(chip->dev,
 				"Couldn't set float voltage rc = %d\n", rc);
+			return rc;
+		}
+	}
+
+	/* set iterm */
+	if (chip->iterm_ma != -EINVAL) {
+		if (chip->iterm_disabled) {
+			dev_err(chip->dev, "Error: Both iterm_disabled and iterm_ma set\n");
+			return -EINVAL;
+		} else {
+			if (chip->iterm_ma <= 50)
+				reg = CHG_ITERM_50MA;
+			else if (chip->iterm_ma <= 100)
+				reg = CHG_ITERM_100MA;
+			else if (chip->iterm_ma <= 150)
+				reg = CHG_ITERM_150MA;
+			else if (chip->iterm_ma <= 200)
+				reg = CHG_ITERM_200MA;
+			else if (chip->iterm_ma <= 250)
+				reg = CHG_ITERM_250MA;
+			else if (chip->iterm_ma <= 300)
+				reg = CHG_ITERM_300MA;
+			else if (chip->iterm_ma <= 500)
+				reg = CHG_ITERM_500MA;
+			else
+				reg = CHG_ITERM_600MA;
+
+			rc = smb135x_masked_write(chip, CFG_3_REG,
+							CHG_ITERM_MASK, reg);
+			if (rc) {
+				dev_err(chip->dev,
+					"Couldn't set iterm rc = %d\n", rc);
+				return rc;
+			}
+
+			rc = smb135x_masked_write(chip, CFG_14_REG,
+						DISABLE_CURRENT_TERM_BIT, 0);
+			if (rc) {
+				dev_err(chip->dev,
+					"Couldn't enable iterm rc = %d\n", rc);
+				return rc;
+			}
+		}
+	} else  if (chip->iterm_disabled) {
+		rc = smb135x_masked_write(chip, CFG_14_REG,
+					DISABLE_CURRENT_TERM_BIT,
+					DISABLE_CURRENT_TERM_BIT);
+		if (rc) {
+			dev_err(chip->dev, "Couldn't set iterm rc = %d\n",
+								rc);
 			return rc;
 		}
 	}
@@ -1868,7 +1982,6 @@ static int smb135x_hw_init(struct smb135x_chg *chip)
 			IRQ2_SAFETY_TIMER_BIT
 			| IRQ2_CHG_ERR_BIT
 			| IRQ2_CHG_PHASE_CHANGE_BIT
-			| IRQ2_CHG_INHIBIT_BIT
 			| IRQ2_POWER_OK_BIT
 			| IRQ2_BATT_MISSING_BIT
 			| IRQ2_VBAT_LOW_BIT);
@@ -2017,6 +2130,13 @@ static int smb_parse_dt(struct smb135x_chg *chip)
 	if (rc < 0)
 		chip->resume_delta_mv = -EINVAL;
 
+	rc = of_property_read_u32(node, "qcom,iterm-ma", &chip->iterm_ma);
+	if (rc < 0)
+		chip->iterm_ma = -EINVAL;
+
+	chip->iterm_disabled = of_property_read_bool(node,
+						"qcom,iterm-disabled");
+
 	chip->chg_enabled = !(of_property_read_bool(node,
 						"qcom,charging-disabled"));
 
@@ -2080,14 +2200,14 @@ static int smb135x_charger_probe(struct i2c_client *client,
 	if (rc < 0) {
 		dev_err(&client->dev,
 			"Unable to intialize hardware rc = %d\n", rc);
-		return rc;
+		goto free_regulator;
 	}
 
 	rc = determine_initial_status(chip);
 	if (rc < 0) {
 		dev_err(&client->dev,
 			"Unable to determine init status rc = %d\n", rc);
-		return rc;
+		goto free_regulator;
 	}
 
 	chip->batt_psy.name		= "battery";
@@ -2103,7 +2223,7 @@ static int smb135x_charger_probe(struct i2c_client *client,
 	if (rc < 0) {
 		dev_err(&client->dev,
 			"Unable to register batt_psy rc = %d\n", rc);
-		return rc;
+		goto free_regulator;
 	}
 
 	if (chip->dc_psy_type != -EINVAL) {
@@ -2216,6 +2336,14 @@ static int smb135x_charger_probe(struct i2c_client *client,
 			dev_err(chip->dev,
 				"Couldn't create count debug file rc = %d\n",
 				rc);
+
+		ent = debugfs_create_file("force_recharge", S_IFREG | S_IRUGO,
+					  chip->debug_root, chip,
+					  &force_rechg_ops);
+		if (!ent)
+			dev_err(chip->dev,
+				"Couldn't create recharge debug file rc = %d\n",
+				rc);
 	}
 
 	version = 0;
@@ -2234,6 +2362,8 @@ unregister_dc_psy:
 		power_supply_unregister(&chip->dc_psy);
 unregister_batt_psy:
 	power_supply_unregister(&chip->batt_psy);
+free_regulator:
+	smb135x_regulator_deinit(chip);
 	return rc;
 }
 
@@ -2248,8 +2378,66 @@ static int smb135x_charger_remove(struct i2c_client *client)
 
 	power_supply_unregister(&chip->batt_psy);
 
+	smb135x_regulator_deinit(chip);
+
 	return 0;
 }
+
+static int smb135x_suspend(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct smb135x_chg *chip = i2c_get_clientdata(client);
+	int i, rc;
+
+	/* Save the current IRQ config */
+	for (i = 0; i < 3; i++) {
+		rc = smb135x_read(chip, IRQ_CFG_REG + i,
+					&chip->irq_cfg_mask[i]);
+		if (rc)
+			dev_err(chip->dev,
+				"Couldn't save irq cfg regs rc=%d\n", rc);
+	}
+
+	/* enable only important IRQs */
+	rc = smb135x_write(chip, IRQ_CFG_REG, 0);
+	if (rc < 0)
+		dev_err(chip->dev, "Couldn't set irq_cfg rc = %d\n", rc);
+
+	rc = smb135x_write(chip, IRQ2_CFG_REG, IRQ2_BATT_MISSING_BIT
+						| IRQ2_VBAT_LOW_BIT
+						| IRQ2_POWER_OK_BIT);
+	if (rc < 0)
+		dev_err(chip->dev, "Couldn't set irq2_cfg rc = %d\n", rc);
+
+	rc = smb135x_write(chip, IRQ3_CFG_REG, IRQ3_SRC_DETECT_BIT);
+	if (rc < 0)
+		dev_err(chip->dev, "Couldn't set irq3_cfg rc = %d\n", rc);
+
+	return 0;
+}
+
+static int smb135x_resume(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct smb135x_chg *chip = i2c_get_clientdata(client);
+	int i, rc;
+
+	/* Restore the IRQ config */
+	for (i = 0; i < 3; i++) {
+		rc = smb135x_write(chip, IRQ_CFG_REG + i,
+					chip->irq_cfg_mask[i]);
+		if (rc)
+			dev_err(chip->dev,
+				"Couldn't restore irq cfg regs rc=%d\n", rc);
+	}
+
+	return 0;
+}
+
+static const struct dev_pm_ops smb135x_pm_ops = {
+	.resume		= smb135x_resume,
+	.suspend	= smb135x_suspend,
+};
 
 static const struct i2c_device_id smb135x_charger_id[] = {
 	{"smb135x-charger", 0},
@@ -2262,6 +2450,7 @@ static struct i2c_driver smb135x_charger_driver = {
 		.name		= "smb135x-charger",
 		.owner		= THIS_MODULE,
 		.of_match_table	= smb135x_match_table,
+		.pm		= &smb135x_pm_ops,
 	},
 	.probe		= smb135x_charger_probe,
 	.remove		= smb135x_charger_remove,
