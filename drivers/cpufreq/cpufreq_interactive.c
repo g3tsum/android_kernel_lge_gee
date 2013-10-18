@@ -117,6 +117,14 @@ struct cpufreq_interactive_tunables {
 /* For cases where we have single governor instance for system */
 struct cpufreq_interactive_tunables *common_tunables;
 
+static struct kobject *get_governor_parent_kobj(struct cpufreq_policy *policy)
+{
+	if (have_governor_per_policy())
+		return &policy->kobj;
+	else
+		return cpufreq_global_kobject;
+}
+
 static struct attribute_group *get_sysfs_attr(void);
 
 static inline cputime64_t get_cpu_idle_time_jiffy(unsigned int cpu,
