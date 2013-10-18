@@ -6,6 +6,13 @@ menuconfig ION
 	help
 	  Chose this option to enable the ION Memory Manager.
 
+config ION_COMMON
+	tristate "Common ION (For non QCOM)"
+	default n
+	depends on !ION_MSM
+	---help---
+	  Common ION driver for devices that are not MSM.
+
 config ION_TEGRA
 	tristate "Ion for Tegra"
 	depends on ARCH_TEGRA && ION
