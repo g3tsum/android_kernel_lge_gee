@@ -484,13 +484,21 @@ void __init msm_mpm_irq_extn_init(struct msm_mpm_device_data *mpm_data)
 	gic_arch_extn.irq_disable = msm_mpm_disable_irq;
 	gic_arch_extn.irq_set_type = msm_mpm_set_irq_type;
 	gic_arch_extn.irq_set_wake = msm_mpm_set_irq_wake;
-
+#ifdef CONFIG_OF
+#ifndef CONFIG_USE_PINCTRL_IRQ
 	msm_gpio_irq_extn.irq_mask = msm_mpm_disable_irq;
 	msm_gpio_irq_extn.irq_unmask = msm_mpm_enable_irq;
 	msm_gpio_irq_extn.irq_disable = msm_mpm_disable_irq;
 	msm_gpio_irq_extn.irq_set_type = msm_mpm_set_irq_type;
 	msm_gpio_irq_extn.irq_set_wake = msm_mpm_set_irq_wake;
-
+#else
+	mpm_tlmm_irq_extn.irq_mask = msm_mpm_disable_irq;
+	mpm_tlmm_irq_extn.irq_unmask = msm_mpm_enable_irq;
+	mpm_tlmm_irq_extn.irq_disable = msm_mpm_disable_irq;
+	mpm_tlmm_irq_extn.irq_set_type = msm_mpm_set_irq_type;
+	mpm_tlmm_irq_extn.irq_set_wake = msm_mpm_set_irq_wake;
+#endif
+#endif
 	bitmap_set(msm_mpm_gpio_irqs_mask, NR_MSM_IRQS, NR_GPIO_IRQS);
 
 	if (!mpm_data) {
