@@ -48,6 +48,12 @@ void _ipa_sram_settings_read_v1_0(void)
 	ipa_ctx->smem_restricted_bytes = 0;
 	ipa_ctx->smem_sz = ipa_read_reg(ipa_ctx->mmio,
 			IPA_SHARED_MEM_SIZE_OFST_v1_0);
+	ipa_ctx->smem_reqd_sz = IPA_v1_RAM_END_OFST;
+	ipa_ctx->hdr_tbl_lcl = 1;
+	ipa_ctx->ip4_rt_tbl_lcl = 0;
+	ipa_ctx->ip6_rt_tbl_lcl = 0;
+	ipa_ctx->ip4_flt_tbl_lcl = 1;
+	ipa_ctx->ip6_flt_tbl_lcl = 1;
 }
 
 void _ipa_sram_settings_read_v1_1(void)
@@ -55,6 +61,12 @@ void _ipa_sram_settings_read_v1_1(void)
 	ipa_ctx->smem_restricted_bytes = 0;
 	ipa_ctx->smem_sz = ipa_read_reg(ipa_ctx->mmio,
 			IPA_SHARED_MEM_SIZE_OFST_v1_1);
+	ipa_ctx->smem_reqd_sz = IPA_v1_RAM_END_OFST;
+	ipa_ctx->hdr_tbl_lcl = 1;
+	ipa_ctx->ip4_rt_tbl_lcl = 0;
+	ipa_ctx->ip6_rt_tbl_lcl = 0;
+	ipa_ctx->ip4_flt_tbl_lcl = 1;
+	ipa_ctx->ip6_flt_tbl_lcl = 1;
 }
 
 void _ipa_sram_settings_read_v2_0(void)
@@ -63,11 +75,16 @@ void _ipa_sram_settings_read_v2_0(void)
 			IPA_SHARED_MEM_SIZE_OFST_v2_0,
 			IPA_SHARED_MEM_SIZE_SHARED_MEM_BADDR_BMSK_v2_0,
 			IPA_SHARED_MEM_SIZE_SHARED_MEM_BADDR_SHFT_v2_0);
-
 	ipa_ctx->smem_sz = ipa_read_reg_field(ipa_ctx->mmio,
 			IPA_SHARED_MEM_SIZE_OFST_v2_0,
 			IPA_SHARED_MEM_SIZE_SHARED_MEM_SIZE_BMSK_v2_0,
 			IPA_SHARED_MEM_SIZE_SHARED_MEM_SIZE_SHFT_v2_0);
+	ipa_ctx->smem_reqd_sz = IPA_v2_RAM_END_OFST;
+	ipa_ctx->hdr_tbl_lcl = 0;
+	ipa_ctx->ip4_rt_tbl_lcl = 0;
+	ipa_ctx->ip6_rt_tbl_lcl = 0;
+	ipa_ctx->ip4_flt_tbl_lcl = 1;
+	ipa_ctx->ip6_flt_tbl_lcl = 1;
 }
 
 void _ipa_cfg_route_v1_0(struct ipa_route *route)
@@ -753,6 +770,448 @@ int ipa_generate_hw_rule(enum ipa_ip_type ip,
 	return 0;
 }
 
+int ipa_generate_flt_eq(enum ipa_ip_type ip,
+		const struct ipa_rule_attrib *attrib,
+		struct ipa_ipfltri_rule_eq *eq_atrb)
+{
+	u8 ofst_meq32 = 0;
+	u8 ihl_ofst_rng16 = 0;
+	u8 ihl_ofst_meq32 = 0;
+	u8 ofst_meq128 = 0;
+	u16 eq_bitmap = 0;
+	u16 *en_rule = &eq_bitmap;
+
+	if (ip == IPA_IP_v4) {
+
+		/* error check */
+		if (attrib->attrib_mask & IPA_FLT_NEXT_HDR ||
+		    attrib->attrib_mask & IPA_FLT_TC || attrib->attrib_mask &
+		    IPA_FLT_FLOW_LABEL) {
+			IPAERR("v6 attrib's specified for v4 rule\n");
+			return -EPERM;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_TOS) {
+			*en_rule |= IPA_TOS_EQ;
+			eq_atrb->tos_eq_present = 1;
+			eq_atrb->tos_eq = attrib->u.v4.tos;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_TOS_MASKED) {
+			if (ipa_ofst_meq32[ofst_meq32] == -1) {
+				IPAERR("ran out of meq32 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ofst_meq32[ofst_meq32];
+			eq_atrb->offset_meq_32[ofst_meq32].offset = 0;
+			eq_atrb->offset_meq_32[ofst_meq32].mask =
+				attrib->tos_mask << 16;
+			eq_atrb->offset_meq_32[ofst_meq32].value =
+				attrib->tos_value << 16;
+			ofst_meq32++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_PROTOCOL) {
+			*en_rule |= IPA_PROTOCOL_EQ;
+			eq_atrb->protocol_eq_present = 1;
+			eq_atrb->protocol_eq = attrib->u.v4.protocol;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_SRC_ADDR) {
+			if (ipa_ofst_meq32[ofst_meq32] == -1) {
+				IPAERR("ran out of meq32 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ofst_meq32[ofst_meq32];
+			eq_atrb->offset_meq_32[ofst_meq32].offset = 12;
+			eq_atrb->offset_meq_32[ofst_meq32].mask =
+				attrib->u.v4.src_addr_mask;
+			eq_atrb->offset_meq_32[ofst_meq32].value =
+				attrib->u.v4.src_addr;
+			ofst_meq32++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_DST_ADDR) {
+			if (ipa_ofst_meq32[ofst_meq32] == -1) {
+				IPAERR("ran out of meq32 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ofst_meq32[ofst_meq32];
+			eq_atrb->offset_meq_32[ofst_meq32].offset = 16;
+			eq_atrb->offset_meq_32[ofst_meq32].mask =
+				attrib->u.v4.dst_addr_mask;
+			eq_atrb->offset_meq_32[ofst_meq32].value =
+				attrib->u.v4.dst_addr;
+			ofst_meq32++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_SRC_PORT_RANGE) {
+			if (ipa_ihl_ofst_rng16[ihl_ofst_rng16] == -1) {
+				IPAERR("ran out of ihl_rng16 eq\n");
+				return -EPERM;
+			}
+			if (attrib->src_port_hi < attrib->src_port_lo) {
+				IPAERR("bad src port range param\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_rng16[ihl_ofst_rng16];
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].offset = 0;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_low
+				= attrib->src_port_lo;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_high
+				= attrib->src_port_hi;
+			ihl_ofst_rng16++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_DST_PORT_RANGE) {
+			if (ipa_ihl_ofst_rng16[ihl_ofst_rng16] == -1) {
+				IPAERR("ran out of ihl_rng16 eq\n");
+				return -EPERM;
+			}
+			if (attrib->dst_port_hi < attrib->dst_port_lo) {
+				IPAERR("bad dst port range param\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_rng16[ihl_ofst_rng16];
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].offset = 2;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_low
+				= attrib->dst_port_lo;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_high
+				= attrib->dst_port_hi;
+			ihl_ofst_rng16++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_TYPE) {
+			if (ipa_ihl_ofst_meq32[ihl_ofst_meq32] == -1) {
+				IPAERR("ran out of ihl_meq32 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_meq32[ihl_ofst_meq32];
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].offset = 0;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].mask = 0xFF;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].value =
+				attrib->type;
+			ihl_ofst_meq32++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_CODE) {
+			if (ipa_ihl_ofst_meq32[ihl_ofst_meq32] == -1) {
+				IPAERR("ran out of ihl_meq32 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_meq32[ihl_ofst_meq32];
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].offset = 1;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].mask = 0xFF;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].value =
+				attrib->code;
+			ihl_ofst_meq32++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_SPI) {
+			if (ipa_ihl_ofst_meq32[ihl_ofst_meq32] == -1) {
+				IPAERR("ran out of ihl_meq32 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_meq32[ihl_ofst_meq32];
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].offset = 0;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].mask =
+				0xFFFFFFFF;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].value =
+				attrib->spi;
+			ihl_ofst_meq32++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_SRC_PORT) {
+			if (ipa_ihl_ofst_rng16[ihl_ofst_rng16] == -1) {
+				IPAERR("ran out of ihl_rng16 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_rng16[ihl_ofst_rng16];
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].offset = 0;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_low
+				= attrib->src_port;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_high
+				= attrib->src_port;
+			ihl_ofst_rng16++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_DST_PORT) {
+			if (ipa_ihl_ofst_rng16[ihl_ofst_rng16] == -1) {
+				IPAERR("ran out of ihl_rng16 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_rng16[ihl_ofst_rng16];
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].offset = 2;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_low
+				= attrib->dst_port;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_high
+				= attrib->dst_port;
+			ihl_ofst_rng16++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_META_DATA) {
+			*en_rule |= IPA_METADATA_COMPARE;
+			eq_atrb->metadata_meq32_present = 1;
+			eq_atrb->metadata_meq32.offset = 0;
+			eq_atrb->metadata_meq32.mask = attrib->meta_data_mask;
+			eq_atrb->metadata_meq32.value = attrib->meta_data;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_FRAGMENT) {
+			IPAERR("Frg eq unsupported at eq level\n");
+			return -EPERM;
+		}
+
+	} else if (ip == IPA_IP_v6) {
+
+		/* v6 code below assumes no extension headers TODO: fix this */
+
+		/* error check */
+		if (attrib->attrib_mask & IPA_FLT_TOS ||
+		    attrib->attrib_mask & IPA_FLT_PROTOCOL ||
+		    attrib->attrib_mask & IPA_FLT_FRAGMENT) {
+			IPAERR("v4 attrib's specified for v6 rule\n");
+			return -EPERM;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_NEXT_HDR) {
+			*en_rule |= IPA_PROTOCOL_EQ;
+			eq_atrb->protocol_eq_present = 1;
+			eq_atrb->protocol_eq = attrib->u.v6.next_hdr;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_TYPE) {
+			if (ipa_ihl_ofst_meq32[ihl_ofst_meq32] == -1) {
+				IPAERR("ran out of ihl_meq32 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_meq32[ihl_ofst_meq32];
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].offset = 0;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].mask = 0xFF;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].value =
+				attrib->type;
+			ihl_ofst_meq32++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_CODE) {
+			if (ipa_ihl_ofst_meq32[ihl_ofst_meq32] == -1) {
+				IPAERR("ran out of ihl_meq32 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_meq32[ihl_ofst_meq32];
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].offset = 1;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].mask = 0xFF;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].value =
+				attrib->code;
+			ihl_ofst_meq32++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_SPI) {
+			if (ipa_ihl_ofst_meq32[ihl_ofst_meq32] == -1) {
+				IPAERR("ran out of ihl_meq32 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_meq32[ihl_ofst_meq32];
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].offset = 0;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].mask =
+				0xFFFFFFFF;
+			eq_atrb->ihl_offset_meq_32[ihl_ofst_meq32].value =
+				attrib->spi;
+			ihl_ofst_meq32++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_SRC_PORT) {
+			if (ipa_ihl_ofst_rng16[ihl_ofst_rng16] == -1) {
+				IPAERR("ran out of ihl_rng16 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_rng16[ihl_ofst_rng16];
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].offset = 0;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_low
+				= attrib->src_port;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_high
+				= attrib->src_port;
+			ihl_ofst_rng16++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_DST_PORT) {
+			if (ipa_ihl_ofst_rng16[ihl_ofst_rng16] == -1) {
+				IPAERR("ran out of ihl_rng16 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_rng16[ihl_ofst_rng16];
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].offset = 2;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_low
+				= attrib->dst_port;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_high
+				= attrib->dst_port;
+			ihl_ofst_rng16++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_SRC_PORT_RANGE) {
+			if (ipa_ihl_ofst_rng16[ihl_ofst_rng16] == -1) {
+				IPAERR("ran out of ihl_rng16 eq\n");
+				return -EPERM;
+			}
+			if (attrib->src_port_hi < attrib->src_port_lo) {
+				IPAERR("bad src port range param\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_rng16[ihl_ofst_rng16];
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].offset = 0;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_low
+				= attrib->src_port_lo;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_high
+				= attrib->src_port_hi;
+			ihl_ofst_rng16++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_DST_PORT_RANGE) {
+			if (ipa_ihl_ofst_rng16[ihl_ofst_rng16] == -1) {
+				IPAERR("ran out of ihl_rng16 eq\n");
+				return -EPERM;
+			}
+			if (attrib->dst_port_hi < attrib->dst_port_lo) {
+				IPAERR("bad dst port range param\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ihl_ofst_rng16[ihl_ofst_rng16];
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].offset = 2;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_low
+				= attrib->dst_port_lo;
+			eq_atrb->ihl_offset_range_16[ihl_ofst_rng16].range_high
+				= attrib->dst_port_hi;
+			ihl_ofst_rng16++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_SRC_ADDR) {
+			if (ipa_ofst_meq128[ofst_meq128] == -1) {
+				IPAERR("ran out of meq128 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ofst_meq128[ofst_meq128];
+			eq_atrb->offset_meq_128[ofst_meq128].offset = 8;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 0)
+				= attrib->u.v6.src_addr_mask[0];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 4)
+				= attrib->u.v6.src_addr_mask[1];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 8)
+				= attrib->u.v6.src_addr_mask[2];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 12)
+				= attrib->u.v6.src_addr_mask[3];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value + 0)
+				= attrib->u.v6.src_addr[0];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value + 4)
+				= attrib->u.v6.src_addr[1];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value + 8)
+				= attrib->u.v6.src_addr[2];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value +
+					12) = attrib->u.v6.src_addr[3];
+			ofst_meq128++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_DST_ADDR) {
+			if (ipa_ofst_meq128[ofst_meq128] == -1) {
+				IPAERR("ran out of meq128 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ofst_meq128[ofst_meq128];
+			eq_atrb->offset_meq_128[ofst_meq128].offset = 24;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 0)
+				= attrib->u.v6.dst_addr_mask[0];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 4)
+				= attrib->u.v6.dst_addr_mask[1];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 8)
+				= attrib->u.v6.dst_addr_mask[2];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 12)
+				= attrib->u.v6.dst_addr_mask[3];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value + 0)
+				= attrib->u.v6.dst_addr[0];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value + 4)
+				= attrib->u.v6.dst_addr[1];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value + 8)
+				= attrib->u.v6.dst_addr[2];
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value +
+					12) = attrib->u.v6.dst_addr[3];
+			ofst_meq128++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_TC) {
+			*en_rule |= IPA_FLT_TC;
+			eq_atrb->tc_eq_present = 1;
+			eq_atrb->tc_eq = attrib->u.v6.tc;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_TOS_MASKED) {
+			if (ipa_ofst_meq128[ofst_meq128] == -1) {
+				IPAERR("ran out of meq128 eq\n");
+				return -EPERM;
+			}
+			*en_rule |= ipa_ofst_meq128[ofst_meq128];
+			eq_atrb->offset_meq_128[ofst_meq128].offset = 0;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 0)
+				= attrib->tos_mask << 20;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 4)
+				= 0;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 8)
+				= 0;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].mask + 12)
+				= 0;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value + 0)
+				= attrib->tos_value << 20;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value + 4)
+				= 0;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value + 8)
+				= 0;
+			*(u32 *)(eq_atrb->offset_meq_128[ofst_meq128].value +
+					12) = 0;
+			ofst_meq128++;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_FLOW_LABEL) {
+			*en_rule |= IPA_FLT_FLOW_LABEL;
+			eq_atrb->fl_eq_present = 1;
+			eq_atrb->fl_eq = attrib->u.v6.flow_label;
+		}
+
+		if (attrib->attrib_mask & IPA_FLT_META_DATA) {
+			*en_rule |= IPA_METADATA_COMPARE;
+			eq_atrb->metadata_meq32_present = 1;
+			eq_atrb->metadata_meq32.offset = 0;
+			eq_atrb->metadata_meq32.mask = attrib->meta_data_mask;
+			eq_atrb->metadata_meq32.value = attrib->meta_data;
+		}
+
+	} else {
+		IPAERR("unsupported ip %d\n", ip);
+		return -EPERM;
+	}
+
+	/*
+	 * default "rule" means no attributes set -> map to
+	 * OFFSET_MEQ32_0 with mask of 0 and val of 0 and offset 0
+	 */
+	if (attrib->attrib_mask == 0) {
+		if (ipa_ofst_meq32[ofst_meq32] == -1) {
+			IPAERR("ran out of meq32 eq\n");
+			return -EPERM;
+		}
+		*en_rule |= ipa_ofst_meq32[ofst_meq32];
+		eq_atrb->offset_meq_32[ofst_meq32].offset = 0;
+		eq_atrb->offset_meq_32[ofst_meq32].mask = 0;
+		eq_atrb->offset_meq_32[ofst_meq32].value = 0;
+		ofst_meq32++;
+	}
+
+	eq_atrb->rule_eq_bitmap = *en_rule;
+	eq_atrb->num_offset_meq_32 = ofst_meq32;
+	eq_atrb->num_ihl_offset_range_16 = ihl_ofst_rng16;
+	eq_atrb->num_ihl_offset_meq_32 = ihl_ofst_meq32;
+	eq_atrb->num_offset_meq_128 = ofst_meq128;
+
+	return 0;
+}
+
 /**
  * ipa_cfg_ep - IPA end-point configuration
  * @clnt_hdl:	[in] opaque client handle assigned by IPA to client
@@ -779,8 +1238,15 @@ int ipa_cfg_ep(u32 clnt_hdl, const struct ipa_ep_cfg *ipa_ep_cfg)
 	if (result)
 		return result;
 
+	result = ipa_cfg_ep_hdr_ext(clnt_hdl, &ipa_ep_cfg->hdr_ext);
+	if (result)
+		return result;
 
 	result = ipa_cfg_ep_aggr(clnt_hdl, &ipa_ep_cfg->aggr);
+	if (result)
+		return result;
+
+	result = ipa_cfg_ep_status(clnt_hdl, &ipa_ep_cfg->status);
 	if (result)
 		return result;
 
@@ -794,6 +1260,10 @@ int ipa_cfg_ep(u32 clnt_hdl, const struct ipa_ep_cfg *ipa_ep_cfg)
 			return result;
 
 		result = ipa_cfg_ep_route(clnt_hdl, &ipa_ep_cfg->route);
+		if (result)
+			return result;
+
+		result = ipa_cfg_ep_deaggr(clnt_hdl, &ipa_ep_cfg->deaggr);
 		if (result)
 			return result;
 	}
@@ -899,6 +1369,66 @@ int ipa_cfg_ep_nat(u32 clnt_hdl, const struct ipa_ep_cfg_nat *ep_nat)
 }
 EXPORT_SYMBOL(ipa_cfg_ep_nat);
 
+static void _ipa_cfg_ep_status_v1_1(u32 clnt_hdl,
+				const struct ipa_ep_cfg_status *ep_status)
+{
+	IPADBG("Not supported for version 1.1\n");
+}
+
+static void _ipa_cfg_ep_status_v2_0(u32 clnt_hdl,
+		const struct ipa_ep_cfg_status *ep_status)
+{
+	u32 reg_val = 0;
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_status->status_en,
+			IPA_ENDP_STATUS_n_STATUS_EN_SHFT,
+			IPA_ENDP_STATUS_n_STATUS_EN_BMSK);
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_status->status_ep,
+			IPA_ENDP_STATUS_n_STATUS_ENDP_SHFT,
+			IPA_ENDP_STATUS_n_STATUS_ENDP_BMSK);
+
+	ipa_write_reg(ipa_ctx->mmio,
+			IPA_ENDP_STATUS_n_OFST(clnt_hdl),
+			reg_val);
+}
+
+/**
+ * ipa_cfg_ep_status() - IPA end-point status configuration
+ * @clnt_hdl:	[in] opaque client handle assigned by IPA to client
+ * @ipa_ep_cfg:	[in] IPA end-point configuration params
+ *
+ * Returns:	0 on success, negative on failure
+ *
+ * Note:	Should not be called from atomic context
+ */
+int ipa_cfg_ep_status(u32 clnt_hdl, const struct ipa_ep_cfg_status *ep_status)
+{
+	if (clnt_hdl >= IPA_NUM_PIPES || ipa_ctx->ep[clnt_hdl].valid == 0 ||
+			ep_status == NULL) {
+		IPAERR("bad parm, clnt_hdl = %d , ep_valid = %d\n",
+					clnt_hdl,
+					ipa_ctx->ep[clnt_hdl].valid);
+		return -EINVAL;
+	}
+
+	IPADBG("pipe=%d, status_en=%d status_ep=%d\n",
+			clnt_hdl,
+			ep_status->status_en,
+			ep_status->status_ep);
+
+	/* copy over EP cfg */
+	ipa_ctx->ep[clnt_hdl].cfg.status = *ep_status;
+
+	ipa_inc_client_enable_clks();
+
+	ipa_ctx->ctrl->ipa_cfg_ep_status(clnt_hdl, ep_status);
+
+	ipa_dec_client_disable_clks();
+
+	return 0;
+}
+EXPORT_SYMBOL(ipa_cfg_ep_status);
 
 void _ipa_cfg_ep_hdr_v1_1(u32 pipe_number,
 		const struct ipa_ep_cfg_hdr *ep_hdr)
@@ -1023,6 +1553,100 @@ int ipa_cfg_ep_hdr(u32 clnt_hdl, const struct ipa_ep_cfg_hdr *ep_hdr)
 	return 0;
 }
 EXPORT_SYMBOL(ipa_cfg_ep_hdr);
+
+static int _ipa_cfg_ep_hdr_ext_v1_1(u32 clnt_hdl,
+				const struct ipa_ep_cfg_hdr_ext *ep_hdr)
+{
+	IPADBG("Not supported for version 1.1\n");
+	return 0;
+}
+
+static int _ipa_cfg_ep_hdr_ext_v2_0(u32 clnt_hdl,
+				const struct ipa_ep_cfg_hdr_ext *ep_hdr_ext)
+{
+	u32 reg_val = 0;
+	u8 hdr_endianess = ep_hdr_ext->hdr_little_endian ? 0 : 1;
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_hdr_ext->hdr_total_len_or_pad_offset,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_TOTAL_LEN_OR_PAD_OFFSET_SHFT,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_TOTAL_LEN_OR_PAD_OFFSET_BMSK);
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_hdr_ext->hdr_pad_to_alignment,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_PAD_TO_ALIGNMENT_SHFT,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_PAD_TO_ALIGNMENT_BMSK);
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_hdr_ext->hdr_payload_len_inc_padding,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_PAYLOAD_LEN_INC_PADDING_SHFT,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_PAYLOAD_LEN_INC_PADDING_BMSK);
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_hdr_ext->hdr_total_len_or_pad,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_TOTAL_LEN_OR_PAD_SHFT,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_TOTAL_LEN_OR_PAD_BMSK);
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_hdr_ext->hdr_total_len_or_pad_valid,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_TOTAL_LEN_OR_PAD_VALID_SHFT,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_TOTAL_LEN_OR_PAD_VALID_BMSK);
+
+	IPA_SETFIELD_IN_REG(reg_val, hdr_endianess,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_ENDIANESS_SHFT,
+		IPA_ENDP_INIT_HDR_EXT_n_HDR_ENDIANESS_BMSK);
+
+	ipa_write_reg(ipa_ctx->mmio,
+		IPA_ENDP_INIT_HDR_EXT_n_OFST_v2_0(clnt_hdl), reg_val);
+
+	return 0;
+}
+
+/**
+ * ipa_cfg_ep_hdr_ext() -  IPA end-point extended header configuration
+ * @clnt_hdl:	[in] opaque client handle assigned by IPA to client
+ * @ep_hdr_ext:	[in] IPA end-point configuration params
+ *
+ * Returns:	0 on success, negative on failure
+ *
+ * Note:	Should not be called from atomic context
+ */
+int ipa_cfg_ep_hdr_ext(u32 clnt_hdl,
+		       const struct ipa_ep_cfg_hdr_ext *ep_hdr_ext)
+{
+	struct ipa_ep_context *ep;
+
+	if (clnt_hdl >= IPA_NUM_PIPES || ipa_ctx->ep[clnt_hdl].valid == 0 ||
+			ep_hdr_ext == NULL) {
+		IPAERR("bad parm, clnt_hdl = %d , ep_valid = %d\n",
+				clnt_hdl, ipa_ctx->ep[clnt_hdl].valid);
+		return -EINVAL;
+	}
+
+	IPADBG("pipe=%d hdr_pad_to_alignment=%d\n",
+		clnt_hdl,
+		ep_hdr_ext->hdr_pad_to_alignment);
+
+	IPADBG("hdr_total_len_or_pad_offset=%d\n",
+		ep_hdr_ext->hdr_total_len_or_pad_offset);
+
+	IPADBG("hdr_payload_len_inc_padding=%d hdr_total_len_or_pad=%d\n",
+		ep_hdr_ext->hdr_payload_len_inc_padding,
+		ep_hdr_ext->hdr_total_len_or_pad);
+
+	IPADBG("hdr_total_len_or_pad_valid=%d hdr_little_endian=%d\n",
+		ep_hdr_ext->hdr_total_len_or_pad_valid,
+		ep_hdr_ext->hdr_little_endian);
+
+	ep = &ipa_ctx->ep[clnt_hdl];
+
+	/* copy over EP cfg */
+	ep->cfg.hdr_ext = *ep_hdr_ext;
+
+	ipa_inc_client_enable_clks();
+
+	ipa_ctx->ctrl->ipa_cfg_ep_hdr_ext(clnt_hdl, &ep->cfg.hdr_ext);
+
+	ipa_dec_client_disable_clks();
+
+	return 0;
+}
+EXPORT_SYMBOL(ipa_cfg_ep_hdr_ext);
 
 const char *ipa_get_mode_type_str(enum ipa_mode_type mode)
 {
@@ -1250,6 +1874,10 @@ void _ipa_cfg_ep_aggr_v2_0(u32 pipe_number,
 			IPA_ENDP_INIT_AGGR_N_AGGR_TIME_LIMIT_SHFT,
 			IPA_ENDP_INIT_AGGR_N_AGGR_TIME_LIMIT_BMSK);
 
+	IPA_SETFIELD_IN_REG(reg_val, ep_aggr->aggr_pkt_limit,
+			IPA_ENDP_INIT_AGGR_n_AGGR_PKT_LIMIT_SHFT,
+			IPA_ENDP_INIT_AGGR_n_AGGR_PKT_LIMIT_BMSK);
+
 	ipa_write_reg(ipa_ctx->mmio,
 			IPA_ENDP_INIT_AGGR_N_OFST_v2_0(pipe_number), reg_val);
 }
@@ -1374,8 +2002,11 @@ int ipa_cfg_ep_route(u32 clnt_hdl, const struct ipa_ep_cfg_route *ep_route)
 			clnt_hdl,
 			ep_route->rt_tbl_hdl);
 
-	/* always use the "default" routing tables whose indices are 0 */
-	ipa_ctx->ep[clnt_hdl].rt_tbl_idx = 0;
+	/* always use "default" routing table when programming EP ROUTE reg */
+	if (ipa_ctx->ipa_hw_type == IPA_HW_v2_0)
+		ipa_ctx->ep[clnt_hdl].rt_tbl_idx = IPA_v2_V4_APPS_RT_INDEX_LO;
+	else
+		ipa_ctx->ep[clnt_hdl].rt_tbl_idx = 0;
 
 	ipa_inc_client_enable_clks();
 
@@ -1486,6 +2117,87 @@ int ipa_cfg_ep_holb_by_client(enum ipa_client_type client,
 }
 EXPORT_SYMBOL(ipa_cfg_ep_holb_by_client);
 
+static int _ipa_cfg_ep_deaggr_v1_1(u32 clnt_hdl,
+				const struct ipa_ep_cfg_deaggr *ep_deaggr)
+{
+	IPADBG("Not supported for version 1.1\n");
+	return 0;
+}
+
+static int _ipa_cfg_ep_deaggr_v2_0(u32 clnt_hdl,
+				   const struct ipa_ep_cfg_deaggr *ep_deaggr)
+{
+	u32 reg_val = 0;
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_deaggr->deaggr_hdr_len,
+		IPA_ENDP_INIT_DEAGGR_n_DEAGGR_HDR_LEN_SHFT,
+		IPA_ENDP_INIT_DEAGGR_n_DEAGGR_HDR_LEN_BMSK);
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_deaggr->packet_offset_valid,
+		IPA_ENDP_INIT_DEAGGR_n_PACKET_OFFSET_VALID_SHFT,
+		IPA_ENDP_INIT_DEAGGR_n_PACKET_OFFSET_VALID_BMSK);
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_deaggr->packet_offset_location,
+		IPA_ENDP_INIT_DEAGGR_n_PACKET_OFFSET_LOCATION_SHFT,
+		IPA_ENDP_INIT_DEAGGR_n_PACKET_OFFSET_LOCATION_BMSK);
+
+	IPA_SETFIELD_IN_REG(reg_val, ep_deaggr->max_packet_len,
+		IPA_ENDP_INIT_DEAGGR_n_MAX_PACKET_LEN_SHFT,
+		IPA_ENDP_INIT_DEAGGR_n_MAX_PACKET_LEN_BMSK);
+
+	ipa_write_reg(ipa_ctx->mmio,
+		IPA_ENDP_INIT_DEAGGR_n_OFST_v2_0(clnt_hdl), reg_val);
+
+	return 0;
+}
+
+/**
+ * ipa_cfg_ep_deaggr() -  IPA end-point deaggregation configuration
+ * @clnt_hdl:	[in] opaque client handle assigned by IPA to client
+ * @ep_deaggr:	[in] IPA end-point configuration params
+ *
+ * Returns:	0 on success, negative on failure
+ *
+ * Note:	Should not be called from atomic context
+ */
+int ipa_cfg_ep_deaggr(u32 clnt_hdl,
+			const struct ipa_ep_cfg_deaggr *ep_deaggr)
+{
+	struct ipa_ep_context *ep;
+
+	if (clnt_hdl >= IPA_NUM_PIPES || ipa_ctx->ep[clnt_hdl].valid == 0 ||
+			ep_deaggr == NULL) {
+		IPAERR("bad parm, clnt_hdl = %d , ep_valid = %d\n",
+				clnt_hdl, ipa_ctx->ep[clnt_hdl].valid);
+		return -EINVAL;
+	}
+
+	IPADBG("pipe=%d deaggr_hdr_len=%d\n",
+		clnt_hdl,
+		ep_deaggr->deaggr_hdr_len);
+
+	IPADBG("packet_offset_valid=%d\n",
+		ep_deaggr->packet_offset_valid);
+
+	IPADBG("packet_offset_location=%d max_packet_len=%d\n",
+		ep_deaggr->packet_offset_location,
+		ep_deaggr->max_packet_len);
+
+	ep = &ipa_ctx->ep[clnt_hdl];
+
+	/* copy over EP cfg */
+	ep->cfg.deaggr = *ep_deaggr;
+
+	ipa_inc_client_enable_clks();
+
+	ipa_ctx->ctrl->ipa_cfg_ep_deaggr(clnt_hdl, &ep->cfg.deaggr);
+
+	ipa_dec_client_disable_clks();
+
+	return 0;
+}
+EXPORT_SYMBOL(ipa_cfg_ep_deaggr);
+
 /**
  * ipa_dump_buff_internal() - dumps buffer for debug purposes
  * @base: buffer base address
@@ -1497,51 +2209,13 @@ void ipa_dump_buff_internal(void *base, dma_addr_t phy_base, u32 size)
 	int i;
 	u32 *cur = (u32 *)base;
 	u8 *byt;
-	IPADBG("system phys addr=0x%x\n", phy_base);
+	IPADBG("system phys addr=0x%x len=%u\n", phy_base, size);
 	for (i = 0; i < size / 4; i++) {
 		byt = (u8 *)(cur + i);
 		IPADBG("%2d %08x   %02x %02x %02x %02x\n", i, *(cur + i),
 				byt[0], byt[1], byt[2], byt[3]);
 	}
 	IPADBG("END\n");
-}
-
-/**
- * ipa_dump() - dumps part of driver data structures for debug purposes
- */
-void ipa_dump(void)
-{
-	struct ipa_mem_buffer hdr_mem = { 0 };
-	struct ipa_mem_buffer rt_mem = { 0 };
-	struct ipa_mem_buffer flt_mem = { 0 };
-
-	mutex_lock(&ipa_ctx->lock);
-
-	if (ipa_generate_hdr_hw_tbl(&hdr_mem))
-		IPAERR("fail\n");
-	if (ipa_generate_rt_hw_tbl(IPA_IP_v4, &rt_mem))
-		IPAERR("fail\n");
-	if (ipa_generate_flt_hw_tbl(IPA_IP_v4, &flt_mem))
-		IPAERR("fail\n");
-	IPAERR("PHY hdr=%x rt=%x flt=%x\n", hdr_mem.phys_base, rt_mem.phys_base,
-			flt_mem.phys_base);
-	IPAERR("VIRT hdr=%x rt=%x flt=%x\n", (u32)hdr_mem.base,
-			(u32)rt_mem.base, (u32)flt_mem.base);
-	IPAERR("SIZE hdr=%d rt=%d flt=%d\n", hdr_mem.size, rt_mem.size,
-			flt_mem.size);
-	IPA_DUMP_BUFF(hdr_mem.base, hdr_mem.phys_base, hdr_mem.size);
-	IPA_DUMP_BUFF(rt_mem.base, rt_mem.phys_base, rt_mem.size);
-	IPA_DUMP_BUFF(flt_mem.base, flt_mem.phys_base, flt_mem.size);
-	if (hdr_mem.phys_base)
-		dma_free_coherent(NULL, hdr_mem.size, hdr_mem.base,
-				hdr_mem.phys_base);
-	if (rt_mem.phys_base)
-		dma_free_coherent(NULL, rt_mem.size, rt_mem.base,
-				rt_mem.phys_base);
-	if (flt_mem.phys_base)
-		dma_free_coherent(NULL, flt_mem.size, flt_mem.base,
-				flt_mem.phys_base);
-	mutex_unlock(&ipa_ctx->lock);
 }
 
 /**
@@ -1884,47 +2558,65 @@ int ipa_controller_static_bind(struct ipa_controller *ctrl,
 	case (IPA_HW_v1_0):
 		ctrl->ipa_sram_read_settings = _ipa_sram_settings_read_v1_0;
 		ctrl->ipa_cfg_ep_hdr = _ipa_cfg_ep_hdr_v1_1;
+		ctrl->ipa_cfg_ep_hdr_ext = _ipa_cfg_ep_hdr_ext_v1_1;
 		ctrl->ipa_cfg_ep_aggr = _ipa_cfg_ep_aggr_v1_0;
+		ctrl->ipa_cfg_ep_deaggr = _ipa_cfg_ep_deaggr_v1_1;
 		ctrl->ipa_cfg_ep_nat = _ipa_cfg_ep_nat_v1_0;
 		ctrl->ipa_cfg_ep_mode = _ipa_cfg_ep_mode_v1_0;
 		ctrl->ipa_cfg_ep_route = _ipa_cfg_ep_route_v1_0;
 		ctrl->ipa_cfg_ep_holb = _ipa_cfg_ep_holb_v1_0;
 		ctrl->ipa_cfg_route = _ipa_cfg_route_v1_0;
+		ctrl->ipa_cfg_ep_status = _ipa_cfg_ep_status_v1_1;
 		ctrl->ipa_src_clk_rate = IPA_V1_CLK_RATE;
 		ctrl->ipa_read_gen_reg = _ipa_read_gen_reg_v1_0;
 		ctrl->ipa_read_ep_reg = _ipa_read_ep_reg_v1_0;
 		ctrl->ipa_write_dbg_cnt = _ipa_write_dbg_cnt_v1;
 		ctrl->ipa_read_dbg_cnt = _ipa_read_dbg_cnt_v1;
+		ctrl->ipa_commit_flt = __ipa_commit_flt_v1;
+		ctrl->ipa_commit_rt = __ipa_commit_rt_v1;
+		ctrl->ipa_commit_hdr = __ipa_commit_hdr_v1;
 		break;
 	case (IPA_HW_v1_1):
 		ctrl->ipa_sram_read_settings = _ipa_sram_settings_read_v1_1;
 		ctrl->ipa_cfg_ep_hdr = _ipa_cfg_ep_hdr_v1_1;
+		ctrl->ipa_cfg_ep_hdr_ext = _ipa_cfg_ep_hdr_ext_v1_1;
 		ctrl->ipa_cfg_ep_aggr = _ipa_cfg_ep_aggr_v1_1;
+		ctrl->ipa_cfg_ep_deaggr = _ipa_cfg_ep_deaggr_v1_1;
 		ctrl->ipa_cfg_ep_nat = _ipa_cfg_ep_nat_v1_1;
 		ctrl->ipa_cfg_ep_mode = _ipa_cfg_ep_mode_v1_1;
 		ctrl->ipa_cfg_ep_route = _ipa_cfg_ep_route_v1_1;
 		ctrl->ipa_cfg_ep_holb = _ipa_cfg_ep_holb_v1_1;
 		ctrl->ipa_cfg_route = _ipa_cfg_route_v1_1;
+		ctrl->ipa_cfg_ep_status = _ipa_cfg_ep_status_v1_1;
 		ctrl->ipa_src_clk_rate = IPA_V1_1_CLK_RATE;
 		ctrl->ipa_read_gen_reg = _ipa_read_gen_reg_v1_1;
 		ctrl->ipa_read_ep_reg = _ipa_read_ep_reg_v1_1;
 		ctrl->ipa_write_dbg_cnt = _ipa_write_dbg_cnt_v1;
 		ctrl->ipa_read_dbg_cnt = _ipa_read_dbg_cnt_v1;
+		ctrl->ipa_commit_flt = __ipa_commit_flt_v1;
+		ctrl->ipa_commit_rt = __ipa_commit_rt_v1;
+		ctrl->ipa_commit_hdr = __ipa_commit_hdr_v1;
 		break;
 	case (IPA_HW_v2_0):
 		ctrl->ipa_sram_read_settings = _ipa_sram_settings_read_v2_0;
 		ctrl->ipa_cfg_ep_hdr = _ipa_cfg_ep_hdr_v2_0;
+		ctrl->ipa_cfg_ep_hdr_ext = _ipa_cfg_ep_hdr_ext_v2_0;
 		ctrl->ipa_cfg_ep_nat = _ipa_cfg_ep_nat_v2_0;
 		ctrl->ipa_cfg_ep_aggr = _ipa_cfg_ep_aggr_v2_0;
+		ctrl->ipa_cfg_ep_deaggr = _ipa_cfg_ep_deaggr_v2_0;
 		ctrl->ipa_cfg_ep_mode = _ipa_cfg_ep_mode_v2_0;
 		ctrl->ipa_cfg_ep_route = _ipa_cfg_ep_route_v2_0;
 		ctrl->ipa_cfg_ep_holb = _ipa_cfg_ep_holb_v2_0;
 		ctrl->ipa_cfg_route = _ipa_cfg_route_v2_0;
+		ctrl->ipa_cfg_ep_status = _ipa_cfg_ep_status_v2_0;
 		ctrl->ipa_src_clk_rate = IPA_V2_0_CLK_RATE;
 		ctrl->ipa_read_gen_reg = _ipa_read_gen_reg_v2_0;
 		ctrl->ipa_read_ep_reg = _ipa_read_ep_reg_v2_0;
 		ctrl->ipa_write_dbg_cnt = _ipa_write_dbg_cnt_v2_0;
 		ctrl->ipa_read_dbg_cnt = _ipa_read_dbg_cnt_v2_0;
+		ctrl->ipa_commit_flt = __ipa_commit_flt_v2;
+		ctrl->ipa_commit_rt = __ipa_commit_rt_v2;
+		ctrl->ipa_commit_hdr = __ipa_commit_hdr_v2;
 		break;
 	default:
 		return -EPERM;

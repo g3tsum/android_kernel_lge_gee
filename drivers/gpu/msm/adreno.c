@@ -328,7 +328,7 @@ done:
  */
 
 int adreno_perfcounter_read_group(struct adreno_device *adreno_dev,
-	struct kgsl_perfcounter_read_group *reads, unsigned int count)
+	struct kgsl_perfcounter_read_group __user *reads, unsigned int count)
 {
 	struct adreno_perfcounters *counters = adreno_dev->gpudev->perfcounters;
 	struct adreno_perfcount_group *group;
@@ -347,12 +347,6 @@ int adreno_perfcounter_read_group(struct adreno_device *adreno_dev,
 	if (reads == NULL || count == 0 || count > 100)
 		return -EINVAL;
 
-	/* verify valid inputs group ids and countables */
-	for (i = 0; i < count; i++) {
-		if (reads[i].groupid >= counters->group_count)
-			return -EINVAL;
-	}
-
 	list = kmalloc(sizeof(struct kgsl_perfcounter_read_group) * count,
 			GFP_KERNEL);
 	if (!list)
@@ -366,7 +360,14 @@ int adreno_perfcounter_read_group(struct adreno_device *adreno_dev,
 
 	/* list iterator */
 	for (j = 0; j < count; j++) {
+
 		list[j].value = 0;
+
+		/* Verify that the group ID is within range */
+		if (list[j].groupid >= counters->group_count) {
+			ret = -EINVAL;
+			goto done;
+		}
 
 		group = &(counters->groups[list[j].groupid]);
 
@@ -1442,6 +1443,7 @@ done:
 static int adreno_of_get_iommu(struct device_node *parent,
 	struct kgsl_device_platform_data *pdata)
 {
+	int result = -EINVAL;
 	struct device_node *node, *child;
 	struct kgsl_device_iommu_data *data = NULL;
 	struct kgsl_iommu_ctx *ctxs = NULL;
@@ -1454,7 +1456,7 @@ static int adreno_of_get_iommu(struct device_node *parent,
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
 	if (data == NULL) {
-		KGSL_CORE_ERR("kzalloc(%d) failed\n", sizeof(*data));
+		result = -ENOMEM;
 		goto err;
 	}
 
@@ -1475,8 +1477,7 @@ static int adreno_of_get_iommu(struct device_node *parent,
 		GFP_KERNEL);
 
 	if (ctxs == NULL) {
-		KGSL_CORE_ERR("kzalloc(%d) failed\n",
-			data->iommu_ctx_count * sizeof(struct kgsl_iommu_ctx));
+		result = -ENOMEM;
 		goto err;
 	}
 
@@ -1515,7 +1516,7 @@ err:
 	kfree(ctxs);
 	kfree(data);
 
-	return -EINVAL;
+	return result;
 }
 
 static int adreno_of_get_pdata(struct platform_device *pdev)
@@ -1540,7 +1541,6 @@ static int adreno_of_get_pdata(struct platform_device *pdev)
 
 	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
 	if (pdata == NULL) {
-		KGSL_CORE_ERR("kzalloc(%d) failed\n", sizeof(*pdata));
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -1810,8 +1810,8 @@ static int adreno_init(struct kgsl_device *device)
 	if (ret)
 		goto done;
 
-	/* Certain targets need the fixup.  You know who you are */
-	if (adreno_is_a330v2(adreno_dev))
+	/* Enable the power on shader corruption fix for all A3XX targets */
+	if (adreno_is_a3xx(adreno_dev))
 		adreno_a3xx_pwron_fixup_init(adreno_dev);
 
 	set_bit(ADRENO_DEVICE_INITIALIZED, &adreno_dev->priv);

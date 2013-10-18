@@ -363,7 +363,6 @@ DEFINE_CLK_RPM_SMD(cnoc, cnoc_a_clk, RPM_BUS_CLK_TYPE, CNOC_ID, NULL);
 DEFINE_CLK_RPM_SMD(pnoc, pnoc_a_clk, RPM_BUS_CLK_TYPE, PNOC_ID, NULL);
 DEFINE_CLK_RPM_SMD(snoc, snoc_a_clk, RPM_BUS_CLK_TYPE, SNOC_ID, NULL);
 DEFINE_CLK_RPM_SMD(bimc, bimc_a_clk, RPM_MEM_CLK_TYPE, BIMC_ID, NULL);
-DEFINE_CLK_RPM_SMD(bimc_gpu, bimc_gpu_a_clk, RPM_MEM_CLK_TYPE, BIMC_ID, NULL);
 DEFINE_CLK_RPM_SMD_QDSS(qdss, qdss_a_clk, RPM_MISC_CLK_TYPE, QDSS_ID);
 DEFINE_CLK_RPM_SMD(gfx3d, gfx3d_a_clk, RPM_MEM_CLK_TYPE, OXILI_ID, NULL);
 DEFINE_CLK_RPM_SMD(mmssnoc_ahb, mmssnoc_ahb_a_clk, RPM_BUS_CLK_TYPE,
@@ -410,6 +409,11 @@ static DEFINE_CLK_BRANCH_VOTER(xo_pil_pronto_clk, &xo.c);
 static DEFINE_CLK_BRANCH_VOTER(xo_ehci_host_clk, &xo.c);
 static DEFINE_CLK_BRANCH_VOTER(xo_lpm_clk, &xo.c);
 
+/*
+ * RPM manages gcc_bimc_gpu_clk automatically. This clock is created
+ * for measurement only.
+ */
+DEFINE_CLK_DUMMY(bimc_gpu, 0);
 
 static unsigned int soft_vote_gpll0;
 
@@ -3237,6 +3241,9 @@ static struct clk_lookup msm_clocks_samarium_rumi[] = {
 	CLK_DUMMY("core_clk", qdss_clk.c, "fc330000.cti", OFF),
 	CLK_DUMMY("core_clk", qdss_clk.c, "fc33c000.cti", OFF),
 	CLK_DUMMY("core_clk", qdss_clk.c, "fc360000.cti", OFF),
+	CLK_DUMMY("core_clk", qdss_clk.c, "fc330000.cti", OFF),
+	CLK_DUMMY("core_clk", qdss_clk.c, "fc33c000.cti", OFF),
+	CLK_DUMMY("core_clk", qdss_clk.c, "fc360000.cti", OFF),
 	CLK_DUMMY("core_clk", qdss_clk.c, "fd828018.hwevent", OFF),
 
 	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc326000.tmc", OFF),
@@ -3267,6 +3274,9 @@ static struct clk_lookup msm_clocks_samarium_rumi[] = {
 	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc353000.cti", OFF),
 	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc354000.cti", OFF),
 	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc350000.cti", OFF),
+	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc330000.cti", OFF),
+	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc33c000.cti", OFF),
+	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc360000.cti", OFF),
 	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc330000.cti", OFF),
 	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc33c000.cti", OFF),
 	CLK_DUMMY("core_a_clk", qdss_a_clk.c, "fc360000.cti", OFF),
@@ -3342,7 +3352,6 @@ static struct clk_lookup msm_clocks_samarium[] = {
 	CLK_LOOKUP("", bimc.c, ""),
 	CLK_LOOKUP("", bimc_a_clk.c, ""),
 	CLK_LOOKUP("", bimc_gpu.c, ""),
-	CLK_LOOKUP("", bimc_gpu_a_clk.c, ""),
 	CLK_LOOKUP("", pnoc_keepalive_a_clk.c, ""),
 	CLK_LOOKUP("", mmssnoc_ahb.c, ""),
 	CLK_LOOKUP("", mmssnoc_ahb_a_clk.c, ""),
@@ -3437,6 +3446,8 @@ static struct clk_lookup msm_clocks_samarium[] = {
 	CLK_LOOKUP("core_clk", gcc_blsp1_qup1_i2c_apps_clk.c, "f9923000.i2c"),
 	CLK_LOOKUP("iface_clk", gcc_blsp2_ahb_clk.c, "f9963000.i2c"),
 	CLK_LOOKUP("core_clk", gcc_blsp2_qup1_i2c_apps_clk.c, "f9963000.i2c"),
+	CLK_LOOKUP("iface_clk", gcc_blsp2_ahb_clk.c, "f9964000.i2c"),
+	CLK_LOOKUP("core_clk", gcc_blsp2_qup2_i2c_apps_clk.c, "f9964000.i2c"),
 	CLK_LOOKUP("", gcc_blsp1_qup1_spi_apps_clk.c, ""),
 	CLK_LOOKUP("core_clk", gcc_blsp1_qup2_i2c_apps_clk.c, "f9924000.i2c"),
 	CLK_LOOKUP("", gcc_blsp1_qup2_spi_apps_clk.c, ""),
@@ -3638,17 +3649,24 @@ static struct clk_lookup msm_clocks_samarium[] = {
 	CLK_LOOKUP("", gfx3d.c, ""),
 	CLK_LOOKUP("", gfx3d_a_clk.c, ""),
 	CLK_LOOKUP("", jpeg0_clk_src.c, ""),
-	CLK_LOOKUP("", mdp_clk_src.c, ""),
-	CLK_LOOKUP("", mdss_ahb_clk.c, ""),
-	CLK_LOOKUP("", mdss_axi_clk.c, ""),
+	CLK_LOOKUP("core_clk_src", mdp_clk_src.c, "fd900000.qcom,mdss_mdp"),
+	CLK_LOOKUP("iface_clk", mdss_ahb_clk.c, "fd922800.qcom,mdss_dsi"),
+	CLK_LOOKUP("iface_clk", mdss_ahb_clk.c, "fd900000.qcom,mdss_mdp"),
+	CLK_LOOKUP("iface_clk", mdss_ahb_clk.c, "fd928000.qcom,iommu"),
+	CLK_LOOKUP("bus_clk", mdss_axi_clk.c, "fd922800.qcom,mdss_dsi"),
+	CLK_LOOKUP("core_clk", mdss_axi_clk.c, "fd928000.qcom,iommu"),
+	CLK_LOOKUP("bus_clk", mdss_axi_clk.c, "fd900000.qcom,mdss_mdp"),
 	CLK_LOOKUP("", byte0_clk_src.c, ""),
-	CLK_LOOKUP("", mdss_byte0_clk.c, ""),
-	CLK_LOOKUP("", mdss_esc0_clk.c, ""),
-	CLK_LOOKUP("", mdss_mdp_clk.c, ""),
-	CLK_LOOKUP("", mdss_mdp_lut_clk.c, ""),
-	CLK_LOOKUP("", mdss_pclk0_clk.c, ""),
 	CLK_LOOKUP("", pclk0_clk_src.c, ""),
-	CLK_LOOKUP("", mdss_vsync_clk.c, ""),
+	CLK_LOOKUP("byte_clk", mdss_byte0_clk.c, "fd922800.qcom,mdss_dsi"),
+	CLK_LOOKUP("core_clk", mdss_esc0_clk.c, "fd922800.qcom,mdss_dsi"),
+	CLK_LOOKUP("core_clk", mdss_mdp_clk.c, "fd900000.qcom,mdss_mdp"),
+	CLK_LOOKUP("mdp_core_clk", mdss_mdp_clk.c, "fd922800.qcom,mdss_dsi"),
+	CLK_LOOKUP("core_clk", mdss_mdp_clk.c, "fd8c2304.qcom,gdsc"),
+	CLK_LOOKUP("lut_clk", mdss_mdp_lut_clk.c, "fd900000.qcom,mdss_mdp"),
+	CLK_LOOKUP("lut_clk", mdss_mdp_lut_clk.c, "fd8c2304.qcom,gdsc"),
+	CLK_LOOKUP("pixel_clk", mdss_pclk0_clk.c, "fd922800.qcom,mdss_dsi"),
+	CLK_LOOKUP("vsync_clk", mdss_vsync_clk.c, "fd900000.qcom,mdss_mdp"),
 	CLK_LOOKUP("core_mmss_clk", mmss_misc_ahb_clk.c, "fd828018.hwevent"),
 	CLK_LOOKUP("", mmss_mmssnoc_axi_clk.c, ""),
 	CLK_LOOKUP("", ocmemgx.c, ""),
