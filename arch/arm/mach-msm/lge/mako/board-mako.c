@@ -90,6 +90,7 @@
 
 #include "msm_watchdog.h"
 #include "board-mako.h"
+#include "board-dt.h"
 #include "clock.h"
 #include "spm.h"
 #include <mach/mpm.h>
@@ -157,6 +158,7 @@
 
 static bool mako_charger_mode;
 
+/*
 static int __init mako_androidboot_mode_arg(char *options)
 {
 	if (!strcmp(options, "charger"))
@@ -174,6 +176,7 @@ static int __init msm_contig_mem_size_setup(char *p)
 }
 early_param("msm_contig_mem_size", msm_contig_mem_size_setup);
 #endif
+*/
 
 static int mako_keyreset_fn(void)
 {
@@ -605,6 +608,7 @@ static struct reserve_info apq8064_reserve_info __initdata = {
 	.paddr_to_memtype = apq8064_paddr_to_memtype,
 };
 
+/*
 static char prim_panel_name[PANEL_NAME_MAX_LEN];
 static char ext_panel_name[PANEL_NAME_MAX_LEN];
 static int __init prim_display_setup(char *param)
@@ -615,6 +619,7 @@ static int __init prim_display_setup(char *param)
 }
 early_param("prim_display", prim_display_setup);
 
+
 static int __init ext_display_setup(char *param)
 {
 	if (strnlen(param, PANEL_NAME_MAX_LEN))
@@ -622,6 +627,7 @@ static int __init ext_display_setup(char *param)
 	return 0;
 }
 early_param("ext_display", ext_display_setup);
+*/
 
 static void __init apq8064_reserve(void)
 {
@@ -629,9 +635,10 @@ static void __init apq8064_reserve(void)
 	lge_reserve();
 }
 
-static void __init apq8064_early_reserve(void)
+static void __init apq8064_early_memory(void)
 {
 	reserve_info = &apq8064_reserve_info;
+	of_scan_flat_dt(dt_scan_for_memory_hole, apq8064_reserve_table);
 }
 #ifdef CONFIG_USB_EHCI_MSM_HSIC
 /* Bandwidth requests (zero) if no vote placed */
@@ -1289,19 +1296,6 @@ static void __init apq8064_map_io(void)
 		pr_err("socinfo_init() failed!\n");
 }
 
-static void __init apq8064_init_irq(void)
-{
-	struct msm_mpm_device_data *data = NULL;
-
-#ifdef CONFIG_MSM_MPM
-	data = &apq8064_mpm_dev_data;
-#endif
-
-	msm_mpm_irq_extn_init(data);
-	gic_init(0, GIC_PPI_START, MSM_QGIC_DIST_BASE,
-						(void *)MSM_QGIC_CPU_BASE);
-}
-
 static struct platform_device msm8064_device_saw_regulator_core0 = {
 	.name	= "saw-regulator",
 	.id	= 0,
@@ -1861,6 +1855,7 @@ static void __init register_i2c_devices(void)
 
 static void __init apq8064_common_init(void)
 {
+	//struct of_dev_auxdata *adata = apq8064_auxdata_lookup;
 	struct msm_rpmrs_level rpmrs_level;
 	platform_device_register(&msm_gpio_device);
 	msm_tsens_early_init(&apq_tsens_pdata);
@@ -1875,6 +1870,8 @@ static void __init apq8064_common_init(void)
 		pr_err("Failed to initialize XO votes\n");
 	msm_clock_init(&apq8064_clock_init_data);
 	apq8064_init_gpiomux();
+	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
+	//board_dt_populate(adata);
 	apq8064_i2c_init();
 	register_i2c_devices();
 	apq8064_init_pmic();
@@ -2000,14 +1997,24 @@ static void __init apq8064_mako_init(void)
 	apq8064_init_misc();
 }
 
-MACHINE_START(APQ8064_MAKO, "QCT APQ8064 MAKO")
+void __init apq8064_init_very_early(void)
+{
+	apq8064_early_memory();
+}
+
+static const char *apq8064_dt_match[] __initconst = {
+	"qcom,msm8960",
+	NULL
+};
+
+DT_MACHINE_START(APQ8064_DT, "QCT APQ8064 MAKO (Flattened Device Tree")
 	.map_io = apq8064_map_io,
-	.reserve = apq8064_reserve,
-	.init_irq = apq8064_init_irq,
-	.init_time = msm_timer_init,
+	.init_irq = msm_dt_init_irq,
 	.init_machine = apq8064_mako_init,
+	.dt_compat = apq8064_dt_match,
+	.reserve = apq8064_reserve,
 	.init_early = apq8064_allocate_memory_regions,
-	.init_very_early = apq8064_early_reserve,
+	.init_very_early = apq8064_init_very_early,
 	.restart = msm_restart,
 	.smp = &msm8960_smp_ops,
 MACHINE_END
