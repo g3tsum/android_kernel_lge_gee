@@ -123,7 +123,7 @@ static struct usb_string gfs_strings[] = {
 #ifdef CONFIG_USB_FUNCTIONFS_ETH
 	{ .s = "FunctionFS + ECM" },
 #endif
-#ifdef CONFIG_USB_FUNCTIONFS_GENERIC
+#ifdef CONFIG_USB_G_ANDROID
 	{ .s = "FunctionFS" },
 #endif
 	{  } /* end of list */
@@ -154,7 +154,7 @@ struct gfs_configuration {
 	},
 #endif
 
-#ifdef CONFIG_USB_FUNCTIONFS_GENERIC
+#ifdef CONFIG_USB_G_ANDROID
 	{
 	},
 #endif
