@@ -1115,3 +1115,12 @@ int msm_bus_board_rpm_get_il_ids(uint16_t id[])
 void msm_bus_board_init(struct msm_bus_fabric_registration *pdata)
 {
 }
+
+void msm_bus_board_set_nfab(struct msm_bus_fabric_registration *pdata,
+	int nfab)
+{
+	if (nfab <= 0)
+		return;
+
+	msm_bus_board_algo.board_nfab = nfab;
+}
