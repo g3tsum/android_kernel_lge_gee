@@ -5,6 +5,7 @@
 / {
 	model = "Qualcomm MSM8960 CDP";
 	compatible = "qcom,msm8960-cdp", "qcom,msm8960";
+	qcom,msm-id = <109 8 0x10000>;
 	interrupt-parent = <&intc>;
 
 	intc: interrupt-controller@2000000 {
