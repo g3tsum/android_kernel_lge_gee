@@ -153,7 +153,6 @@ config ARCH_MSM8960
 	select MSM_RPM_SMD
 	select MSM_RPM_REGULATOR_SMD
 	select MSM_RPM_STATS_LOG
-	select HAVE_ARM_ARCH_TIMER
 	select MSM_XO
 	select MSM_QDSP6_APR
 	select MSM_QDSP6_CODECS
@@ -240,7 +239,6 @@ config ARCH_APQ8064
 	select MSM_RPM_SMD
 	select MSM_RPM_REGULATOR_SMD
 	select MSM_RPM_STATS_LOG
-	select HAVE_ARM_ARCH_TIMER
 	select MSM_SPM_V2
 	select MSM_L2_SPM
 	select MSM_PM8X60 if PM
