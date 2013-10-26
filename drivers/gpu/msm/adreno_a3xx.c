@@ -2454,16 +2454,6 @@ static void a3xx_drawctxt_restore(struct adreno_device *adreno_dev,
 	kgsl_mmu_setstate(&device->mmu, context->pagetable, context->id);
 
 	/*
-	 * Issue an extra draw call on the A305 when resuming from
-	 * SLUMBER state.
-	 */
-	if (adreno_dev->on_resume_issueib) {
-		adreno_ringbuffer_issuecmds(device, context,
-				KGSL_CMD_FLAGS_PMODE,
-				adreno_dev->on_resume_ib, 3);
-		adreno_dev->on_resume_issueib = false;
-	}
-	/*
 	 * Restore GMEM.  (note: changes shader.
 	 * Shader must not already be restored.)
 	 */
@@ -3029,166 +3019,300 @@ static void a305_create_on_resume_ib(struct adreno_device *adreno_dev)
 		_SET(RB_MRTCONTROL_DITHER_MODE, RB_DITHER_ALWAYS) |
 		_SET(RB_MRTCONTROL_COMPONENT_ENABLE, 0xF);
 
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
-	*cmds++ = CP_REG(A3XX_RB_MRT_BLEND_CONTROL3);
-	/* RB_MRT_BLENDCONTROL3 */
-	*cmds++ = _SET(RB_MRTBLENDCONTROL_RGB_SRC_FACTOR, RB_FACTOR_ONE) |
-		_SET(RB_MRTBLENDCONTROL_RGB_BLEND_OPCODE, RB_BLEND_OP_ADD) |
-		_SET(RB_MRTBLENDCONTROL_RGB_DEST_FACTOR, RB_FACTOR_ZERO) |
-		_SET(RB_MRTBLENDCONTROL_ALPHA_SRC_FACTOR, RB_FACTOR_ONE) |
-		_SET(RB_MRTBLENDCONTROL_ALPHA_BLEND_OPCODE, RB_BLEND_OP_ADD) |
-		_SET(RB_MRTBLENDCONTROL_ALPHA_DEST_FACTOR, RB_FACTOR_ZERO) |
-		_SET(RB_MRTBLENDCONTROL_CLAMP_ENABLE, 1);
+		adreno_ringbuffer_issuecmds(device, context,
+					KGSL_CMD_FLAGS_PMODE,
+					    context->context_gmem_shadow.
+					    gmem_restore, 3);
+		context->flags &= ~CTXT_FLAGS_GMEM_RESTORE;
+	}
 
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 5);
-	*cmds++ = CP_REG(A3XX_VFD_INDEX_MIN);
-	/* VFD_INDEX_MIN */
+	if (!(context->flags & CTXT_FLAGS_PREAMBLE)) {
+		adreno_ringbuffer_issuecmds(device, context,
+			KGSL_CMD_FLAGS_NONE, context->reg_restore, 3);
+
+		/* Fixup self modifying IBs for restore operations */
+		adreno_ringbuffer_issuecmds(device, context,
+			KGSL_CMD_FLAGS_NONE,
+			context->restore_fixup, 3);
+
+		adreno_ringbuffer_issuecmds(device, context,
+			KGSL_CMD_FLAGS_NONE,
+			context->constant_restore, 3);
+
+		if (context->flags & CTXT_FLAGS_SHADER_RESTORE)
+			adreno_ringbuffer_issuecmds(device, context,
+				KGSL_CMD_FLAGS_NONE,
+				context->shader_restore, 3);
+
+		/* Restore HLSQ_CONTROL_0 register */
+		adreno_ringbuffer_issuecmds(device, context,
+			KGSL_CMD_FLAGS_NONE,
+			context->hlsqcontrol_restore, 3);
+	}
+}
+
+static const unsigned int _a3xx_pwron_fixup_fs_instructions[] = {
+	0x00000000, 0x10000400, 0x00000000, 0x00000000,
+	0x00000000, 0x00000000, 0x00000000, 0x03000000,
+};
+
+/**
+ * adreno_a3xx_pwron_fixup_init() - Initalize a special command buffer to run a
+ * post-power collapse shader workaround
+ * @adreno_dev: Pointer to a adreno_device struct
+ *
+ * A3xx targets require a CL Exec after recovery from power-collapse.
+ * Construct the IB once at init time and keep it handy.
+ *
+ * Returns: 0 on success or negative on error
+ */
+int adreno_a3xx_pwron_fixup_init(struct adreno_device *adreno_dev)
+{
+	unsigned int *cmds;
+	int count = sizeof(_a3xx_pwron_fixup_fs_instructions) >> 2;
+	int ret;
+	/* Return if the fixup is already in place */
+	if (test_bit(ADRENO_DEVICE_PWRON_FIXUP, &adreno_dev->priv))
+		return 0;
+
+	ret = kgsl_allocate_contiguous(&adreno_dev->pwron_fixup, PAGE_SIZE);
+
+	if (ret)
+		return ret;
+	adreno_dev->pwron_fixup.flags |= KGSL_MEMFLAGS_GPUREADONLY;
+	cmds = adreno_dev->pwron_fixup.hostptr;
+
+	*cmds++ = cp_type0_packet(A3XX_UCHE_CACHE_INVALIDATE0_REG, 2);
 	*cmds++ = 0x00000000;
-	/* VFD_INDEX_MAX */
-	*cmds++ = 340;
-	/* VFD_INDEX_OFFSET */
+	*cmds++ = 0x90000000;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
 	*cmds++ = 0x00000000;
-	/* TPL1_TP_VS_TEX_OFFSET */
+	*cmds++ = cp_type3_packet(CP_REG_RMW, 3);
+	*cmds++ = A3XX_RBBM_CLOCK_CTL;
+	*cmds++ = 0xFFFCFFFF;
+	*cmds++ = 0x00010000;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
 	*cmds++ = 0x00000000;
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
-	*cmds++ = CP_REG(A3XX_VFD_VS_THREADING_THRESHOLD);
-	/* VFD_VS_THREADING_THRESHOLD */
-	*cmds++ = _SET(VFD_THREADINGTHRESHOLD_REGID_THRESHOLD, 15) |
-		_SET(VFD_THREADINGTHRESHOLD_REGID_VTXCNT, 252);
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
-	*cmds++ = CP_REG(A3XX_TPL1_TP_VS_TEX_OFFSET);
-	/* TPL1_TP_VS_TEX_OFFSET */
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CONTROL_0_REG, 1);
+	*cmds++ = 0x1E000150;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
 	*cmds++ = 0x00000000;
-
 	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
-	*cmds++ = CP_REG(A3XX_TPL1_TP_FS_TEX_OFFSET);
-	/* TPL1_TP_FS_TEX_OFFSET */
-	*cmds++ = _SET(TPL1_TPTEXOFFSETREG_SAMPLEROFFSET, 16) |
-		_SET(TPL1_TPTEXOFFSETREG_MEMOBJOFFSET, 16) |
-		_SET(TPL1_TPTEXOFFSETREG_BASETABLEPTR, 224);
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
-	*cmds++ = CP_REG(A3XX_GRAS_SC_CONTROL);
-	/* GRAS_SC_CONTROL */
-	/*cmds++ = _SET(GRAS_SC_CONTROL_RASTER_MODE, 1);
-		*cmds++ = _SET(GRAS_SC_CONTROL_RASTER_MODE, 1) |*/
-	*cmds++ = 0x04001000;
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
-	*cmds++ = CP_REG(A3XX_GRAS_SU_MODE_CONTROL);
-	/* GRAS_SU_MODE_CONTROL */
-	*cmds++ = _SET(GRAS_SU_CTRLMODE_LINEHALFWIDTH, 2);
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 3);
-	*cmds++ = CP_REG(A3XX_GRAS_SC_WINDOW_SCISSOR_TL);
-	/* GRAS_SC_WINDOW_SCISSOR_TL */
+	*cmds++ = CP_REG(A3XX_HLSQ_CONTROL_0_REG) | (0x1 << 30);
+	*cmds++ = 0x1E000150;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
 	*cmds++ = 0x00000000;
-	/* GRAS_SC_WINDOW_SCISSOR_BR */
-	*cmds++ = _SET(GRAS_SC_WINDOW_SCISSOR_BR_BR_X, pitch - 1) |
-		_SET(GRAS_SC_WINDOW_SCISSOR_BR_BR_Y, pitch - 1);
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 3);
-	*cmds++ = CP_REG(A3XX_GRAS_SC_SCREEN_SCISSOR_TL);
-	/* GRAS_SC_SCREEN_SCISSOR_TL */
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CONTROL_0_REG, 1);
+	*cmds++ = 0x1E000150;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CONTROL_1_REG, 1);
+	*cmds++ = 0x00000040;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CONTROL_2_REG, 1);
+	*cmds++ = 0x80000000;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CONTROL_3_REG, 1);
 	*cmds++ = 0x00000000;
-	/* GRAS_SC_SCREEN_SCISSOR_BR */
-	*cmds++ = _SET(GRAS_SC_SCREEN_SCISSOR_BR_BR_X, pitch - 1) |
-		_SET(GRAS_SC_SCREEN_SCISSOR_BR_BR_Y, pitch - 1);
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 5);
-	*cmds++ = CP_REG(A3XX_GRAS_CL_VPORT_XOFFSET);
-	/* GRAS_CL_VPORT_XOFFSET */
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_VS_CONTROL_REG, 1);
+	*cmds++ = 0x00000001;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_FS_CONTROL_REG, 1);
+	*cmds++ = 0x00001002 | (count >> 3) << 24;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CONST_VSPRESV_RANGE_REG, 1);
 	*cmds++ = 0x00000000;
-	/* GRAS_CL_VPORT_XSCALE */
-	*cmds++ = _SET(GRAS_CL_VPORT_XSCALE_VPORT_XSCALE, 0x3F800000);
-	/* GRAS_CL_VPORT_YOFFSET */
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CONST_FSPRESV_RANGE_REG, 1);
 	*cmds++ = 0x00000000;
-	/* GRAS_CL_VPORT_YSCALE */
-	*cmds++ = _SET(GRAS_CL_VPORT_YSCALE_VPORT_YSCALE, 0x3F800000);
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 3);
-	*cmds++ = CP_REG(A3XX_GRAS_CL_VPORT_ZOFFSET);
-	/* GRAS_CL_VPORT_ZOFFSET */
-	*cmds++ = 0x00000000;
-	/* GRAS_CL_VPORT_ZSCALE */
-	*cmds++ = _SET(GRAS_CL_VPORT_ZSCALE_VPORT_ZSCALE, 0x3F800000);
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
-	*cmds++ = CP_REG(A3XX_GRAS_CL_CLIP_CNTL);
-	/* GRAS_CL_CLIP_CNTL */
-	*cmds++ = _SET(GRAS_CL_CLIP_CNTL_IJ_PERSP_CENTER, 1);
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
-	*cmds++ = CP_REG(A3XX_SP_FS_IMAGE_OUTPUT_REG_0);
-	/* SP_FS_IMAGE_OUTPUT_REG_0 */
-	*cmds++ = _SET(SP_IMAGEOUTPUTREG_MRTFORMAT, SP_R8G8B8A8_UNORM);
-
-	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
-	*cmds++ = CP_REG(A3XX_PC_PRIM_VTX_CNTL);
-	/* PC_PRIM_VTX_CONTROL */
-	*cmds++ = _SET(PC_PRIM_VTX_CONTROL_STRIDE_IN_VPC, 2) |
-		_SET(PC_PRIM_VTX_CONTROL_POLYMODE_FRONT_PTYPE,
-		PC_DRAW_TRIANGLES) |
-		_SET(PC_PRIM_VTX_CONTROL_POLYMODE_BACK_PTYPE,
-		PC_DRAW_TRIANGLES) |
-		_SET(PC_PRIM_VTX_CONTROL_PROVOKING_VTX_LAST, 1);
-
-	/* oxili_generate_context_roll_packets */
-	*cmds++ = cp_type0_packet(A3XX_SP_VS_CTRL_REG0, 1);
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_NDRANGE_0_REG, 1);
+	*cmds++ = 0x00401101;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_NDRANGE_1_REG, 1);
 	*cmds++ = 0x00000400;
-
-	*cmds++ = cp_type0_packet(A3XX_SP_FS_CTRL_REG0, 1);
-	*cmds++ = 0x00000400;
-
-	*cmds++ = cp_type0_packet(A3XX_SP_VS_PVT_MEM_SIZE_REG, 1);
-	*cmds++ = 0x00008000; /* SP_VS_MEM_SIZE_REG */
-
-	*cmds++ = cp_type0_packet(A3XX_SP_FS_PVT_MEM_SIZE_REG, 1);
-	*cmds++ = 0x00008000; /* SP_FS_MEM_SIZE_REG */
-
-	/* Clear cache invalidate bit when re-loading the shader control regs */
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_NDRANGE_2_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_NDRANGE_3_REG, 1);
+	*cmds++ = 0x00000001;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_NDRANGE_4_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_NDRANGE_5_REG, 1);
+	*cmds++ = 0x00000001;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_NDRANGE_6_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_CONTROL_0_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_CONTROL_1_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_KERNEL_CONST_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_KERNEL_GROUP_X_REG, 1);
+	*cmds++ = 0x00000010;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_KERNEL_GROUP_Y_REG, 1);
+	*cmds++ = 0x00000001;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_KERNEL_GROUP_Z_REG, 1);
+	*cmds++ = 0x00000001;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_WG_OFFSET_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_SP_CTRL_REG, 1);
+	*cmds++ = 0x00040000;
 	*cmds++ = cp_type0_packet(A3XX_SP_VS_CTRL_REG0, 1);
-	*cmds++ = _SET(SP_VSCTRLREG0_VSTHREADMODE, SP_MULTI) |
-		_SET(SP_VSCTRLREG0_VSINSTRBUFFERMODE, SP_BUFFER_MODE) |
-		_SET(SP_VSCTRLREG0_VSFULLREGFOOTPRINT, 2) |
-		_SET(SP_VSCTRLREG0_VSTHREADSIZE, SP_TWO_VTX_QUADS) |
-		_SET(SP_VSCTRLREG0_VSLENGTH, 1);
-
-	*cmds++ = cp_type0_packet(A3XX_SP_FS_CTRL_REG0, 1);
-	*cmds++ = _SET(SP_FSCTRLREG0_FSTHREADMODE, SP_MULTI) |
-		_SET(SP_FSCTRLREG0_FSINSTRBUFFERMODE, SP_BUFFER_MODE) |
-		_SET(SP_FSCTRLREG0_FSHALFREGFOOTPRINT, 1) |
-		_SET(SP_FSCTRLREG0_FSFULLREGFOOTPRINT, 1) |
-		_SET(SP_FSCTRLREG0_FSINOUTREGOVERLAP, 1) |
-		_SET(SP_FSCTRLREG0_FSTHREADSIZE, SP_FOUR_PIX_QUADS) |
-		_SET(SP_FSCTRLREG0_FSSUPERTHREADMODE, 1) |
-		_SET(SP_FSCTRLREG0_FSLENGTH, 2);
-
+	*cmds++ = 0x0000000A;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_CTRL_REG1, 1);
+	*cmds++ = 0x00000001;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_PARAM_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OUT_REG_0, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OUT_REG_1, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OUT_REG_2, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OUT_REG_3, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OUT_REG_4, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OUT_REG_5, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OUT_REG_6, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OUT_REG_7, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_VPC_DST_REG_0, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_VPC_DST_REG_1, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_VPC_DST_REG_2, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_VPC_DST_REG_3, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OBJ_OFFSET_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_OBJ_START_REG, 1);
+	*cmds++ = 0x00000004;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_PVT_MEM_PARAM_REG, 1);
+	*cmds++ = 0x04008001;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_PVT_MEM_ADDR_REG, 1);
+	*cmds++ = 0x00000000;
 	*cmds++ = cp_type0_packet(A3XX_SP_VS_PVT_MEM_SIZE_REG, 1);
-	*cmds++ = 0x00000000;            /* SP_VS_MEM_SIZE_REG */
-
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_VS_LENGTH_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_CTRL_REG0, 1);
+	*cmds++ = 0x00B0400A | (count >> 3) << 24;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_CTRL_REG1, 1);
+	*cmds++ = 0x00300402;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_OBJ_OFFSET_REG, 1);
+	*cmds++ = 0x00010000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_OBJ_START_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_PVT_MEM_PARAM_REG, 1);
+	*cmds++ = 0x04008001;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_PVT_MEM_ADDR_REG, 1);
+	*cmds++ = 0x00000000;
 	*cmds++ = cp_type0_packet(A3XX_SP_FS_PVT_MEM_SIZE_REG, 1);
-	*cmds++ = 0x00000000;            /* SP_FS_MEM_SIZE_REG */
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_FLAT_SHAD_MODE_REG_0, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_FLAT_SHAD_MODE_REG_1, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_OUTPUT_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_MRT_REG_0, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_MRT_REG_1, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_MRT_REG_2, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_MRT_REG_3, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_IMAGE_OUTPUT_REG_0, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_IMAGE_OUTPUT_REG_1, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_IMAGE_OUTPUT_REG_2, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_IMAGE_OUTPUT_REG_3, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_SP_FS_LENGTH_REG, 1);
+	*cmds++ = count >> 3;
+	*cmds++ = cp_type0_packet(A3XX_RB_MODE_CONTROL, 1);
+	*cmds++ = 0x00008000;
+	*cmds++ = cp_type0_packet(A3XX_RB_RENDER_CONTROL, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MSAA_CONTROL, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_ALPHA_REFERENCE, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_CONTROL0, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_CONTROL1, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_CONTROL2, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_CONTROL3, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_BUF_INFO0, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_BUF_INFO1, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_BUF_INFO2, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_BUF_INFO3, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_BUF_BASE0, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_BUF_BASE1, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_BUF_BASE2, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_MRT_BUF_BASE3, 1);
+	*cmds++ = 0x00000000;
 
-	/* end oxili_generate_context_roll_packets */
+	*cmds++ = cp_type0_packet(A3XX_RB_PERFCOUNTER0_SELECT, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_PERFCOUNTER1_SELECT, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_RB_FRAME_BUFFER_DIMENSION, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
+	*cmds++ = 0x00000000;
 
-	*cmds++ = cp_type3_packet(CP_DRAW_INDX, 3);
-	*cmds++ = 0x00000000; /* Viz query info */
-	*cmds++ = BUILD_PC_DRAW_INITIATOR(PC_DI_PT_RECTLIST,
-					PC_DI_SRC_SEL_AUTO_INDEX,
-					PC_DI_INDEX_SIZE_16_BIT,
-					PC_DI_IGNORE_VISIBILITY);
-	*cmds++ = 0x00000002; /* Num indices */
+	*cmds++ = cp_type3_packet(CP_LOAD_STATE, 2 + count);
+	*cmds++ = (6 << CP_LOADSTATE_STATEBLOCKID_SHIFT) |
+		  ((count >> 3) << CP_LOADSTATE_NUMOFUNITS_SHIFT);
+	*cmds++ = 0x00000000;
+	memcpy(cmds, _a3xx_pwron_fixup_fs_instructions, count << 2);
+	cmds += count;
 
-	adreno_dev->on_resume_ib[0] = CP_HDR_INDIRECT_BUFFER_PFD;
-	adreno_dev->on_resume_ib[1] = adreno_dev->on_resume_cmd.gpuaddr +
-					(QUAD_RESTORE_LEN << 2);
-	adreno_dev->on_resume_ib[2] = cmds - start_cmd;
+	*cmds++ = cp_type3_packet(CP_EXEC_CL, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_nop_packet(1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CL_CONTROL_0_REG, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type0_packet(A3XX_HLSQ_CONTROL_0_REG, 1);
+	*cmds++ = 0x1E000150;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type3_packet(CP_SET_CONSTANT, 2);
+	*cmds++ = CP_REG(A3XX_HLSQ_CONTROL_0_REG);
+	*cmds++ = 0x1E000050;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type3_packet(CP_REG_RMW, 3);
+	*cmds++ = A3XX_RBBM_CLOCK_CTL;
+	*cmds++ = 0xFFFCFFFF;
+	*cmds++ = 0x00000000;
+	*cmds++ = cp_type3_packet(CP_WAIT_FOR_IDLE, 1);
+	*cmds++ = 0x00000000;
 
-	*dummy_src = adreno_dev->on_resume_cmd.gpuaddr +
-	   ((cmds - (unsigned int *)adreno_dev->on_resume_cmd.hostptr) << 2);
+	/*
+	 * Remember the number of dwords in the command buffer for when we
+	 * program the indirect buffer call in the ringbuffer
+	 */
+	adreno_dev->pwron_fixup_dwords =
+		(cmds - (unsigned int *)adreno_dev->pwron_fixup.hostptr);
+
+	/* Mark the flag in ->priv to show that we have the fix */
+	set_bit(ADRENO_DEVICE_PWRON_FIXUP, &adreno_dev->priv);
+	return 0;
 }
 
 static int a3xx_rb_init(struct adreno_device *adreno_dev,
@@ -3904,9 +4028,6 @@ static void a3xx_start(struct adreno_device *adreno_dev)
 	/* Turn on the GPU busy counter and let it run free */
 
 	adreno_dev->gpu_cycles = 0;
-
-	if (adreno_is_a305(adreno_dev))
-		a305_create_on_resume_ib(adreno_dev);
 }
 
 /*

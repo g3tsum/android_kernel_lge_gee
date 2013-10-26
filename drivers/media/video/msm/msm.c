@@ -771,6 +771,47 @@ static long msm_camera_v4l2_private_ioctl(struct file *file, void *fh,
 	case MSM_CAM_V4L2_IOCTL_PRIVATE_G_CTRL:
 		rc = msm_camera_v4l2_private_g_ctrl(file, fh, ioctl_ptr);
 		break;
+	case MSM_CAM_V4L2_IOCTL_PRIVATE_GENERAL:
+		rc = msm_camera_v4l2_private_general(file, fh, ioctl_ptr);
+		break;
+	case MSM_CAM_V4L2_IOCTL_GET_EVENT_PAYLOAD: {
+		struct msm_queue_cmd *event_cmd;
+		void *payload;
+		mutex_lock(&pcam->event_lock);
+		event_cmd = msm_dequeue(&pcam->eventData_q, list_eventdata);
+		if (!event_cmd) {
+			pr_err("%s: No event payload\n", __func__);
+			rc = -EINVAL;
+			mutex_unlock(&pcam->event_lock);
+			return rc;
+		}
+		payload = event_cmd->command;
+		if (event_cmd->trans_code != ioctl_ptr->trans_code) {
+			pr_err("%s: Events don't match\n", __func__);
+			kfree(payload);
+			kfree(event_cmd);
+			rc = -EINVAL;
+			mutex_unlock(&pcam->event_lock);
+			break;
+		}
+		if (ioctl_ptr->len > 0 && ioctl_ptr->len <= MAX_SERVER_PAYLOAD_LENGTH) {
+			if (copy_to_user(ioctl_ptr->ioctl_ptr, payload,
+				 ioctl_ptr->len)) {
+				pr_err("%s Copy to user failed for cmd %d",
+					__func__, cmd);
+				kfree(payload);
+				kfree(event_cmd);
+				rc = -EINVAL;
+				mutex_unlock(&pcam->event_lock);
+				break;
+			}
+		}
+		kfree(payload);
+		kfree(event_cmd);
+		mutex_unlock(&pcam->event_lock);
+		rc = 0;
+		break;
+	}
 	default:
 		pr_err("%s Unsupported ioctl cmd %d ", __func__, cmd);
 		break;

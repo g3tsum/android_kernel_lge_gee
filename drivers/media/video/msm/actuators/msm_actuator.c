@@ -76,6 +76,11 @@ static int32_t msm_actuator_parse_i2c_params(struct msm_actuator_ctrl_t *a_ctrl,
 	struct msm_camera_i2c_reg_tbl *i2c_tbl = a_ctrl->i2c_reg_tbl;
 	CDBG("%s: IN\n", __func__);
 	for (i = 0; i < size; i++) {
+		/* check that the index into i2c_tbl cannot grow larger that
+		the allocated size of i2c_tbl */
+		if ((a_ctrl->total_steps + 1) < (a_ctrl->i2c_tbl_index)) {
+			break;
+		}
 		if (write_arr[i].reg_write_type == MSM_ACTUATOR_WRITE_DAC) {
 			value = (next_lens_position <<
 				write_arr[i].data_shift) |
@@ -279,7 +284,27 @@ static int32_t msm_actuator_move_focus(
 
 	if (dest_step_pos == a_ctrl->curr_step_pos)
 		return rc;
-
+	if ((sign_dir > MSM_ACTUATOR_MOVE_SIGNED_NEAR) ||
+		(sign_dir < MSM_ACTUATOR_MOVE_SIGNED_FAR)) {
+		pr_err("%s:%d Invalid sign_dir = %d\n",
+		__func__, __LINE__, sign_dir);
+		return -EFAULT;
+	}
+	if ((dir > MOVE_FAR) || (dir < MOVE_NEAR)) {
+		pr_err("%s:%d Invalid direction = %d\n",
+		 __func__, __LINE__, dir);
+		return -EFAULT;
+	}
+	if (dest_step_pos > a_ctrl->total_steps) {
+		pr_err("Step pos greater than total steps = %d\n",
+		dest_step_pos);
+		return -EFAULT;
+	}
+	if (a_ctrl->curr_step_pos > a_ctrl->total_steps) {
+		pr_err("Step pos greater than total steps = %d\n",
+		a_ctrl->curr_step_pos);
+		return -EFAULT;
+	}
 	curr_lens_pos = a_ctrl->step_position_table[a_ctrl->curr_step_pos];
 	a_ctrl->i2c_tbl_index = 0;
 	CDBG("curr_step_pos =%d dest_step_pos =%d curr_lens_pos=%d\n",
@@ -397,6 +422,12 @@ static int32_t msm_actuator_init_default_step_table(struct msm_actuator_ctrl_t *
 		a_ctrl->step_position_table = NULL;
 	}
 
+	if (set_info->af_tuning_params.total_steps
+		>  MAX_ACTUATOR_AF_TOTAL_STEPS) {
+		pr_err("%s: Max actuator totalsteps exceeded = %d\n",
+		__func__, set_info->af_tuning_params.total_steps);
+		return -EFAULT;
+	}
 	/* Fill step position table */
 	a_ctrl->step_position_table =
 		kmalloc(sizeof(uint16_t) *
@@ -710,9 +741,16 @@ static int32_t msm_actuator_init(struct msm_actuator_ctrl_t *a_ctrl,
 		pr_err("%s: Actuator function table not found\n", __func__);
 		return rc;
 	}
-
-	a_ctrl->region_size = set_info->af_tuning_params.region_size;
-	if (a_ctrl->region_size > MAX_ACTUATOR_REGION) {
+	if (set_info->af_tuning_params.total_steps
+		>  MAX_ACTUATOR_AF_TOTAL_STEPS) {
+		pr_err("%s: Max actuator totalsteps exceeded = %d\n",
+		__func__, set_info->af_tuning_params.total_steps);
+		return -EFAULT;
+	}
+	if (set_info->af_tuning_params.region_size <= MAX_ACTUATOR_REGION) {
+		a_ctrl->region_size = set_info->af_tuning_params.region_size;
+	} else {
+		a_ctrl->region_size = 0;
 		pr_err("%s: MAX_ACTUATOR_REGION is exceeded.\n", __func__);
 		return -EFAULT;
 	}
@@ -727,8 +765,11 @@ static int32_t msm_actuator_init(struct msm_actuator_ctrl_t *a_ctrl,
 	a_ctrl->i2c_data_type = set_info->actuator_params.i2c_data_type;
 	a_ctrl->i2c_client.client->addr = set_info->actuator_params.i2c_addr;
 	a_ctrl->i2c_client.addr_type = set_info->actuator_params.i2c_addr_type;
-	a_ctrl->reg_tbl_size = set_info->actuator_params.reg_tbl_size;
-	if (a_ctrl->reg_tbl_size > MAX_ACTUATOR_REG_TBL_SIZE) {
+	if (set_info->actuator_params.reg_tbl_size <=
+		MAX_ACTUATOR_REG_TBL_SIZE) {
+		a_ctrl->reg_tbl_size = set_info->actuator_params.reg_tbl_size;
+	} else {
+		a_ctrl->reg_tbl_size = 0;
 		pr_err("%s: MAX_ACTUATOR_REG_TBL_SIZE is exceeded.\n",
 			__func__);
 		return -EFAULT;
@@ -751,7 +792,9 @@ static int32_t msm_actuator_init(struct msm_actuator_ctrl_t *a_ctrl,
 		return -EFAULT;
 	}
 
-	if (set_info->actuator_params.init_setting_size) {
+	if (set_info->actuator_params.init_setting_size &&
+		set_info->actuator_params.init_setting_size
+		<= MAX_ACTUATOR_REG_TBL_SIZE) {
 		if (a_ctrl->func_tbl->actuator_init_focus) {
 			init_settings = kmalloc(sizeof(struct reg_settings_t) *
 				(set_info->actuator_params.init_setting_size),

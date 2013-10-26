@@ -228,6 +228,69 @@ static int msm_csid_release(struct v4l2_subdev *sd)
 	iounmap(csid_dev->base);
 	csid_dev->base = NULL;
 	return 0;
+
+	if (copy_from_user(&cdata,
+		(void *)arg,
+		sizeof(struct csid_cfg_data))) {
+		pr_err("%s: %d failed\n", __func__, __LINE__);
+		return -EFAULT;
+	}
+	CDBG("%s cfgtype = %d\n", __func__, cdata.cfgtype);
+	switch (cdata.cfgtype) {
+	case CSID_INIT:
+		rc = msm_csid_init(csid_dev, &cdata.cfg.csid_version);
+		if (copy_to_user((void *)arg,
+			&cdata,
+			sizeof(struct csid_cfg_data))) {
+			pr_err("%s: %d failed\n", __func__, __LINE__);
+			rc = -EFAULT;
+		}
+		break;
+	case CSID_CFG: {
+		struct msm_camera_csid_params csid_params;
+		struct msm_camera_csid_vc_cfg *vc_cfg = NULL;
+		if (copy_from_user(&csid_params,
+			(void *)cdata.cfg.csid_params,
+			sizeof(struct msm_camera_csid_params))) {
+			pr_err("%s: %d failed\n", __func__, __LINE__);
+			rc = -EFAULT;
+			break;
+		}
+		if (csid_params.lut_params.num_cid < 1 ||
+			csid_params.lut_params.num_cid > 16) {
+			pr_err("%s: %d num_cid outside range\n",
+				__func__, __LINE__);
+			rc = -EINVAL;
+			break;
+		}
+		vc_cfg = kzalloc(csid_params.lut_params.num_cid *
+			sizeof(struct msm_camera_csid_vc_cfg),
+			GFP_KERNEL);
+		if (!vc_cfg) {
+			pr_err("%s: %d failed\n", __func__, __LINE__);
+			rc = -ENOMEM;
+			break;
+		}
+		if (copy_from_user(vc_cfg,
+			(void *)csid_params.lut_params.vc_cfg,
+			(csid_params.lut_params.num_cid *
+			sizeof(struct msm_camera_csid_vc_cfg)))) {
+			pr_err("%s: %d failed\n", __func__, __LINE__);
+			kfree(vc_cfg);
+			rc = -EFAULT;
+			break;
+		}
+		csid_params.lut_params.vc_cfg = vc_cfg;
+		rc = msm_csid_config(csid_dev, &csid_params);
+		kfree(vc_cfg);
+		break;
+	}
+	default:
+		pr_err("%s: %d failed\n", __func__, __LINE__);
+		rc = -ENOIOCTLCMD;
+		break;
+	}
+	return rc;
 }
 
 static long msm_csid_subdev_ioctl(struct v4l2_subdev *sd,

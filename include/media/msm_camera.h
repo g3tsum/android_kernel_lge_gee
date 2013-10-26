@@ -267,6 +267,19 @@ struct msm_mctl_post_proc_cmd
 #define PP_RAW_SNAP ((0x01)<<1)
 #define PP_PREV  ((0x01)<<2)
 #define PP_THUMB ((0x01)<<3)
+
+#define MAX_ACTUATOR_AF_TOTAL_STEPS 1024
+
+#define MSM_MAX_CAMERA_CONFIGS 2
+
+#define MSM_ACTUATOR_MOVE_SIGNED_FAR -1
+#define MSM_ACTUATOR_MOVE_SIGNED_NEAR  1
+
+#define PP_SNAP  BIT(0)
+#define PP_RAW_SNAP BIT(1)
+#define PP_PREV  BIT(2)
+#define PP_THUMB BIT(3)
+#define PP_RDI   BIT(4)
 #define PP_MASK		(PP_SNAP|PP_RAW_SNAP|PP_PREV|PP_THUMB)
 
 #define MSM_CAM_CTRL_CMD_DONE  0
