@@ -178,7 +178,7 @@ static int venc_vidc_callback_thread(void *data)
 			rc = msm_vidc_dqbuf(inst->vidc_context, &buffer);
 
 			if (rc) {
-				WFD_MSG_ERR("Error dequeuing buffer " \
+				WFD_MSG_ERR("Error dequeuing buffer" \
 						"from vidc: %d", rc);
 				goto abort_dequeue;
 			}
@@ -1010,8 +1010,7 @@ static long venc_flush_buffers(struct v4l2_subdev *sd, void *arg)
 	inst = (struct venc_inst *)sd->dev_priv;
 
 	enc_cmd.cmd = V4L2_ENC_QCOM_CMD_FLUSH;
-	enc_cmd.flags = V4L2_QCOM_CMD_FLUSH_OUTPUT |
-		V4L2_QCOM_CMD_FLUSH_CAPTURE;
+	enc_cmd.flags = BUF_TYPE_INPUT | BUF_TYPE_OUTPUT;
 	msm_vidc_encoder_cmd(inst->vidc_context, &enc_cmd);
 
 	wait_for_completion(&inst->cmd_complete);
@@ -1141,15 +1140,6 @@ long venc_munmap(struct v4l2_subdev *sd, void *arg)
 	return 0;
 }
 
-static long venc_set_framerate_mode(struct v4l2_subdev *sd,
-				void *arg)
-{
-	/* TODO: Unsupported for now, but return false success
-	 * to preserve binary compatibility for userspace apps
-	 * across targets */
-	return 0;
-}
-
 long venc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 {
 	long rc = 0;
@@ -1218,9 +1208,6 @@ long venc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 		break;
 	case ENC_MUNMAP:
 		rc = venc_munmap(sd, arg);
-		break;
-	case SET_FRAMERATE_MODE:
-		rc = venc_set_framerate_mode(sd, arg);
 		break;
 	default:
 		WFD_MSG_ERR("Unknown ioctl %d to enc-subdev\n", cmd);

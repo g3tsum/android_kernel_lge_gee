@@ -22,6 +22,8 @@
 #include "mipi_dsi.h"
 #include "mipi_lgit.h"
 
+#define LGIT_IEF
+
 static struct msm_panel_info pinfo;
 
 static struct mipi_dsi_phy_ctrl dsi_video_mode_phy_db = {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -26,6 +26,7 @@
 #define CCI_I2C_M0_SDA_CTL_2_ADDR                                   0x0000010c
 #define CCI_I2C_M0_READ_DATA_ADDR                                   0x00000118
 #define CCI_I2C_M0_MISC_CTL_ADDR                                    0x00000110
+#define CCI_I2C_M0_READ_BUF_LEVEL_ADDR                              0x0000011C
 #define CCI_HALT_REQ_ADDR                                           0x00000034
 #define CCI_M0_HALT_REQ_RMSK                                               0x1
 #define CCI_M1_HALT_REQ_RMSK                                              0x01

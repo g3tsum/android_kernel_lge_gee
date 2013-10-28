@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -92,6 +92,22 @@ void msm_camio_bus_scale_cfg(struct msm_bus_scale_pdata *cam_bus_scale_table,
 			rc = msm_bus_scale_client_update_request(
 				bus_perf_client, 5);
 			CDBG("%s: S_LIVESHOT rc = %d\n", __func__, rc);
+		} else
+			CDBG("%s: Bus Client NOT Registered!!!\n", __func__);
+		break;
+	case S_DUAL:
+		if (bus_perf_client) {
+			rc = msm_bus_scale_client_update_request(
+				bus_perf_client, 6);
+			CDBG("%s: S_DUAL rc = %d\n", __func__, rc);
+		} else
+			CDBG("%s: Bus Client NOT Registered!!!\n", __func__);
+		break;
+	case S_ADV_VIDEO:
+		if (bus_perf_client) {
+			rc = msm_bus_scale_client_update_request(
+				bus_perf_client, 7);
+			CDBG("%s: S_ADV_VIDEO rc = %d\n", __func__, rc);
 		} else
 			CDBG("%s: Bus Client NOT Registered!!!\n", __func__);
 		break;

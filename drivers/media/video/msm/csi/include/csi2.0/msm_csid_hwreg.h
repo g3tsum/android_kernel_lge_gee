@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -47,5 +47,6 @@
 #define CSID_RST_STB_ALL                            0x7FFF
 #define CSID_DL_INPUT_SEL_SHIFT                     0x2
 #define CSID_PHY_SEL_SHIFT                          0x17
+#define CSID_VERSION                                0x02000011
 
 #endif

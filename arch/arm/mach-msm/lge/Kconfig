@@ -44,4 +44,24 @@ config LGE_CRASH_HANDLER
 	help
 	  LGE Crash Handler
 
+config LGE_R63311_COLOR_ENGINE
+	bool "Interface to apply color engine"
+	default y
+	depends on MACH_LGE
+	help
+	  Interface to apply color engine
+
+config LGIT_COLOR_ENGINE_SWITCH
+	bool "Disable the color engine for camera"
+	default y
+	depends on MACH_LGE
+	help
+	  Enable the color engine on/off function for camera
+config LGE_R63311_BACKLIGHT_CABC 
+	bool "Interface to apply backlight cabc"
+	default y
+	depends on MACH_LGE
+	help
+	  Interface to apply backlight cabc
+
 endmenu

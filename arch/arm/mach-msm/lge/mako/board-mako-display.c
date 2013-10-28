@@ -101,6 +101,13 @@
 #define MSM_FB_OVERLAY1_WRITEBACK_SIZE (0)
 #endif  /* CONFIG_FB_MSM_OVERLAY1_WRITEBACK */
 
+#if defined(CONFIG_FB_MSM_MIPI_LGIT_VIDEO_WXGA_PT)
+#define LGIT_IEF
+#endif
+//LGE_UPDATE_S  hojin.ryu@lge.com 20120629 IEF Switch define for camera preview
+#define LGIT_IEF_SWITCH
+//LGE_UPDATE_S  hojin.ryu@lge.com 20120629
+
 static struct resource msm_fb_resources[] = {
 	{
 		.flags = IORESOURCE_DMA,
@@ -781,20 +788,24 @@ static char n_gamma_g_setting[10] = {0xD3, 0x40, 0x44, 0x76, 0x01, 0x00, 0x00, 0
 static char p_gamma_b_setting[10] = {0xD4, 0x20, 0x23, 0x74, 0x00, 0x1F, 0x10, 0x50, 0x33, 0x03};
 static char n_gamma_b_setting[10] = {0xD5, 0x20, 0x23, 0x74, 0x00, 0x1F, 0x10, 0x50, 0x33, 0x03};
 
-static char ief_on_set0[2] = {0xE0, 0x00};
-static char ief_on_set4[4] = {0xE4, 0x00, 0x00, 0x00};
-static char ief_on_set5[4] = {0xE5, 0x00, 0x00, 0x00};
-static char ief_on_set6[4] = {0xE6, 0x00, 0x00, 0x00};
+//LGE_UPDATE_S hojin.ryu@lge.com 20120629 
+#if defined(LGIT_IEF)
+static char ief_on_set0[2] = {0xE0, 0x07};
+static char ief_cabc_set[6] = {0xC8, 0x22, 0x22, 0x22, 0x33, 0x93};//MIE ON
+static char ief_on_set4[4] = {0xE4, 0x02, 0x82, 0x82};
+static char ief_on_set5[4] = {0xE5, 0x01, 0x82, 0x80};
+static char ief_on_set6[4] = {0xE6, 0x04, 0x00, 0x00};
+
+static char ief_off_set0[2] = {0xE0, 0x00};
+static char ief_off_set4[4] = {0xE4, 0x00, 0x00, 0x00};
+static char ief_off_set5[4] = {0xE5, 0x00, 0x00, 0x00};
+static char ief_off_set6[4] = {0xE6, 0x00, 0x00, 0x00};
 
 static char ief_set1[5] = {0xE1, 0x00, 0x00, 0x01, 0x01};
-static char ief_set2[3] = {0xE2, 0x01, 0x00};
-static char ief_set3[6] = {0xE3, 0x00, 0x00, 0x42, 0x35, 0x00};
-static char ief_set7[9] = {0xE7, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40};
-static char ief_set8[9] = {0xE8, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D};
-static char ief_set9[9] = {0xE9, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B};
-static char ief_setA[9] = {0xEA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-static char ief_setB[9] = {0xEB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-static char ief_setC[9] = {0xEC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static char ief_set2[3] = {0xE2, 0x01, 0x0F};
+static char ief_set3[6] = {0xE3, 0x00, 0x00, 0x31, 0x35, 0x00};
+#endif
+//LGE_UPDATE_E hojin.ryu@lge.com 20120629
 
 static char osc_setting[4] =     {0xC0, 0x00, 0x0A, 0x10};
 static char power_setting3[13] = {0xC3, 0x00, 0x88, 0x03, 0x20, 0x01, 0x57, 0x4F, 0x33,0x02,0x38,0x38,0x00};
@@ -844,20 +855,16 @@ static struct dsi_cmd_desc lgit_power_on_set_1[] = {
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(p_gamma_b_setting), p_gamma_b_setting},
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(n_gamma_b_setting), n_gamma_b_setting},
 
-	// IEF set
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set0), ief_on_set0},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_set1), ief_set1},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_set2), ief_set2},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_set3), ief_set3},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set4), ief_on_set4},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set5), ief_on_set5},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set6), ief_on_set6},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_set7), ief_set7},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_set8), ief_set8},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_set9), ief_set9},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_setA), ief_setA},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_setB), ief_setB},
-	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_setC), ief_setC},
+#if defined(LGIT_IEF)
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set0),ief_on_set0},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_set1),ief_set1},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_set2),ief_set2},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_set3),ief_set3},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_cabc_set),ief_cabc_set},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set4),ief_on_set4},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set5),ief_on_set5},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set6),ief_on_set6},
+#endif
 
 	// Power Supply Set
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(osc_setting), osc_setting},
@@ -899,15 +906,43 @@ static struct dsi_cmd_desc lgit_power_off_set_2[] = {
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 10, sizeof(deep_standby), deep_standby}
 };
 
+//LGE_UPDATE_S hojin.ryu@lge.com 20120629 IEF function On/Off sets are added for camera preview
+#ifdef LGIT_IEF_SWITCH
+static struct dsi_cmd_desc lgit_ief_off_set[] = {		
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_off_set6),ief_off_set6},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_off_set5),ief_off_set5},	
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_off_set4),ief_off_set4},
+#if defined(CONFIG_LGE_BACKLIGHT_CABC)
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(cabc_set4),cabc_set4},
+#endif
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_off_set0),ief_off_set0},
+};
+
+static struct dsi_cmd_desc lgit_ief_on_set[] = {
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set0),ief_on_set0},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_cabc_set),ief_cabc_set},		
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set4),ief_on_set4},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set5),ief_on_set5},
+	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(ief_on_set6),ief_on_set6},
+};
+#endif
+//LGE_UPDATE_E hojin.ryu@lge.com 20120629
+
 static struct msm_panel_common_pdata mipi_lgit_pdata = {
 	.backlight_level = mipi_lgit_backlight_level,
 	.power_on_set_1 = lgit_power_on_set_1,
 	.power_on_set_2 = lgit_power_on_set_2,
 	.power_on_set_3 = lgit_power_on_set_3,
 
+	.power_on_set_ief = lgit_ief_on_set,
+	.power_off_set_ief = lgit_ief_off_set,
+
 	.power_on_set_size_1 = ARRAY_SIZE(lgit_power_on_set_1),
 	.power_on_set_size_2 = ARRAY_SIZE(lgit_power_on_set_2),
 	.power_on_set_size_3 = ARRAY_SIZE(lgit_power_on_set_3),
+
+	.power_on_set_ief_size = ARRAY_SIZE(lgit_ief_on_set),
+	.power_off_set_ief_size = ARRAY_SIZE(lgit_ief_off_set),
 
 	.power_off_set_1 = lgit_power_off_set_1,
 	.power_off_set_2 = lgit_power_off_set_2,

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -242,8 +242,9 @@ error:
 
 static int __exit irqrouter_exit(struct platform_device *pdev)
 {
-	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-	struct irqrouter_ctrl_type *irqrouter_ctrl = v4l2_get_subdevdata(sd);
+	struct v4l2_subdev *subdev = dev_get_drvdata(&pdev->dev);
+	struct irqrouter_ctrl_type *irqrouter_ctrl =
+		v4l2_get_subdevdata(subdev);
 	kfree(irqrouter_ctrl);
 	return 0;
 }

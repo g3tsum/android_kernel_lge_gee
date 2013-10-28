@@ -110,11 +110,18 @@ void apq8064_init_cam(void);
 #define APQ_8064_GSBI4_QUP_I2C_BUS_ID 4
 #define APQ_8064_GSBI5_QUP_I2C_BUS_ID 5
 
+#if defined(CONFIG_MACH_LGE)
 /* Camera GPIO Settings */
 #define GPIO_CAM_MCLK0          (5)
 
+/* FIXME: for old HW (LGU Rev.A,B VZW Rev.A,B ATT Rev.A) */
+#if 1
 #define GPIO_CAM_MCLK2          (2)
 #define GPIO_CAM_FLASH_EN       (7)
+#else
+#define GPIO_CAM_MCLK1          (4)
+#define GPIO_CAM_FLASH_EN       (2)
+#endif
 
 #define GPIO_CAM_I2C_SDA        (12)
 #define GPIO_CAM_I2C_SCL        (13)
@@ -124,13 +131,13 @@ void apq8064_init_cam(void);
 #define GPIO_CAM_FLASH_I2C_SDA  (20)
 #define GPIO_CAM_FLASH_I2C_SCL  (21)
 
-#define I2C_SLAVE_ADDR_IMX111       	(0x0D)
-#define I2C_SLAVE_ADDR_IMX111_ACT   	(0x18)
-#define I2C_SLAVE_ADDR_SEKONIX_LENS_ACT	(0x18)
-#define I2C_SLAVE_ADDR_IMX091       	(0x0D)
-#define I2C_SLAVE_ADDR_IMX091_ACT   	(0x18)
-#define I2C_SLAVE_ADDR_IMX119       	(0x6E)
-#define I2C_SLAVE_ADDR_FLASH        	(0xA6 >> 1)
+#define I2C_SLAVE_ADDR_IMX111       (0x0D)
+#define I2C_SLAVE_ADDR_IMX111_ACT   (0x18)
+#define I2C_SLAVE_ADDR_IMX091       (0x0D)
+#define I2C_SLAVE_ADDR_IMX091_ACT   (0x18)
+#define I2C_SLAVE_ADDR_IMX119       (0x6E)
+#define I2C_SLAVE_ADDR_FLASH        (0xA6 >> 1)
+#endif //#if defined(CONFIG_MACH_LGE)
 
 unsigned char apq8064_hdmi_as_primary_selected(void);
 unsigned char apq8064_mhl_display_enabled(void);

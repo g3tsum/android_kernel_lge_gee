@@ -102,7 +102,7 @@
 #define MSM_CONTIG_MEM_SIZE  0x65000
 #ifdef CONFIG_MSM_IOMMU
 
-#define MSM_ION_MM_SIZE		0x3800000
+#define MSM_ION_MM_SIZE		0x5F00000 //came from g ics for stability issue org : 0x3800000
 #define MSM_ION_SF_SIZE		0
 #define MSM_ION_QSECOM_SIZE	0x780000 /* (7.5MB) */
 #define MSM_ION_HEAP_NUM	7
@@ -2031,7 +2031,13 @@ static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi3_pdata = {
 };
 
 static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi4_pdata = {
-	.clk_freq = 200000,
+#if defined(CONFIG_IMX111)
+	.clk_freq = 100000, // LGE_Update jonghwan.ko@lge.com [IMX111 is using 100Kh]
+#else
+	.clk_freq = 200000, // LGE_update jungryoul.choi@lge.com 0906 decrease i2c speed a bit from max. to avoid stability issue.
+			    // It cannot be set to 100KHz because the shutter lag will be increased.
+			    // LGE_update yt.jeoni@lge.com 0927 decrease i2c speed for stability (300->200)
+#endif	
 	.src_clk_rate = 24000000,
 };
 
@@ -2086,20 +2092,21 @@ static void __init register_i2c_devices(void)
 {
 #ifdef CONFIG_MSM_CAMERA
 	struct i2c_registry apq8064_camera_i2c_devices = {
-		I2C_FFA,
+		I2C_SURF | I2C_FFA | I2C_LIQUID | I2C_RUMI,
 		APQ_8064_GSBI4_QUP_I2C_BUS_ID,
 		apq8064_camera_board_info.board_info,
 		apq8064_camera_board_info.num_i2c_board_info,
 	};
-	/* Enabling flash LED for camera */
+/* [patch for Enabling flash LED for camera]
+  * 2012-03-14, jinsool.lee@lge.com
+  */
 	struct i2c_registry apq8064_lge_camera_i2c_devices = {
-		I2C_FFA,
+		I2C_SURF | I2C_FFA | I2C_RUMI | I2C_SIM | I2C_LIQUID | I2C_MPQ_CDP,
 		APQ_8064_GSBI1_QUP_I2C_BUS_ID,
 		apq8064_lge_camera_board_info.board_info,
 		apq8064_lge_camera_board_info.num_i2c_board_info,
 	};
 #endif
-
 
 #ifdef CONFIG_MSM_CAMERA
 	i2c_register_board_info(apq8064_camera_i2c_devices.bus,
